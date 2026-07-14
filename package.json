@@ -1,0 +1,16 @@
+{
+  "name": "studio-s",
+  "private": true,
+  "version": "0.3.5",
+  "type": "module",
+  "scripts": {
+    "tauri": "tauri",
+    "sync": "echo 'sync: authoring directly in src/'",
+    "sync:build": "npm run sync && npm run tauri build",
+    "dev": "npm run sync && npm run tauri dev",
+    "ship": "npm run sync && npm run tauri build && rm -rf \"$HOME/Applications/Studio S.app\" && cp -R 'src-tauri/target/release/bundle/macos/Studio S.app' \"$HOME/Applications/\" && cp -f \"$(ls -t src-tauri/target/release/bundle/dmg/*.dmg | head -1)\" \"$HOME/Desktop/Studio S Installer.dmg\" && echo '✅ Shipped to ~/Applications and updated Desktop installer'"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2"
+  }
+}

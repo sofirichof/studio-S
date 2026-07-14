@@ -1,0 +1,58 @@
+#!/bin/bash
+# Launcher for "AI Film Studio" — opens the bundled HTML in a chromeless
+# app window using a Chromium-based browser, with a dedicated profile so
+# the page's saved data (localStorage) persists across launches.
+
+set -u
+
+# Resolve the bundle's Resources directory relative to this script.
+HERE="$(cd "$(dirname "$0")" && pwd)"
+RES="$(cd "$HERE/../Resources" && pwd)"
+
+# --- Source of truth -------------------------------------------------------
+# The app loads LIVE from your working project file, so any edit you make to
+# it shows up the next time you launch the app. If that file is ever missing
+# (folder moved/renamed), it falls back to the copy bundled inside the app.
+SOURCE="$HOME/Claude/Projects/Rotation 4 social - USB/AI_Film_Studio.html"
+FALLBACK="$RES/AI_Film_Studio.html"
+
+if [ -f "$SOURCE" ]; then
+  HTML="$SOURCE"
+else
+  HTML="$FALLBACK"
+fi
+
+# Build a file:// URL with spaces percent-encoded (Chromium needs %20).
+ENC="${HTML// /%20}"
+URL="file://$ENC"
+
+# Dedicated, isolated profile dir -> stable origin -> persistent storage.
+PROFILE="$HOME/Library/Application Support/AI Film Studio/profile"
+mkdir -p "$PROFILE"
+
+# Preferred Chromium-family browsers, in order.
+CANDIDATES=(
+  "/Applications/Google Chrome.app"
+  "/Applications/Microsoft Edge.app"
+  "/Applications/Brave Browser.app"
+  "/Applications/Arc.app"
+  "/Applications/Chromium.app"
+)
+
+for app in "${CANDIDATES[@]}"; do
+  if [ -d "$app" ]; then
+    bin="$app/Contents/MacOS/$(basename "$app" .app)"
+    # Some bundles name the binary differently; fall back to `open`.
+    if [ -x "$bin" ]; then
+      exec "$bin" --app="$URL" \
+        --user-data-dir="$PROFILE" \
+        --no-first-run --no-default-browser-check \
+        --window-size=1280,840
+    else
+      exec open -na "$app" --args --app="$URL" --user-data-dir="$PROFILE"
+    fi
+  fi
+done
+
+# No Chromium browser found -> open in the default browser (normal window).
+exec open "$URL"

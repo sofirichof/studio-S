@@ -1,0 +1,164 @@
+// Shared navigation wiring for the Tauri build.
+// Uses event delegation so navigation survives the DC runtime re-rendering
+// the sidebar (per-node listeners would go stale on every re-render).
+(function () {
+  var MAP = {
+    'work': 'work.html',
+    'home': 'work.html',
+    'references': 'references.html',
+    'projects': 'projects.html',
+    // Finish (§9.3 ⑥) is the cross-project cuts & review surface. It replaces the
+    // old Palmier + Finishing nav rows; both keys route here, and the row text is
+    // relabeled to "Finish" in markCursors. Palmier itself stays reachable as a
+    // linked-out editor from inside Finish (not a nav item).
+    'finish': 'finish.html',
+    'palmier': 'finish.html',
+    'finishing': 'finish.html',
+    'workflow guide': 'workflow.html',
+    'ai setup': 'aisetup.html'
+  };
+
+  function go(url) { window.location.href = url; }
+
+  // Resolve a click to a nav destination, but ONLY when it lands inside an actual
+  // sidebar row (.nav-item). Earlier this walked the whole ancestor chain matching
+  // any nearby label text, which wrongly hijacked buttons like "New project" (it
+  // found the page's "Projects" heading and reloaded the page). Scoping to .nav-item
+  // keeps real nav working without swallowing content clicks.
+  function navTargetFor(el) {
+    var row = el.closest ? el.closest('.nav-item') : null;
+    if (!row) return null;
+    var spans = row.querySelectorAll('span');
+    for (var i = 0; i < spans.length; i++) {
+      var key = (spans[i].textContent || '').trim().toLowerCase();
+      if (MAP[key]) return MAP[key];
+    }
+    return null;
+  }
+
+  // Single delegated click handler — never goes stale.
+  document.addEventListener('click', function (e) {
+    // Onboarding "Finish setup" → main app.
+    var fin = e.target.closest && e.target.closest('#btn-next');
+    if (fin && (fin.textContent || '').trim().toLowerCase().indexOf('finish') !== -1) {
+      setTimeout(function () { go('work.html'); }, 0);
+      return;
+    }
+    var dest = navTargetFor(e.target);
+    if (dest) { e.preventDefault(); go(dest); }
+  }, true);
+
+  // OmniEdit was a non-functional mockup — removed. Hide any leftover nav rows
+  // for it centrally so we don't have to edit every page's sidebar markup.
+  // Generate (Prompt builder / Multi-shot) is demoted (§9.3): it is no longer a
+  // front-door destination but an action launched from a deliverable or asset,
+  // so its sidebar rows are hidden the same centralized way. The pages stay
+  // reachable via promptbuilder.html?deliverable=… / ?asset=… launch links.
+  // 'finishing' is folded into Finish (§9.3 ⑥): the Palmier row is relabeled to
+  // "Finish" (below), and any leftover "Finishing" row is hidden so pages that
+  // carried both don't end up with two Finish rows.
+  var REMOVED = { 'omniedit': 1, 'prompt builder': 1, 'multi-shot': 1, 'finishing': 1 };
+
+  // Make sidebar rows look clickable (cosmetic only; clicks work via delegation),
+  // and hide removed features.
+  function markCursors() {
+    var spans = document.querySelectorAll('span');
+    spans.forEach(function (s) {
+      var key = (s.textContent || '').trim().toLowerCase();
+      // Relabel the old Palmier sidebar row to the unified "Finish" surface
+      // (§9.3 ⑥) — every page has a Palmier nav row, so this is the single row
+      // that survives; the "Finishing" row (if any) is hidden via REMOVED below.
+      // Scoped to actual .nav-item rows so body copy mentioning Palmier is left
+      // alone. Idempotent — once relabeled the text is "Finish" and stays.
+      if (key === 'palmier' && s.closest && s.closest('.nav-item')) {
+        s.textContent = 'Finish';
+        key = 'finish';
+      }
+      if (REMOVED[key] && s.parentElement) { s.parentElement.style.display = 'none'; return; }
+      if (MAP[key] && s.parentElement) s.parentElement.style.cursor = 'pointer';
+    });
+  }
+
+  // Replace leftover hardcoded campaign names with the real active project.
+  function norm(s){ return (s||'').trim().toLowerCase().replace(/[‒-―]/g,'-'); }
+  var MOCK_NAMES = { 'us bank - rotation 4': 1, 'us bank — rotation 4': 1, 'us bank': 1, 'rotation 4 (cmc)': 1, 'us bank — super bowl lxi': 1, 'nike — air max 2026': 1 };
+  var MOCK_NORM = {}; Object.keys(MOCK_NAMES).forEach(function(k){ MOCK_NORM[norm(k)] = 1; });
+  function decorateProjectName() {
+    if (!window.Store) return;
+    var active = Store.getActive();
+    var name = active && active.project ? active.project.name : 'No project';
+    var nodes = document.querySelectorAll('span, option');
+    nodes.forEach(function (n) {
+      if (n.children && n.children.length) return; // leaf only
+      if (MOCK_NORM[norm(n.textContent)]) n.textContent = name;
+    });
+  }
+
+  // ── Sidebar project dropdown ──
+  // Every page except projects.html (which owns #project-select) gets its
+  // sidebar select managed here: populated from the Store, active project
+  // selected, and switching wired to setActive + reload. Pages missing the
+  // dropdown entirely (workflow, aisetup) get one inserted so the sidebar is
+  // identical everywhere.
+  var CARET = '<svg style="position:absolute;right:8px;top:50%;transform:translateY(-50%);pointer-events:none;" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#9A9AA8" stroke-width="1.5" stroke-linecap="round"><path d="M3 5l3 3 3-3"></path></svg>';
+  var SELECT_CSS = 'width:100%;height:32px;background:#F6F6F4;border:1px solid rgba(16,16,32,.08);border-radius:8px;padding:0 28px 0 10px;font-family:\'Host Grotesk\',system-ui,sans-serif;font-size:12px;color:#16161D;appearance:none;cursor:pointer;font-weight:500;';
+  function escHtml(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+  function initProjectSelect() {
+    if (!window.Store) return;
+    var sidebar = document.querySelector('div[style*="border-right"]');
+    if (!sidebar) return;
+    var scroll = sidebar.children[1];
+    if (!scroll) return;
+    var sel = scroll.querySelector('select');
+    if (sel && sel.id === 'project-select') return; // projects.html manages its own
+
+    if (!sel) {
+      var wrap = document.createElement('div');
+      wrap.style.cssText = 'padding:0 8px;margin-bottom:16px;';
+      wrap.innerHTML = '<div style="position:relative;"><select style="' + SELECT_CSS + '"></select>' + CARET + '</div>';
+      scroll.insertBefore(wrap, scroll.firstChild);
+      sel = wrap.querySelector('select');
+    }
+
+    var projects = Store.listProjects();
+    var active = Store.getActive();
+    var html = projects.length
+      ? projects.map(function (p) {
+          return '<option value="' + escHtml(p.id) + '"' + (p.id === active.projectId ? ' selected' : '') + '>' + escHtml(p.name) + '</option>';
+        }).join('')
+      : '<option value="">No project yet</option>';
+    // Only rewrite when stale (signature check — innerHTML re-serializes
+    // attributes so comparing it directly always looks different).
+    var sig = projects.map(function (p) { return p.id + ':' + p.name; }).join('|') + '@' + active.projectId;
+    if (sel.getAttribute('data-sg-sig') !== sig) {
+      sel.innerHTML = html;
+      sel.setAttribute('data-sg-sig', sig);
+    }
+    sel.style.cursor = 'pointer';
+    sel.onchange = function () {
+      if (sel.value) { Store.setActive({ projectId: sel.value }); window.location.reload(); }
+    };
+  }
+
+  function init() { markCursors(); decorateProjectName(); initProjectSelect(); }
+  if (document.readyState !== 'loading') init();
+  else document.addEventListener('DOMContentLoaded', init);
+  // Re-run cosmetics after the DC runtime re-renders (navigation itself is delegated).
+  var mo = new MutationObserver(function () {
+    // Guard against feedback loops from our own text edits. try/finally so a
+    // throw inside init() can't kill the observer for the rest of the session.
+    mo.disconnect();
+    try { init(); } catch (e) {}
+    finally { mo.observe(document.body, { childList: true, subtree: true }); }
+  });
+  // Attach immediately when the DOM is already parsed — waiting only for
+  // DOMContentLoaded misses pages where nav.js runs after it fired, leaving
+  // DC-runtime re-renders unobserved (e.g. the OmniEdit row reappearing and
+  // shifting the sidebar on some tabs).
+  function attachObserver() {
+    if (document.body) mo.observe(document.body, { childList: true, subtree: true });
+  }
+  if (document.readyState !== 'loading') attachObserver();
+  else document.addEventListener('DOMContentLoaded', attachObserver);
+})();

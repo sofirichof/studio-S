@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Host+Grotesk:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Host Grotesk', 'Inter', system-ui, sans-serif; background: #F6F6F4; overflow: hidden; }
+  .nav-item { transition: background 0.12s, color 0.12s; cursor: pointer; }
+  .nav-item:hover { background: #F0F1F4 !important; color: #16161D !important; }
+  .nav-item:hover svg { color: #16161D !important; }
+  .chip { transition: all 0.12s; cursor: pointer; }
+  .chip:hover { border-color: rgba(16,16,32,0.24) !important; }
+  .opt-card { transition: all 0.12s; cursor: pointer; }
+  .opt-card:hover { border-color: rgba(2,23,211,0.4) !important; }
+  .action-btn { transition: all 0.12s; }
+  .action-btn:hover { background: #F0F1F4 !important; border-color: rgba(16,16,32,0.20) !important; }
+  .primary-btn { transition: background 0.12s; }
+  .primary-btn:hover { background: #0212A8 !important; }
+  input:focus, textarea:focus, select:focus { outline: 3px solid rgba(2,23,211,0.2); outline-offset: 1px; border-color: #0217D3 !important; }
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(16,16,32,0.12); border-radius: 2px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes step-in { from { opacity:0.4; } to { opacity:1; } }
+</style>
+</helmet>
+
+<div style="display:flex; height:100vh; width:100vw; overflow:hidden;">
+
+  <!-- ── Left rail ── -->
+  <div style="width:248px; background:#fff; border-right:1px solid rgba(16,16,32,0.08); display:flex; flex-direction:column; flex-shrink:0;">
+    <div style="padding:16px 16px 12px; border-bottom:1px solid rgba(16,16,32,0.06);">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <img src="uploads/logo.png" alt="Studio S" style="width:28px; height:28px; border-radius:7px; flex-shrink:0;" />
+        <div>
+          <p style="font-size:13px; font-weight:500; color:#16161D; line-height:1.2;">Studio S</p>
+          <p style="font-size:11px; color:#9A9AA8; line-height:1.2;">Supergood</p>
+        </div>
+      </div>
+    </div>
+
+    <div style="flex:1; overflow-y:auto; padding:12px 8px;">
+      <div style="padding:0 8px; margin-bottom:16px;">
+        <div style="position:relative;">
+          <select style="width:100%; height:32px; background:#F6F6F4; border:1px solid rgba(16,16,32,0.08); border-radius:8px; padding:0 28px 0 10px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:12px; color:#16161D; appearance:none; cursor:pointer; font-weight:500;">
+            <option>US Bank — Rotation 4</option>
+            <option>US Bank — Super Bowl LXI</option>
+            <option>Nike — Air Max 2026</option>
+          </select>
+          <svg style="position:absolute; right:8px; top:50%; transform:translateY(-50%); pointer-events:none;" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#9A9AA8" stroke-width="1.5" stroke-linecap="round"><path d="M3 5l3 3 3-3"></path></svg>
+        </div>
+      </div>
+
+      <p style="font-size:12px; font-weight:500; color:#9A9AA8; padding:0 12px; margin-bottom:4px;">Create</p>
+      <div style="display:flex; align-items:center; gap:10px; padding:0 12px; height:36px; border-radius:8px; margin-bottom:2px; background:#EEF0FF; position:relative; cursor:pointer;">
+        <div style="position:absolute; left:0; top:8px; bottom:8px; width:2px; background:#0217D3; border-radius:0 2px 2px 0;"></div>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#0217D3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="5" height="5" rx="1"></rect><rect x="9" y="2" width="5" height="5" rx="1"></rect><rect x="2" y="9" width="5" height="5" rx="1"></rect><rect x="9" y="9" width="5" height="5" rx="1"></rect></svg>
+        <span style="font-size:14px; color:#0217D3;">Prompt builder</span>
+      </div>
+      <div class="nav-item" style="display:flex; align-items:center; gap:10px; padding:0 12px; height:36px; border-radius:8px; margin-bottom:2px; color:#5A5A6B;">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="6" height="10" rx="1"></rect><rect x="9" y="3" width="6" height="6" rx="1"></rect><rect x="9" y="11" width="6" height="2" rx="1"></rect></svg>
+        <span style="font-size:14px;">References</span>
+      </div>
+      <div class="nav-item" style="display:flex; align-items:center; gap:10px; padding:0 12px; height:36px; border-radius:8px; margin-bottom:2px; color:#5A5A6B;">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="2" width="5" height="12" rx="1"></rect><rect x="9" y="2" width="5" height="7" rx="1"></rect><rect x="9" y="11" width="5" height="3" rx="1"></rect></svg>
+        <span style="font-size:14px;">Multi-Shot</span>
+      </div>
+      <div class="nav-item" style="display:flex; align-items:center; gap:10px; padding:0 12px; height:36px; border-radius:8px; margin-bottom:2px; color:#5A5A6B;">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="6"></circle><path d="M5.5 8h5M8 5.5v5"></path></svg>
+        <span style="font-size:14px;">OmniEdit</span>
+        <span style="margin-left:auto; font-size:10px; font-weight:500; background:#0217D3; color:#fff; padding:1px 6px; border-radius:4px;">New</span>
+      </div>
+
+      <p style="font-size:12px; font-weight:500; color:#9A9AA8; padding:8px 12px 4px; margin-top:8px;">Manage</p>
+      <div class="nav-item" style="display:flex; align-items:center; gap:10px; padding:0 12px; height:36px; border-radius:8px; margin-bottom:2px; color:#5A5A6B;">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="12" height="10" rx="2"></rect><path d="M2 7h12"></path></svg>
+        <span style="font-size:14px;">Projects</span>
+      </div>
+
+      <p style="font-size:12px; font-weight:500; color:#9A9AA8; padding:8px 12px 4px; margin-top:8px;">Edit &amp; handoff</p>
+      <div class="nav-item" style="display:flex; align-items:center; gap:10px; padding:0 12px; height:36px; border-radius:8px; margin-bottom:2px; color:#5A5A6B;">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 8h10M3 4h10M3 12h6"></path></svg>
+        <span style="font-size:14px;">Palmier</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px; padding:0 12px; height:36px; border-radius:8px; margin-bottom:2px; opacity:0.4; cursor:default;">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#9A9AA8" stroke-width="1.5" stroke-linecap="round"><rect x="4" y="7" width="8" height="7" rx="1.5"></rect><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"></path></svg>
+        <span style="font-size:14px; color:#9A9AA8;">Finishing</span>
+      </div>
+
+      <p style="font-size:12px; font-weight:500; color:#9A9AA8; padding:8px 12px 4px; margin-top:8px;">Help</p>
+      <div class="nav-item" style="display:flex; align-items:center; gap:10px; padding:0 12px; height:36px; border-radius:8px; margin-bottom:2px; color:#5A5A6B;">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 4h12M2 8h8M2 12h5"></path></svg>
+        <span style="font-size:14px;">Workflow guide</span>
+      </div>
+      <div class="nav-item" style="display:flex; align-items:center; gap:10px; padding:0 12px; height:36px; border-radius:8px; margin-bottom:2px; color:#5A5A6B;">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="6"></circle><path d="M8 7.5V11M8 5.5v.5"></path></svg>
+        <span style="font-size:14px;">AI setup</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Main ── -->
+  <div style="flex:1; display:flex; flex-direction:column; overflow:hidden; min-width:0;">
+
+    <!-- Toolbar -->
+    <div style="background:#fff; border-bottom:1px solid rgba(16,16,32,0.08); padding:0 28px; flex-shrink:0;">
+      <div style="display:flex; align-items:center; justify-content:space-between; height:52px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size:12px; color:#9A9AA8;">Golden hour commute</span>
+          <span style="font-size:12px; color:rgba(16,16,32,0.2);">›</span>
+          <span style="font-size:14px; font-weight:500; color:#16161D;">Shot 2 — wide establishing</span>
+        </div>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <button class="action-btn" style="height:32px; padding:0 14px; background:#fff; border:1px solid rgba(16,16,32,0.12); border-radius:8px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:13px; font-weight:500; color:#16161D; cursor:pointer; display:flex; align-items:center; gap:6px;">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M7 1v9M3.5 6.5L7 10l3.5-3.5M2 12.5h10"></path></svg>
+            Save draft
+          </button>
+          <span style="font-size:11px; color:#9A9AA8; display:flex; align-items:center; gap:5px;">
+            <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round"><polyline points="2,5.5 4.5,8 9,3"></polyline></svg>
+            Saved
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Wizard header -->
+    <div style="background:#fff; border-bottom:1px solid rgba(16,16,32,0.06); padding:18px 28px 0; flex-shrink:0;">
+      <div style="display:flex; align-items:center; gap:0; margin-bottom:14px;" id="wizard-steps"></div>
+      <div style="height:3px; background:#ECEDF0; border-radius:999px; overflow:hidden;">
+        <div id="progress-bar" style="height:100%; background:#FF002E; border-radius:999px; transition:width 0.4s cubic-bezier(0.4,0,0.2,1); width:50%;"></div>
+      </div>
+    </div>
+
+    <!-- Body: content + right rail -->
+    <div style="flex:1; display:flex; overflow:hidden; min-width:0;">
+
+      <!-- Step content -->
+      <div style="flex:1; overflow-y:auto; padding:32px 28px; min-width:0;">
+        <div style="max-width:680px;">
+          <div id="step-mount"></div>
+        </div>
+      </div>
+
+      <!-- Right rail -->
+      <div style="width:300px; flex-shrink:0; border-left:1px solid rgba(16,16,32,0.08); background:#fff; overflow-y:auto; padding:24px 20px;">
+
+        <!-- Prompt strength -->
+        <p style="font-size:12px; font-weight:500; color:#16161D; margin-bottom:14px;">Prompt strength</p>
+        <div style="display:flex; align-items:baseline; gap:8px; margin-bottom:10px;">
+          <span id="strength-pct" style="font-size:28px; font-weight:500; color:#16161D; letter-spacing:-0.02em;">68%</span>
+          <span id="strength-label" style="font-size:12px; font-weight:500; color:#B8761A;">Good — add detail</span>
+        </div>
+        <div style="height:6px; background:#ECEDF0; border-radius:999px; overflow:hidden; margin-bottom:16px;">
+          <div id="strength-bar" style="height:100%; width:68%; background:#FF002E; border-radius:999px; transition:width 0.4s;"></div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:24px;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round"><circle cx="7" cy="7" r="6"></circle><polyline points="4.3,7 6.2,9 9.7,4.8"></polyline></svg>
+            <span style="font-size:12px; color:#5A5A6B;">Subject is specific</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round"><circle cx="7" cy="7" r="6"></circle><polyline points="4.3,7 6.2,9 9.7,4.8"></polyline></svg>
+            <span style="font-size:12px; color:#5A5A6B;">Lighting described</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#B8761A" stroke-width="1.5" stroke-linecap="round"><circle cx="7" cy="7" r="6"></circle><path d="M7 4.2v3.4M7 9.6v.3"></path></svg>
+            <span style="font-size:12px; color:#5A5A6B;">Add a camera lens</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#9A9AA8" stroke-width="1.5" stroke-linecap="round"><circle cx="7" cy="7" r="6"></circle><path d="M7 4.2v3.4M7 9.6v.3"></path></svg>
+            <span style="font-size:12px; color:#9A9AA8;">No negative prompt yet</span>
+          </div>
+        </div>
+
+        <!-- Live prompt preview -->
+        <div style="background:#F6F6F4; border:1px solid rgba(16,16,32,0.08); border-radius:10px; padding:14px; margin-bottom:24px;">
+          <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
+            <span style="font-size:11px; font-weight:500; color:#0217D3;">Stills</span>
+            <span style="font-size:10px; color:#9A9AA8;">text-to-image</span>
+          </div>
+          <p style="font-size:12px; color:#16161D; line-height:1.6; margin-bottom:12px;">A wide establishing shot of a city street at golden hour, commuters crossing, warm natural light, 24mm.</p>
+          <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
+            <span style="font-size:11px; font-weight:500; color:#0217D3;">Video</span>
+            <span style="font-size:10px; color:#9A9AA8;">image-to-video</span>
+          </div>
+          <p style="font-size:12px; color:#16161D; line-height:1.6;">Slow push-in, subtle parallax on foreground, gentle ambient traffic motion, 4s.</p>
+        </div>
+
+        <!-- To-do mirror -->
+        <div style="border-top:1px solid rgba(16,16,32,0.08); padding-top:18px;">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+            <p style="font-size:12px; font-weight:500; color:#16161D;">Project to-do</p>
+            <span style="font-size:11px; font-weight:500; color:#9A9AA8;">5 / 8</span>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:9px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <div style="width:14px; height:14px; border-radius:4px; background:#0217D3; display:flex; align-items:center; justify-content:center; flex-shrink:0;"><svg width="8" height="8" viewBox="0 0 10 10" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,5 4.5,7.5 8.5,2.5"></polyline></svg></div>
+              <span style="font-size:12px; color:#9A9AA8; text-decoration:line-through;">References uploaded</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <div style="width:14px; height:14px; border-radius:4px; border:1.5px solid #0217D3; flex-shrink:0;"></div>
+              <span style="font-size:12px; color:#0217D3; font-weight:500;">Build prompts — all shots</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <div style="width:14px; height:14px; border-radius:4px; border:1.5px solid rgba(16,16,32,0.16); flex-shrink:0;"></div>
+              <span style="font-size:12px; color:#5A5A6B;">Generate stills — Kling 3.0</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <div style="width:14px; height:14px; border-radius:4px; border:1.5px solid rgba(16,16,32,0.16); flex-shrink:0;"></div>
+              <span style="font-size:12px; color:#5A5A6B;">Review selects with client</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div style="background:#fff; border-top:1px solid rgba(16,16,32,0.08); padding:14px 28px; flex-shrink:0; display:flex; align-items:center; justify-content:space-between;">
+      <button id="btn-back" onclick="{{ goBack }}" style="height:36px; padding:0 16px; background:transparent; border:none; font-family:'Host Grotesk',system-ui,sans-serif; font-size:14px; font-weight:500; color:#5A5A6B; cursor:pointer; display:flex; align-items:center; gap:6px;">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2L4 7l5 5"></path></svg>
+        Back
+      </button>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span id="step-counter" style="font-size:12px; color:#9A9AA8;">Step 3 of 6</span>
+        <button id="btn-next" class="primary-btn" onclick="{{ goNext }}" style="height:36px; padding:0 20px; background:#0217D3; color:#fff; border:none; border-radius:8px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:14px; font-weight:500; cursor:pointer; display:flex; align-items:center; gap:6px;">
+          Continue
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 2l5 5-5 5"></path></svg>
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1440, &quot;height&quot;: 900}}">
+class Component extends DCLogic {
+  state = { step: 4, reviewStage: 'stills', stillModel: 'gpt', videoModel: 'kling', density: 'few', lookMode: 'dp', camMode: 'specific', dp: 'deakins', comp: 'mc', shot: 'wide', angle: 'eye', lens: '24', move: 'push', depth: 'shallow', framing: [], previewView: 'front', pinned: true };
+
+  compLabel(id) {
+    return { tl:'Top left', tc:'Top centre', tr:'Top right', ml:'Left third', mc:'Centre', mr:'Right third', bl:'Bottom left', bc:'Bottom centre', br:'Bottom right' }[id] || 'Centre';
+  }
+  compGrid() {
+    const ids = ['tl','tc','tr','ml','mc','mr','bl','bc','br'];
+    const sel = this.state.comp;
+    const cells = ids.map(id => {
+      const on = id === sel;
+      return '<button data-comp="' + id + '" style="aspect-ratio:16/9;border:none;border-right:1px solid rgba(16,16,32,0.08);border-bottom:1px solid rgba(16,16,32,0.08);background:' + (on ? '#EEF0FF' : '#fff') + ';cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;">' +
+        '<span style="width:10px;height:10px;border-radius:50%;background:' + (on ? '#0217D3' : 'rgba(16,16,32,0.12)') + ';"></span></button>';
+    }).join('');
+    return '<div style="display:flex;gap:14px;align-items:center;">' +
+      '<div style="width:172px;display:grid;grid-template-columns:repeat(3,1fr);border:1px solid rgba(16,16,32,0.12);border-radius:8px;overflow:hidden;background:#fff;">' + cells + '</div>' +
+      '<div><p style="font-size:13px;font-weight:500;color:#16161D;margin-bottom:2px;">' + this.compLabel(sel) + '</p>' +
+      '<p style="font-size:12px;color:#9A9AA8;line-height:1.5;">Where the subject sits in frame. Off-centre placements leave lead room on the opposite side.</p></div>' +
+      '</div>';
+  }
+  schips(name, opts) {
+    const sel = this.state[name];
+    return '<div style="display:flex;gap:8px;flex-wrap:wrap;">' +
+      opts.map(o => {
+        const on = o.val === sel;
+        return '<button data-sc="' + name + '" data-val="' + o.val + '" style="padding:8px 14px;border:1px solid ' + (on ? '#0217D3' : 'rgba(16,16,32,0.12)') + ';border-radius:8px;background:' + (on ? '#EEF0FF' : '#fff') + ';color:' + (on ? '#0217D3' : '#5A5A6B') + ';font-family:inherit;font-size:13px;font-weight:500;cursor:pointer;">' + o.label + '</button>';
+      }).join('') + '</div>';
+  }
+  sframing(opts) {
+    const set = this.state.framing || [];
+    return '<div style="display:flex;gap:8px;flex-wrap:wrap;">' +
+      opts.map(o => {
+        const on = set.indexOf(o.val) !== -1;
+        return '<button data-frm="' + o.val + '" style="padding:8px 14px;border:1px solid ' + (on ? '#0217D3' : 'rgba(16,16,32,0.12)') + ';border-radius:8px;background:' + (on ? '#EEF0FF' : '#fff') + ';color:' + (on ? '#0217D3' : '#5A5A6B') + ';font-family:inherit;font-size:13px;font-weight:500;cursor:pointer;">' + o.label + '</button>';
+      }).join('') + '</div>';
+  }
+  shotPreview() {
+    const s = this.state;
+    const W = 632, H = 250;
+    // subject placement → normalized cell center
+    const col = { l:0, c:1, r:2 }, row = { t:0, m:1, b:2 };
+    const cmap = { tl:['l','t'],tc:['c','t'],tr:['r','t'],ml:['l','m'],mc:['c','m'],mr:['r','m'],bl:['l','b'],bc:['c','b'],br:['r','b'] };
+    const cc = cmap[s.comp] || ['c','m'];
+    const cx = W * (0.2 + col[cc[0]] * 0.3);
+    // shot size → figure scale (fraction of frame height)
+    const scale = { wide:0.34, medium:0.56, close:0.92, extreme:1.5, aerial:0.18 }[s.shot] || 0.4;
+    const figH = H * scale;
+    // subject vertical centre from placement row
+    const centerYf = { t:0.34, m:0.52, b:0.70 }[cc[1]] || 0.52;
+    const footY = Math.min(H * centerYf + figH/2, H - 6);
+    const headY = footY - figH;
+    const r = Math.max(5, figH * 0.13);
+    const eyeY = headY + r;
+    // horizon follows the camera angle, anchored to the subject's eye line at eye level
+    let hy;
+    if (s.angle === 'low')       hy = Math.min(H - 4, footY + figH*0.18);
+    else if (s.angle === 'high') hy = Math.max(8, headY - figH*0.28);
+    else                          hy = eyeY;
+    hy = Math.max(8, Math.min(H - 8, hy));
+    const tilt = s.angle === 'dutch' ? 8 : 0;
+    const deep = s.depth !== 'shallow';
+    const bgOpacity = s.depth === 'shallow' ? 0.28 : 0.7;
+    const showMtn = s.shot !== 'close' && s.shot !== 'extreme';
+    // mountains
+    let mtn = '';
+    if (showMtn) {
+      mtn = '<g opacity="' + bgOpacity + '">' +
+        '<path d="M0 ' + hy + ' L' + (W*0.22) + ' ' + (hy - H*0.22) + ' L' + (W*0.44) + ' ' + hy + ' Z" fill="#9fb0d8"></path>' +
+        '<path d="M' + (W*0.3) + ' ' + hy + ' L' + (W*0.58) + ' ' + (hy - H*0.32) + ' L' + (W*0.86) + ' ' + hy + ' Z" fill="#7e93c8"></path>' +
+        '<path d="M' + (W*0.62) + ' ' + hy + ' L' + (W*0.85) + ' ' + (hy - H*0.2) + ' L' + W + ' ' + hy + ' Z" fill="#9fb0d8"></path>' +
+        '</g>';
+    }
+    // foreground layer (depth)
+    let fg = '';
+    if (deep) {
+      fg = '<path d="M0 ' + H + ' L0 ' + (H-26) + ' Q' + (W*0.25) + ' ' + (H-44) + ' ' + (W*0.5) + ' ' + (H-28) + ' T' + W + ' ' + (H-30) + ' L' + W + ' ' + H + ' Z" fill="#2a3658" opacity="0.9"></path>';
+    }
+    // frame-within-frame
+    let frm = '';
+    if ((s.framing||[]).indexOf('frame') !== -1) {
+      frm = '<rect x="18" y="14" width="' + (W-36) + '" height="' + (H-28) + '" rx="4" fill="none" stroke="#16161D" stroke-width="10" opacity="0.5"></rect>';
+    }
+    // leading lines
+    let lead = '';
+    if ((s.framing||[]).indexOf('lead') !== -1) {
+      lead = '<g stroke="#fff" stroke-width="1.5" opacity="0.5"><line x1="0" y1="' + H + '" x2="' + cx + '" y2="' + (headY+figH*0.5) + '"></line><line x1="' + W + '" y1="' + H + '" x2="' + cx + '" y2="' + (headY+figH*0.5) + '"></line></g>';
+    }
+    // thirds guides
+    const guides = '<g stroke="#fff" stroke-width="1" opacity="0.18" stroke-dasharray="4 4">' +
+      '<line x1="' + (W/3) + '" y1="0" x2="' + (W/3) + '" y2="' + H + '"></line>' +
+      '<line x1="' + (2*W/3) + '" y1="0" x2="' + (2*W/3) + '" y2="' + H + '"></line>' +
+      '<line x1="0" y1="' + (H/3) + '" x2="' + W + '" y2="' + (H/3) + '"></line>' +
+      '<line x1="0" y1="' + (2*H/3) + '" x2="' + W + '" y2="' + (2*H/3) + '"></line></g>';
+    // stickman
+    const lw = Math.max(2.5, figH*0.05);
+    const torsoY = headY + r*2;
+    const hipY = headY + figH*0.62;
+    const man = '<g stroke="#fff" stroke-width="' + lw + '" stroke-linecap="round" fill="none">' +
+      '<circle cx="' + cx + '" cy="' + (headY + r) + '" r="' + r + '" fill="#fff" stroke="none"></circle>' +
+      '<line x1="' + cx + '" y1="' + torsoY + '" x2="' + cx + '" y2="' + hipY + '"></line>' +
+      '<line x1="' + cx + '" y1="' + (torsoY + (hipY-torsoY)*0.25) + '" x2="' + (cx - figH*0.16) + '" y2="' + (torsoY + (hipY-torsoY)*0.55) + '"></line>' +
+      '<line x1="' + cx + '" y1="' + (torsoY + (hipY-torsoY)*0.25) + '" x2="' + (cx + figH*0.16) + '" y2="' + (torsoY + (hipY-torsoY)*0.55) + '"></line>' +
+      '<line x1="' + cx + '" y1="' + hipY + '" x2="' + (cx - figH*0.13) + '" y2="' + footY + '"></line>' +
+      '<line x1="' + cx + '" y1="' + hipY + '" x2="' + (cx + figH*0.13) + '" y2="' + footY + '"></line></g>';
+    // movement arrow
+    const moveLabel = { static:'', push:'Push in', pan:'Pan', tracking:'Track', handheld:'Handheld' }[s.move] || '';
+    let moveEl = '';
+    if (s.move === 'push') moveEl = '<g opacity="0.9"><circle cx="' + cx + '" cy="' + (H*0.5) + '" r="22" fill="none" stroke="#FF002E" stroke-width="2"></circle><path d="M' + (cx-7) + ' ' + (H*0.5-7) + ' L' + cx + ' ' + (H*0.5) + ' L' + (cx-7) + ' ' + (H*0.5+7) + '" fill="none" stroke="#FF002E" stroke-width="2"></path></g>';
+    else if (s.move === 'pan' || s.move === 'tracking') moveEl = '<g opacity="0.9"><line x1="' + (W*0.4) + '" y1="' + (H*0.5) + '" x2="' + (W*0.6) + '" y2="' + (H*0.5) + '" stroke="#FF002E" stroke-width="2"></line><path d="M' + (W*0.6-7) + ' ' + (H*0.5-6) + ' L' + (W*0.6) + ' ' + (H*0.5) + ' L' + (W*0.6-7) + ' ' + (H*0.5+6) + '" fill="none" stroke="#FF002E" stroke-width="2"></path></g>';
+    const lensTxt = s.lens + 'mm';
+    // ---- front view ----
+    const frontSvg = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="display:block;width:100%;height:auto;">' +
+        '<defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#27407a"></stop><stop offset="1" stop-color="#16213f"></stop></linearGradient></defs>' +
+        '<g transform="rotate(' + tilt + ' ' + (W/2) + ' ' + (H/2) + ')">' +
+          '<rect x="-40" y="-40" width="' + (W+80) + '" height="' + (H+80) + '" fill="url(#sky)"></rect>' +
+          '<rect x="-40" y="' + hy + '" width="' + (W+80) + '" height="' + (H+80) + '" fill="#1b2440"></rect>' +
+          mtn + fg + lead + man + frm +
+        '</g>' + guides + moveEl +
+      '</svg>';
+    // ---- top-down depth-of-field view ----
+    const camX = W/2, camY = H - 22, topY = 16;
+    const haDeg = { '16':46,'24':38,'35':30,'50':23,'85':15 }[s.lens] || 30;
+    const ha = haDeg * Math.PI / 180;
+    const distF = { wide:0.86, medium:0.6, close:0.36, extreme:0.22, aerial:0.8 }[s.shot] || 0.6;
+    const subjY = camY - distF * (camY - topY);
+    const coneTopHalf = Math.tan(ha) * (camY - topY);
+    const hwAt = (y) => Math.tan(ha) * (camY - y);
+    const depthBase = { shallow:0.07, layered:0.17, deep:0.34 }[s.depth] || 0.1;
+    const lensF = { '16':1.5,'24':1.25,'35':1,'50':0.78,'85':0.55 }[s.lens] || 1;
+    let dof = (camY - topY) * depthBase * lensF;
+    dof = Math.max(12, Math.min(dof, (camY - topY) * 0.8));
+    const yNear = Math.min(camY - 8, subjY + dof/2);
+    const yFar = Math.max(topY, subjY - dof/2);
+    const hwFar = hwAt(yFar), hwNear = hwAt(yNear), hwSubj = hwAt(subjY);
+    const topSvg = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="display:block;width:100%;height:auto;">' +
+        '<rect x="0" y="0" width="' + W + '" height="' + H + '" fill="#0e1430"></rect>' +
+        '<path d="M' + camX + ' ' + camY + ' L' + (camX-coneTopHalf) + ' ' + topY + ' L' + (camX+coneTopHalf) + ' ' + topY + ' Z" fill="#27407a" opacity="0.35"></path>' +
+        '<path d="M' + (camX-hwFar) + ' ' + yFar + ' L' + (camX+hwFar) + ' ' + yFar + ' L' + (camX+hwNear) + ' ' + yNear + ' L' + (camX-hwNear) + ' ' + yNear + ' Z" fill="#1D9E75" opacity="0.32"></path>' +
+        '<line x1="' + (camX-hwSubj) + '" y1="' + subjY + '" x2="' + (camX+hwSubj) + '" y2="' + subjY + '" stroke="#1D9E75" stroke-width="2"></line>' +
+        '<circle cx="' + camX + '" cy="' + subjY + '" r="6" fill="#fff"></circle>' +
+        '<path d="M' + (camX-9) + ' ' + (camY+5) + ' L' + (camX+9) + ' ' + (camY+5) + ' L' + camX + ' ' + (camY-9) + ' Z" fill="#FF002E"></path>' +
+        '<text x="' + camX + '" y="' + (camY+18) + '" fill="rgba(255,255,255,0.7)" font-size="10" text-anchor="middle" font-family="ui-monospace,monospace">camera</text>' +
+        '<text x="' + (camX+hwSubj+6) + '" y="' + (subjY+3) + '" fill="#fff" font-size="10" font-family="ui-monospace,monospace">subject</text>' +
+        '<text x="' + (camX+hwNear+6) + '" y="' + ((yNear+yFar)/2) + '" fill="#5fe0ab" font-size="10" font-family="ui-monospace,monospace">in focus</text>' +
+      '</svg>';
+    const isTop = s.previewView === 'top';
+    const pvBtn = (id, label) => { const on=(s.previewView||'front')===id; return '<button data-pv="' + id + '" style="height:26px;padding:0 10px;border:none;border-radius:6px;background:' + (on?'#fff':'transparent') + ';color:' + (on?'#16161D':'rgba(255,255,255,0.75)') + ';font-family:inherit;font-size:12px;font-weight:500;cursor:pointer;">' + label + '</button>'; };
+    const pinned = s.pinned;
+    return '<div style="' + (pinned?'position:sticky;top:0;z-index:5;':'position:relative;') + 'margin-bottom:24px;">' +
+      '<div style="position:relative;width:100%;background:#0e1430;border:1px solid rgba(16,16,32,0.12);border-radius:12px;overflow:hidden;' + (pinned?'box-shadow:0 8px 22px rgba(14,20,48,0.22);':'') + '">' +
+        (isTop ? topSvg : frontSvg) +
+        '<div style="position:absolute;top:8px;left:8px;right:8px;display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">' +
+          '<div style="display:flex;gap:6px;flex-wrap:wrap;">' +
+            '<span style="font-size:11px;font-weight:500;color:#fff;background:rgba(0,0,0,0.4);backdrop-filter:blur(6px);padding:3px 8px;border-radius:5px;">' + lensTxt + '</span>' +
+            (moveLabel && !isTop ? '<span style="font-size:11px;font-weight:500;color:#fff;background:rgba(255,0,46,0.85);padding:3px 8px;border-radius:5px;">' + moveLabel + '</span>' : '') +
+            (isTop ? '<span style="font-size:11px;font-weight:500;color:#fff;background:rgba(0,0,0,0.4);backdrop-filter:blur(6px);padding:3px 8px;border-radius:5px;">' + (haDeg*2) + '\u00b0 FOV</span>' : '') +
+          '</div>' +
+          '<div style="display:flex;align-items:center;gap:6px;">' +
+            '<div style="display:inline-flex;gap:2px;background:rgba(0,0,0,0.4);backdrop-filter:blur(6px);border-radius:7px;padding:2px;">' + pvBtn('front','Front') + pvBtn('top','Depth') + '</div>' +
+            '<button data-pin="1" title="Pin preview while scrolling" style="width:30px;height:30px;border:none;border-radius:7px;background:' + (pinned?'#0217D3':'rgba(0,0,0,0.4)') + ';backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;">' +
+              '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 2h6l-1 5 3 3H3l3-3z"></path><line x1="8" y1="10" x2="8" y2="14"></line></svg>' +
+            '</button>' +
+          '</div>' +
+        '</div>' +
+        '<div style="position:absolute;bottom:8px;right:12px;"><span style="font-size:10px;color:rgba(255,255,255,0.5);">' + (isTop?'depth of field \u2014 top-down':'live shot preview \u2014 schematic') + '</span></div>' +
+      '</div>' +
+    '</div>';
+  }
+
+  dpTraits() {
+    return [
+      { id:'deakins', label:'Roger Deakins', note:'motivated naturalistic light, single soft key, deep restrained shadows, muted earthy palette, classical balanced composition.' },
+      { id:'lubezki', label:'Emmanuel Lubezki', note:'natural and available light only, wide lenses, roaming long takes, magic-hour glow, immersive close framing.' },
+      { id:'hoytema', label:'Hoyte van Hoytema', note:'large-format clarity, cool blue-grey palette, hard practical sources, atmospheric haze, IMAX-scale negative space.' },
+      { id:'fraser', label:'Greig Fraser', note:'soft directional key, desaturated warmth, gentle halation, in-camera realism, intimate yet epic framing.' },
+      { id:'young', label:'Bradford Young', note:'low-key underexposed shadows, rich skin tones on darker complexions, amber practicals, painterly negative fill.' },
+      { id:'khondji', label:'Darius Khondji', note:'high-contrast chiaroscuro, sodium-vapour ambers and sickly greens, deep blacks, textured grain, noir framing.' },
+      { id:'morrison', label:'Rachel Morrison', note:'warm naturalism, honest soft daylight, lived-in colour, handheld intimacy, documentary-true skin tones.' },
+      { id:'pfister', label:'Wally Pfister', note:'crisp anamorphic contrast, cool steel highlights, hard key light, clean architectural symmetry.' },
+      { id:'anderson', label:'Wes Anderson', note:'flat frontal symmetry, centred subjects, pastel storybook palette, even soft light, planimetric staging.' },
+      { id:'villeneuve', label:'Denis Villeneuve', note:'monolithic scale, monochrome tonal fields, fog and silhouette, minimal palette, brutalist symmetry.' },
+    ];
+  }
+
+  componentDidMount() {
+    this.render();
+  }
+
+  stillProfiles() {
+    return [
+      { id:'gpt', label:'GPT Image', tag:'text-to-image',
+        prompt:'A photorealistic wide establishing shot of commuters and pedestrians crossing a modern downtown intersection at golden hour. Warm natural side-light, long shadows, glass storefronts. 24mm wide lens, eye level. Optimistic, lived-in city energy. Output 3:2.',
+        rule:'Conversational full sentences; \u201cphotorealistic\u201d stated plainly. Generates 3:2 \u2014 Studio S queues an upscale to 16:9 automatically.' },
+      { id:'nano', label:'Nano Banana Pro', tag:'text-to-image',
+        prompt:'Image: photograph. Content: a wide establishing shot of commuters crossing a downtown intersection, glass storefronts, painted crosswalk. Style: warm golden-hour cinematography, 24mm, eye level, natural side-light, optimistic mood. 16:9, 4K.',
+        rule:'Reasoning model \u2014 written as an Image / Content / Style brief, not keywords. Native 16:9 at 4K; reference frames attached for character consistency.' },
+      { id:'seedream', label:'Seedream 4.5', tag:'text-to-image',
+        prompt:'Wide establishing shot, downtown intersection at golden hour, commuters crossing, warm natural light, 24mm, eye level. Ultra-sharp 4K, accurate materials \u2014 glass, asphalt, fabric. References: brand look-frames 1\u20133.',
+        rule:'Leans on 4K material fidelity and multi-reference composition (up to ~10 frames) to lock the brand look.' },
+      { id:'flux', label:'FLUX.2', tag:'text-to-image',
+        prompt:'wide establishing photograph, downtown intersection, golden hour, commuters crossing, warm natural light, 24mm lens, eye level, photorealistic, natural skin and texture',
+        rule:'Concise photoreal phrasing; sharpness keywords held back on purpose \u2014 FLUX tends to over-crisp.' },
+      { id:'mj', label:'Midjourney v7', tag:'text-to-image',
+        prompt:'wide establishing shot, downtown intersection at golden hour, commuters crossing, warm natural light, Kodak Portra 400 --ar 16:9 --style raw --stylize 250 --v 7',
+        rule:'Film-stock color science (Portra) plus --ar / --style raw / --stylize flags. Expect aesthetic interpretation over literal accuracy.' },
+    ];
+  }
+
+  videoProfiles() {
+    return [
+      { id:'kling', label:'Kling 3.0', tag:'image-to-video',
+        prompt:'Slow push-in. Subject: commuters crossing the intersection at a natural pace. Scene: downtown at golden hour, warm light holds. Subtle foreground parallax, gentle background traffic. Camera: smooth dolly-in, eye level. Preserve the source framing and signage.',
+        rule:'Camera instruction first; the still is an anchor. Kling spends its budget on subject + camera motion, so environmental events are kept minimal.' },
+      { id:'seedance', label:'Seedance', tag:'image-to-video',
+        prompt:'Commuters cross the intersection at an easy pace. Camera: slow, smooth push-in, then a subtle rise. Warm golden-hour grade, ultra-sharp 4K detail. Gentle, calm rhythm throughout.',
+        rule:'Rhythmic language (\u201cslow, smooth, gentle\u201d) instead of lens specs; one primary camera move, secondary move described after.' },
+      { id:'runway', label:'Runway Gen-4', tag:'image-to-video',
+        prompt:'Slow push-in on commuters crossing at golden hour. Subtle parallax, consistent warm lighting, stable camera motion, no distortion. 4-second clip.',
+        rule:'Concise motion brief; \u201cstable / consistent / no distortion\u201d emphasised to avoid drift.' },
+      { id:'sora', label:'Sora', tag:'image-to-video',
+        prompt:'A four-second shot: commuters cross a downtown intersection in warm golden-hour light as the camera eases slowly inward. Natural movement, cinematic, continuous take.',
+        rule:'Described as a short filmed scene \u2014 narrative phrasing over parameters.' },
+    ];
+  }
+
+  steps() {
+    return ['Subject', 'Environment', 'Look', 'Camera', 'Output', 'Review'];
+  }
+
+  dpPresets() {
+    return {
+      deakins:    { comp:'mc', body:'ARRI Alexa 35', framing:[],                              depth:'shallow' },
+      lubezki:    { comp:'mc', body:'ARRI Alexa 35', framing:['Leading lines'],               depth:'deep' },
+      hoytema:    { comp:'mc', body:'Anamorphic',    framing:['Negative space'],              depth:'deep' },
+      fraser:     { comp:'mc', body:'Sony Venice 2', framing:[],                              depth:'shallow' },
+      young:      { comp:'ml', body:'ARRI Alexa 35', framing:['Negative space'],              depth:'shallow' },
+      khondji:    { comp:'mc', body:'35mm film',     framing:[],                              depth:'shallow' },
+      morrison:   { comp:'mc', body:'35mm film',     framing:[],                              depth:'shallow' },
+      pfister:    { comp:'mc', body:'Anamorphic',    framing:['Symmetrical'],                 depth:'deep' },
+      anderson:   { comp:'mc', body:'35mm film',     framing:['Symmetrical'],                 depth:'deep' },
+      villeneuve: { comp:'mc', body:'Anamorphic',    framing:['Symmetrical','Negative space'],depth:'deep' },
+    };
+  }
+  activePreset() {
+    return this.state.lookMode === 'dp' ? this.dpPresets()[this.state.dp] : null;
+  }
+
+  render() {
+    const cur = this.state.step;
+    const labels = this.steps();
+    // header
+    const hdr = document.getElementById('wizard-steps');
+    if (hdr) {
+      hdr.innerHTML = labels.map((label, i) => {
+        const num = i + 1;
+        const done = cur > num, active = cur === num;
+        const isLast = i === labels.length - 1;
+        const bg = done || active ? '#0217D3' : '#ECEDF0';
+        const inner = done
+          ? '<svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,6 5,9 10,3"></polyline></svg>'
+          : '<span style="font-size:10px;font-weight:500;color:' + (active ? '#fff' : '#9A9AA8') + ';">' + num + '</span>';
+        const col = active ? '#16161D' : done ? '#0217D3' : '#9A9AA8';
+        const conn = done ? '#0217D3' : '#ECEDF0';
+        return '<div style="display:flex;align-items:center;gap:8px;' + (isLast ? '' : 'flex:1;') + '">' +
+          '<div style="width:22px;height:22px;border-radius:50%;background:' + bg + ';display:flex;align-items:center;justify-content:center;flex-shrink:0;">' + inner + '</div>' +
+          '<span style="font-size:13px;font-weight:' + (active ? '500' : '400') + ';color:' + col + ';white-space:nowrap;">' + label + '</span>' +
+          (isLast ? '' : '<div style="flex:1;height:1px;background:' + conn + ';margin:0 8px;"></div>') +
+          '</div>';
+      }).join('');
+    }
+    // progress + counter
+    const bar = document.getElementById('progress-bar');
+    if (bar) bar.style.width = Math.round((cur / 6) * 100) + '%';
+    const counter = document.getElementById('step-counter');
+    if (counter) counter.textContent = 'Step ' + cur + ' of 6';
+    const back = document.getElementById('btn-back');
+    if (back) back.style.visibility = cur <= 1 ? 'hidden' : 'visible';
+    const next = document.getElementById('btn-next');
+    if (next) next.firstChild.textContent = cur === 6 ? 'Generate stills' : 'Continue';
+    // content
+    const mount = document.getElementById('step-mount');
+    if (mount) {
+      mount.innerHTML = this.content(cur);
+      mount.style.opacity = '1';
+      this.bindChips();
+      this.bindReviewTabs();
+      this.bindControls();
+    }
+  }
+
+  bindControls() {
+    document.querySelectorAll('[data-density]').forEach(b => {
+      b.onclick = () => { this.setState({ density: b.getAttribute('data-density') }); this.render(); };
+    });
+    document.querySelectorAll('[data-dp]').forEach(b => {
+      b.onclick = () => {
+        const id = b.getAttribute('data-dp');
+        const p = this.dpPresets()[id];
+        const patch = { dp: id };
+        if (p) { patch.comp = p.comp; patch.camMode = 'specific'; patch.framing = p.framing.slice(); patch.depth = p.depth; }
+        this.setState(patch); this.render();
+      };
+    });
+    document.querySelectorAll('[data-comp]').forEach(b => {
+      b.onclick = () => { this.setState({ comp: b.getAttribute('data-comp') }); this.render(); };
+    });
+    document.querySelectorAll('[data-sc]').forEach(b => {
+      b.onclick = () => { const p = {}; p[b.getAttribute('data-sc')] = b.getAttribute('data-val'); this.setState(p); this.render(); };
+    });
+    document.querySelectorAll('[data-frm]').forEach(b => {
+      b.onclick = () => {
+        const v = b.getAttribute('data-frm');
+        const set = (this.state.framing || []).slice();
+        const i = set.indexOf(v);
+        if (i === -1) set.push(v); else set.splice(i, 1);
+        this.setState({ framing: set }); this.render();
+      };
+    });
+    document.querySelectorAll('[data-pv]').forEach(b => {
+      b.onclick = () => { this.setState({ previewView: b.getAttribute('data-pv') }); this.render(); };
+    });
+    document.querySelectorAll('[data-pin]').forEach(b => {
+      b.onclick = () => { this.setState({ pinned: !this.state.pinned }); this.render(); };
+    });
+    document.querySelectorAll('[data-seg]').forEach(b => {
+      b.onclick = () => {
+        const name = b.getAttribute('data-seg'), val = b.getAttribute('data-val');
+        const patch = {}; patch[name] = val;
+        if (name === 'lookMode' && val === 'feel') patch.camMode = 'auto';
+        if (name === 'lookMode' && val === 'dp') { const p = this.dpPresets()[this.state.dp]; if (p) { patch.comp = p.comp; patch.camMode = 'specific'; patch.framing = p.framing.slice(); patch.depth = p.depth; } }
+        this.setState(patch); this.render();
+      };
+    });
+  }
+
+  bindReviewTabs() {
+    document.querySelectorAll('[data-stage]').forEach(b => {
+      b.onclick = () => { this.setState({ reviewStage: b.getAttribute('data-stage') }); this.render(); };
+    });
+    document.querySelectorAll('[data-model]').forEach(b => {
+      b.onclick = () => {
+        const id = b.getAttribute('data-model');
+        if (this.state.reviewStage === 'stills') this.setState({ stillModel: id });
+        else this.setState({ videoModel: id });
+        this.render();
+      };
+    });
+  }
+
+  bindChips() {
+    document.querySelectorAll('.chip-group').forEach(group => {
+      const multi = group.getAttribute('data-multi') === '1';
+      group.querySelectorAll('.chip').forEach(chip => {
+        chip.onclick = () => {
+          const on = chip.getAttribute('data-on') === '1';
+          if (!multi) group.querySelectorAll('.chip').forEach(c => this.setChip(c, false));
+          this.setChip(chip, multi ? !on : true);
+        };
+      });
+    });
+  }
+
+  setChip(chip, on) {
+    chip.setAttribute('data-on', on ? '1' : '0');
+    chip.style.background = on ? '#EEF0FF' : '#fff';
+    chip.style.borderColor = on ? '#0217D3' : 'rgba(16,16,32,0.12)';
+    chip.style.color = on ? '#0217D3' : '#5A5A6B';
+  }
+
+  eyebrow(t) {
+    return '<p style="font-size:12px;font-weight:500;color:#9A9AA8;margin-bottom:8px;letter-spacing:0.02em;">' + t + '</p>';
+  }
+  head(t, s) {
+    return '<h2 style="font-size:22px;font-weight:500;color:#16161D;margin-bottom:6px;letter-spacing:-0.01em;">' + t + '</h2>' +
+      '<p style="font-size:14px;color:#5A5A6B;margin-bottom:28px;line-height:1.6;">' + s + '</p>';
+  }
+  field(label, control, hint) {
+    return '<div style="margin-bottom:24px;">' +
+      '<label style="font-size:12px;font-weight:500;color:#16161D;display:block;margin-bottom:8px;">' + label + '</label>' +
+      control +
+      (hint ? '<p style="font-size:12px;color:#9A9AA8;margin-top:8px;">' + hint + '</p>' : '') +
+      '</div>';
+  }
+  chips(name, opts, multi) {
+    return '<div class="chip-group" data-multi="' + (multi ? 1 : 0) + '" style="display:flex;gap:8px;flex-wrap:wrap;">' +
+      opts.map(o => {
+        const on = !!o.on;
+        return '<span class="chip" data-on="' + (on ? 1 : 0) + '" style="padding:8px 14px;border:1px solid ' + (on ? '#0217D3' : 'rgba(16,16,32,0.12)') + ';border-radius:8px;font-size:13px;background:' + (on ? '#EEF0FF' : '#fff') + ';color:' + (on ? '#0217D3' : '#5A5A6B') + ';">' + o.label + '</span>';
+      }).join('') + '</div>';
+  }
+  textarea(val) {
+    return '<textarea style="width:100%;height:88px;background:#fff;border:1px solid rgba(16,16,32,0.12);border-radius:10px;padding:10px 12px;font-family:\'Host Grotesk\',system-ui,sans-serif;font-size:14px;color:#16161D;resize:vertical;line-height:1.6;outline:none;">' + val + '</textarea>';
+  }
+  seg(name, opts, active) {
+    return '<div style="display:inline-flex;gap:3px;background:#F0F1F4;border-radius:8px;padding:3px;">' +
+      opts.map(o => {
+        const on = o.val === active;
+        return '<button data-seg="' + name + '" data-val="' + o.val + '" style="height:30px;padding:0 14px;border:none;border-radius:6px;background:' + (on ? '#fff' : 'transparent') + ';box-shadow:' + (on ? '0 1px 2px rgba(16,16,32,0.08)' : 'none') + ';font-family:inherit;font-size:13px;font-weight:500;color:' + (on ? '#16161D' : '#9A9AA8') + ';cursor:pointer;">' + o.label + '</button>';
+      }).join('') + '</div>';
+  }
+  attachRef(text) {
+    return '<div class="opt-card" style="display:flex;align-items:center;gap:12px;border:1px dashed rgba(16,16,32,0.16);border-radius:10px;padding:12px 14px;background:#F6F6F4;cursor:pointer;"><div style="width:30px;height:30px;border-radius:7px;background:#fff;border:1px solid rgba(16,16,32,0.08);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#9A9AA8" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="3" width="12" height="10" rx="2"></rect><circle cx="6" cy="7" r="1.3"></circle><path d="M3 12l3.5-3 2.5 2 2-1.5 2 2"></path></svg></div><div><p style="font-size:13px;font-weight:500;color:#5A5A6B;">' + text + '</p><p style="font-size:12px;color:#9A9AA8;">Pick from References, or drop a new image.</p></div></div>';
+  }
+
+  content(step) {
+    if (step === 1) {
+      const d = this.state.density;
+      const dBtn = (val, label) => {
+        const on = d === val;
+        return '<button data-density="' + val + '" style="padding:8px 14px;border:1px solid ' + (on ? '#0217D3' : 'rgba(16,16,32,0.12)') + ';border-radius:8px;background:' + (on ? '#EEF0FF' : '#fff') + ';color:' + (on ? '#0217D3' : '#5A5A6B') + ';font-family:inherit;font-size:13px;font-weight:500;cursor:pointer;">' + label + '</button>';
+      };
+      const densityRow = '<div style="display:flex;gap:8px;flex-wrap:wrap;">' + dBtn('single','Single subject') + dBtn('few','A few') + dBtn('crowd','Crowd') + '</div>';
+      let crowdPanel = '';
+      if (d === 'crowd') {
+        crowdPanel =
+          '<div style="background:#fff;border:1px solid rgba(2,23,211,0.16);border-radius:12px;padding:18px;margin-top:8px;">' +
+            '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">' +
+              '<svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#0217D3" stroke-width="1.5" stroke-linecap="round"><circle cx="5.5" cy="6" r="2"></circle><circle cx="10.5" cy="6" r="2"></circle><path d="M2 13c0-2 1.5-3 3.5-3s3.5 1 3.5 3M9 13c0-2 1.5-3 3.5-3"></path></svg>' +
+              '<p style="font-size:13px;font-weight:500;color:#16161D;">Crowd makeup</p>' +
+            '</div>' +
+            '<p style="font-size:12px;color:#9A9AA8;margin-bottom:16px;line-height:1.5;">Casting guidance for representation. These steer the generation toward your brief\u2019s diversity goals \u2014 leave on \u201cRepresentative mix\u201d to mirror real local demographics.</p>' +
+            this.field('Ethnicity mix', this.chips('ethnicity', [{label:'Representative mix', on:true},{label:'Reflect local demographics'},{label:'South Asian'},{label:'East Asian'},{label:'Black'},{label:'Latino / Hispanic'},{label:'White'},{label:'Middle Eastern'},{label:'Multiracial'}], true), '') +
+            this.field('Gender mix', this.chips('gendermix', [{label:'Balanced', on:true},{label:'More women'},{label:'More men'},{label:'Non-binary inclusive'}], true), '') +
+            this.field('Age range', this.chips('agerange', [{label:'Children'},{label:'Teens'},{label:'20s\u201330s', on:true},{label:'40s\u201350s', on:true},{label:'60s+'}], true), '') +
+            this.field('Socioeconomic', this.chips('socio', [{label:'Mixed', on:true},{label:'Affluent'},{label:'Working professional'},{label:'Students'},{label:'Blue-collar'}], true), '').replace(';margin-bottom:24px;', ';margin-bottom:0;') +
+          '</div>';
+      }
+      return this.eyebrow('Prompt · Subject') +
+        this.head('What\u2019s in the shot?', 'Describe the main subject. Be specific \u2014 who or what, how many, and what they\u2019re doing.') +
+        this.field('Subject description', this.textarea('Commuters and pedestrians crossing a downtown intersection on their way to work.'), 'The clearer the subject, the more consistent your stills.') +
+        this.field('Subject type', this.chips('type', [{label:'People', on:true},{label:'Product'},{label:'Architecture'},{label:'Landscape'},{label:'Vehicle'},{label:'Abstract'}]), '') +
+        this.field('Density', densityRow + crowdPanel, '') +
+        this.field('Character reference &nbsp;<span style="font-weight:400;color:#9A9AA8;">optional</span>', this.attachRef('Lock a recurring face or wardrobe'), 'Attached refs are sent to models that support identity consistency \u2014 Nano Banana Pro, Seedream, Kling.');
+    }
+    if (step === 2) {
+      return this.eyebrow('Prompt · Environment') +
+        this.head('Set the scene', 'Where and when does this take place? Environment and light shape the whole frame.') +
+        this.field('Location', this.textarea('A modern downtown city intersection, glass storefronts, wide sidewalks.'), '') +
+        this.field('Time of day', this.chips('tod', [{label:'Dawn'},{label:'Golden hour', on:true},{label:'Midday'},{label:'Dusk'},{label:'Night'}]), '') +
+        this.field('Lighting', this.chips('light', [{label:'Natural', on:true},{label:'Soft / diffused'},{label:'Hard / direct'},{label:'Practical'},{label:'Studio'}], true), 'Pick all that apply.');
+    }
+    if (step === 4) {
+      const cm = this.state.camMode;
+      const preset = this.activePreset();
+      const dpLabel = preset ? (this.dpTraits().find(t => t.id === this.state.dp) || {}).label : null;
+      const bodyOpts = ['ARRI Alexa 35','RED V-Raptor','Sony Venice 2','35mm film','16mm film','Anamorphic'];
+      const presetBody = preset ? preset.body : 'ARRI Alexa 35';
+      let cameraField;
+      if (cm === 'auto') {
+        cameraField = this.chips('campick', [{label:'Filmic', on:true},{label:'Crisp digital'},{label:'Vintage'},{label:'Documentary'},{label:'Anamorphic widescreen'}]) +
+          '<p style="font-size:12px;color:#9A9AA8;margin-top:8px;">Pick a feel \u2014 Studio S maps it to the right camera, stock and lens characteristics for you.</p>';
+      } else {
+        cameraField = this.chips('cambody', bodyOpts.map(b => ({label:b, on: b === presetBody}))) +
+          '<p style="font-size:12px;color:#9A9AA8;margin-top:8px;">Body &amp; format drive sensor look, grain and depth rendering in the prompt.</p>';
+      }
+      const banner = preset ?
+        '<div style="display:flex;gap:9px;align-items:flex-start;background:#EEF0FF;border:1px solid rgba(2,23,211,0.12);border-radius:10px;padding:12px 14px;margin-bottom:20px;">' +
+          '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#0217D3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px;"><path d="M8 1.6l1.7 4 4.3.3-3.3 2.7 1.1 4.2L8 10.6 4.2 12.8l1.1-4.2L2 5.9l4.3-.3z"></path></svg>' +
+          '<p style="font-size:12px;color:#5A5A6B;line-height:1.55;"><strong style="color:#16161D;">Preset from the ' + dpLabel + ' look</strong> \u2014 ' + presetBody + ', ' + this.compLabel(this.state.comp).toLowerCase() + ' placement' + (preset.framing.length ? ', ' + preset.framing.map(f => f==='lead'?'leading lines':f==='frame'?'frame within frame':f).join(' + ') : '') + '. Baked in already \u2014 only change what you want to differ.</p>' +
+        '</div>' : '';
+      return this.eyebrow('Prompt · Camera') +
+        this.head('Frame it like a camera', 'Adjust below and watch the shot update. Anything your look already implies is preset \u2014 no need to repeat it.') +
+        this.shotPreview() +
+        banner +
+        this.field('Shot size', this.schips('shot', [{val:'wide',label:'Wide'},{val:'medium',label:'Medium'},{val:'close',label:'Close-up'},{val:'extreme',label:'Extreme close'},{val:'aerial',label:'Aerial'}]), '') +
+        this.field('Angle', this.schips('angle', [{val:'eye',label:'Eye level'},{val:'low',label:'Low'},{val:'high',label:'High'},{val:'dutch',label:'Dutch'},{val:'ots',label:'Over-the-shoulder'}]), '') +
+        this.field('Subject placement', this.compGrid(), '') +
+        this.field('Depth', this.schips('depth', [{val:'shallow',label:'Shallow \u2014 subject pops'},{val:'layered',label:'Layered fore/mid/back'},{val:'deep',label:'Deep focus \u2014 all sharp'}]), '') +
+        this.field('Framing', this.sframing([{val:'Symmetrical',label:'Symmetrical'},{val:'lead',label:'Leading lines'},{val:'frame',label:'Frame within a frame'},{val:'Negative space',label:'Negative space'}]), '') +
+        this.field('Lens', this.schips('lens', [{val:'16',label:'16mm'},{val:'24',label:'24mm'},{val:'35',label:'35mm'},{val:'50',label:'50mm'},{val:'85',label:'85mm'}]), '') +
+        '<div style="margin-bottom:24px;"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;"><label style="font-size:12px;font-weight:500;color:#16161D;">Camera &amp; format</label>' +
+          this.seg('camMode', [{val:'auto',label:'For me'},{val:'specific',label:'Specific camera'}], cm) +
+          '</div>' + cameraField + '</div>' +
+        this.field('Movement', this.schips('move', [{val:'static',label:'Static'},{val:'push',label:'Slow push'},{val:'pan',label:'Pan'},{val:'tracking',label:'Tracking'},{val:'handheld',label:'Handheld'}]), 'Movement is interpreted at the image-to-video step.');
+    }
+    if (step === 3) {
+      const lm = this.state.lookMode;
+      let lookField;
+      if (lm === 'dp') {
+        const traits = this.dpTraits();
+        const activeDp = traits.find(t => t.id === this.state.dp) || traits[0];
+        const dpChips = '<div class="chip-group" data-multi="0" style="display:flex;gap:8px;flex-wrap:wrap;">' +
+          traits.map(t => {
+            const on = t.id === activeDp.id;
+            return '<span data-dp="' + t.id + '" style="padding:8px 14px;border:1px solid ' + (on ? '#0217D3' : 'rgba(16,16,32,0.12)') + ';border-radius:8px;font-size:13px;cursor:pointer;background:' + (on ? '#EEF0FF' : '#fff') + ';color:' + (on ? '#0217D3' : '#5A5A6B') + ';">' + t.label + '</span>';
+          }).join('') + '</div>';
+        const last = activeDp.label.split(' ').pop();
+        lookField = dpChips +
+          '<div style="display:flex;gap:9px;align-items:flex-start;background:#EEF0FF;border:1px solid rgba(2,23,211,0.12);border-radius:10px;padding:12px 14px;margin-top:12px;">' +
+            '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#0217D3" stroke-width="1.5" stroke-linecap="round" style="flex-shrink:0;margin-top:1px;"><circle cx="8" cy="8" r="6.5"></circle><path d="M8 7v3.5M8 5v.2"></path></svg>' +
+            '<p style="font-size:12px;color:#5A5A6B;line-height:1.55;"><strong style="color:#16161D;">' + last + ' look \u2014</strong> ' + activeDp.note + ' These traits are written into the lighting &amp; colour part of every model\u2019s prompt.</p>' +
+          '</div>';
+      } else {
+        lookField =
+          this.chips('feel', [{label:'Warm &amp; natural', on:true},{label:'Moody &amp; contrasty'},{label:'Soft &amp; dreamy'},{label:'Bold &amp; saturated'},{label:'Naturalistic doc'},{label:'Clean &amp; commercial'},{label:'Nostalgic film'}]) +
+          '<p style="font-size:12px;color:#9A9AA8;margin-top:8px;">Plain-language looks \u2014 no film-school required. Studio S translates each into concrete lighting, colour and composition cues.</p>';
+      }
+      const realism = ['Motion blur','Film grain + CA','Lens flare','Visible breath','Dust particles','Bokeh + parallax','Wet ground','Cloth physics','Micro-texture','Natural imperfections','Candid / unposed'];
+      return this.eyebrow('Prompt · Style') +
+        this.head('Look &amp; cinematography', 'Emulate a cinematographer\u2019s signature, or pick a feel. This drives the lighting, colour and composition language in your prompts.') +
+        '<div style="margin-bottom:24px;"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;"><label style="font-size:12px;font-weight:500;color:#16161D;">Cinematography look</label>' +
+          this.seg('lookMode', [{val:'dp',label:'By cinematographer'},{val:'feel',label:'By feel'}], lm) +
+          '</div>' + lookField + '</div>' +
+        this.field('Colour grade', this.chips('grade', [{label:'Warm', on:true},{label:'Cool'},{label:'Muted'},{label:'High contrast'},{label:'Teal &amp; orange'},{label:'Pastel'}]), '') +
+        this.field('Realism extras', this.chips('realism', realism.map((r,i) => ({label:r, on:i===0})), true), 'Optional texture &amp; physics cues for a less \u201cAI\u201d look. Applied where each model supports them.') +
+        this.field('Style reference &nbsp;<span style="font-weight:400;color:#9A9AA8;">optional</span>', this.attachRef('Match a look-frame or grade'), '');
+    }
+    if (step === 5) {
+      return this.eyebrow('Prompt · Output') +
+        this.head('Models &amp; output', 'Studio S writes a stills prompt and an image-to-video prompt from the same brief. Pick one or more models for each stage \u2014 prompts are tailored to each.') +
+        this.field('Stills model \u2014 text-to-image', this.chips('smodel', [{label:'GPT Image', on:true},{label:'Nano Banana Pro', on:true},{label:'Seedream 4.5'},{label:'FLUX.2'},{label:'Midjourney v7'}], true), 'GPT Image (ChatGPT) for prompt accuracy &amp; world knowledge, Nano Banana Pro for character consistency, Seedream for text &amp; product, FLUX.2 for photoreal, Midjourney for art direction.') +
+        this.field('Video model \u2014 image-to-video', this.chips('vmodel', [{label:'Kling 3.0', on:true},{label:'Seedance'},{label:'Runway Gen-4'},{label:'Sora'}], true), 'The stills you pick are animated with these. Kling, Seedance and Nano Banana Pro run natively in Palmier too.') +
+        this.field('Aspect ratio', this.chips('ar', [{label:'16:9', on:true},{label:'9:16'},{label:'1:1'},{label:'2.39:1'}]), '') +
+        this.field('Stills per model', this.chips('count', [{label:'2'},{label:'4', on:true},{label:'6'},{label:'8'}]), '') +
+        this.field('Negative prompt', this.textarea('blurry, distorted hands, text artifacts, oversaturated'), 'Optional \u2014 applies to both stages.');
+    }
+    // step 6 — review (per-model tailored prompts)
+    const camIcon = '<svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#0217D3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="12" height="9" rx="2"></rect><circle cx="8" cy="8.5" r="2.2"></circle></svg>';
+    const vidIcon = '<svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#0217D3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3.5" width="9" height="9" rx="2"></rect><path d="M11 7l3-1.8v5.6L11 9"></path></svg>';
+    const stage = this.state.reviewStage;
+    const isStills = stage === 'stills';
+    const profiles = isStills ? this.stillProfiles() : this.videoProfiles();
+    const activeId = isStills ? this.state.stillModel : this.state.videoModel;
+    const active = profiles.find(p => p.id === activeId) || profiles[0];
+    const stageTab = (id, icon, label) => {
+      const on = stage === id;
+      return '<button data-stage="' + id + '" style="flex:1;height:34px;border:none;border-radius:7px;background:' + (on ? '#fff' : 'transparent') + ';box-shadow:' + (on ? '0 1px 2px rgba(16,16,32,0.08)' : 'none') + ';font-family:inherit;font-size:13px;font-weight:500;color:' + (on ? '#16161D' : '#9A9AA8') + ';cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">' + icon + label + '</button>';
+    };
+    const modelTab = (p) => {
+      const on = p.id === activeId;
+      return '<button data-model="' + p.id + '" style="padding:6px 12px;border:1px solid ' + (on ? '#0217D3' : 'rgba(16,16,32,0.12)') + ';border-radius:999px;background:' + (on ? '#EEF0FF' : '#fff') + ';color:' + (on ? '#0217D3' : '#5A5A6B') + ';font-family:inherit;font-size:12px;font-weight:500;cursor:pointer;white-space:nowrap;">' + p.label + '</button>';
+    };
+    return this.eyebrow('Prompt · Review') +
+      this.head('Review &amp; generate', 'One brief, compiled into each model\u2019s native phrasing. Switch models to see exactly what Studio S will send \u2014 then generate.') +
+      // stage switcher
+      '<div style="display:flex;gap:4px;background:#F0F1F4;border-radius:9px;padding:3px;margin-bottom:16px;">' +
+        stageTab('stills', camIcon, 'Stills prompt') + stageTab('video', vidIcon, 'Video prompt') +
+      '</div>' +
+      // model tabs
+      '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;">' + profiles.map(modelTab).join('') + '</div>' +
+      // active prompt card
+      '<div style="background:#fff;border:1px solid rgba(16,16,32,0.10);border-radius:12px;overflow:hidden;margin-bottom:16px;">' +
+        '<div style="padding:14px 18px;border-bottom:1px solid rgba(16,16,32,0.06);display:flex;align-items:center;justify-content:space-between;">' +
+          '<span style="font-size:13px;font-weight:500;color:#16161D;">' + active.label + ' &nbsp;<span style="font-weight:400;color:#9A9AA8;">' + active.tag + '</span></span>' +
+          '<span style="font-size:11px;font-weight:500;background:#E8F7F1;color:#1D9E75;padding:2px 8px;border-radius:999px;">Tailored</span>' +
+        '</div>' +
+        '<div style="padding:16px 18px;"><p style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;color:#16161D;line-height:1.7;">' + active.prompt + '</p></div>' +
+        '<div style="padding:12px 18px;border-top:1px solid rgba(16,16,32,0.06);background:#F6F6F4;display:flex;gap:9px;align-items:flex-start;">' +
+          '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#0217D3" stroke-width="1.5" stroke-linecap="round" style="flex-shrink:0;margin-top:1px;"><circle cx="8" cy="8" r="6.5"></circle><path d="M8 7v3.5M8 5v.2"></path></svg>' +
+          '<p style="font-size:12px;color:#5A5A6B;line-height:1.55;"><strong style="color:#16161D;">Why it\u2019s tailored \u2014</strong> ' + active.rule + '</p>' +
+        '</div>' +
+      '</div>' +
+      // generation plan
+      '<div style="background:#fff;border:1px solid rgba(16,16,32,0.10);border-radius:12px;padding:16px 18px;margin-bottom:16px;">' +
+        '<p style="font-size:12px;font-weight:500;color:#16161D;margin-bottom:12px;">Generation plan</p>' +
+        '<div style="display:flex;flex-direction:column;gap:10px;">' +
+          '<div style="display:flex;align-items:center;justify-content:space-between;">' +
+            '<span style="font-size:13px;color:#5A5A6B;display:flex;align-items:center;gap:7px;">' + camIcon + 'Stills \u2014 GPT Image, Nano Banana Pro</span>' +
+            '<span style="font-size:12px;font-weight:500;color:#16161D;">8 stills</span>' +
+          '</div>' +
+          '<div style="height:1px;background:rgba(16,16,32,0.06);"></div>' +
+          '<div style="display:flex;align-items:center;justify-content:space-between;">' +
+            '<span style="font-size:13px;color:#5A5A6B;display:flex;align-items:center;gap:7px;">' + vidIcon + 'Video \u2014 Kling 3.0 &nbsp;<span style="font-size:11px;color:#9A9AA8;">after selects</span></span>' +
+            '<span style="font-size:12px;font-weight:500;color:#16161D;">queued</span>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div style="display:flex;gap:10px;align-items:center;background:#EEF0FF;border:1px solid rgba(2,23,211,0.12);border-radius:10px;padding:14px 16px;">' +
+        '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#0217D3" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="6.5"></circle><path d="M8 5.5v3M8 10.5v.2"></path></svg>' +
+        '<p style="font-size:13px;color:#16161D;line-height:1.5;">Generating 8 stills across 2 models \u2014 about a minute. Pick your selects, then video prompts run automatically on Kling 3.0.</p>' +
+      '</div>';
+  }
+
+  renderVals() {
+    return {
+      goNext: () => { this.setState({ step: Math.min(this.state.step + 1, 6) }); this.render(); },
+      goBack: () => { this.setState({ step: Math.max(this.state.step - 1, 1) }); this.render(); },
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,266 @@
+<title>Studio S — Version Timeline</title>
+<style>
+  :root {
+    --paper: #FAFAFB;
+    --panel: #FFFFFF;
+    --ink: #0C0E1A;
+    --ink-soft: #3A3F52;
+    --meta: #6A7086;
+    --hair: #E4E6EF;
+    --hair-strong: #D2D5E2;
+    --blue: #0217D3;
+    --blue-soft: #E9EBFF;
+    --red: #FF002E;
+    --red-soft: #FFE7EC;
+    --spine: #C8CCE0;
+    --shadow: 0 1px 2px rgba(12,14,26,.04), 0 8px 24px rgba(12,14,26,.05);
+    --mono: ui-monospace, "SF Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, "Segoe UI", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #0A0B14;
+      --panel: #12141F;
+      --ink: #EDEEF5;
+      --ink-soft: #B4B8C8;
+      --meta: #808698;
+      --hair: #232634;
+      --hair-strong: #313548;
+      --blue: #6C7BFF;
+      --blue-soft: #1A1E3A;
+      --red: #FF4D68;
+      --red-soft: #33121C;
+      --spine: #2C3044;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 30px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="light"] {
+    --paper: #FAFAFB; --panel: #FFFFFF; --ink: #0C0E1A; --ink-soft: #3A3F52;
+    --meta: #6A7086; --hair: #E4E6EF; --hair-strong: #D2D5E2; --blue: #0217D3;
+    --blue-soft: #E9EBFF; --red: #FF002E; --red-soft: #FFE7EC; --spine: #C8CCE0;
+    --shadow: 0 1px 2px rgba(12,14,26,.04), 0 8px 24px rgba(12,14,26,.05);
+  }
+  :root[data-theme="dark"] {
+    --paper: #0A0B14; --panel: #12141F; --ink: #EDEEF5; --ink-soft: #B4B8C8;
+    --meta: #808698; --hair: #232634; --hair-strong: #313548; --blue: #6C7BFF;
+    --blue-soft: #1A1E3A; --red: #FF4D68; --red-soft: #33121C; --spine: #2C3044;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 30px rgba(0,0,0,.35);
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink);
+    font-family: var(--sans); line-height: 1.55;
+    -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+
+  .wrap { max-width: 760px; margin: 0 auto; padding: 72px 28px 96px; }
+
+  /* ---- Header ---- */
+  .eyebrow { font-size: 12px; letter-spacing: .16em; text-transform: uppercase;
+    color: var(--blue); font-weight: 600; display: flex; align-items: center; gap: 10px; }
+  .eyebrow::before { content: ""; width: 22px; height: 1px; background: var(--blue); }
+  h1 { font-size: clamp(38px, 7vw, 60px); line-height: .98; letter-spacing: -.03em;
+    font-weight: 700; margin: 18px 0 0; text-wrap: balance; }
+  .lede { font-size: 18px; color: var(--ink-soft); max-width: 52ch; margin: 16px 0 0; }
+  .former { color: var(--meta); font-size: 15px; }
+  .former b { color: var(--ink-soft); font-weight: 600; }
+
+  .facts { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 28px; }
+  .fact { background: var(--panel); border: 1px solid var(--hair); border-radius: 10px;
+    padding: 12px 16px; box-shadow: var(--shadow); }
+  .fact .k { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--meta); }
+  .fact .v { font-size: 16px; font-weight: 600; margin-top: 3px; font-variant-numeric: tabular-nums; }
+  .fact .v.mono { font-family: var(--mono); font-size: 15px; }
+  .fact .v .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+    background: var(--blue); margin-right: 7px; vertical-align: middle; }
+
+  /* ---- Era heading ---- */
+  .era { margin: 64px 0 8px; }
+  .era-line { display: flex; align-items: baseline; gap: 14px; }
+  .era-num { font-family: var(--mono); font-size: 13px; color: var(--meta); }
+  .era h2 { font-size: 24px; letter-spacing: -.02em; font-weight: 700; margin: 0; }
+  .era .span { color: var(--meta); font-size: 14px; font-variant-numeric: tabular-nums; }
+  .era p { color: var(--ink-soft); font-size: 15px; margin: 8px 0 0; max-width: 60ch; }
+
+  /* ---- Timeline ---- */
+  .track { position: relative; margin-top: 26px; padding-left: 40px; }
+  .track::before { content: ""; position: absolute; left: 11px; top: 6px; bottom: 6px;
+    width: 2px; background: linear-gradient(var(--spine), var(--spine)); }
+
+  .node { position: relative; padding: 0 0 34px; }
+  .node:last-child { padding-bottom: 4px; }
+  .node::before { content: ""; position: absolute; left: -34px; top: 5px;
+    width: 14px; height: 14px; border-radius: 50%; background: var(--panel);
+    border: 3px solid var(--blue); box-shadow: 0 0 0 4px var(--paper); }
+  .node.pivot::before { border-color: var(--red); }
+
+  .stamp { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .date { font-family: var(--mono); font-size: 13px; color: var(--meta);
+    font-variant-numeric: tabular-nums; }
+  .ver { font-family: var(--mono); font-size: 12px; font-weight: 600;
+    padding: 2px 8px; border-radius: 999px; background: var(--blue-soft); color: var(--blue);
+    border: 1px solid transparent; }
+  .node.pivot .ver { background: var(--red-soft); color: var(--red); }
+  .ver.pre { background: transparent; color: var(--meta); border: 1px dashed var(--hair-strong); }
+  .tag { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--meta);
+    border: 1px solid var(--hair-strong); border-radius: 999px; padding: 2px 8px; }
+
+  .node h3 { font-size: 18px; letter-spacing: -.01em; margin: 9px 0 0; font-weight: 650; }
+  .node .body { color: var(--ink-soft); font-size: 15px; margin: 7px 0 0; max-width: 60ch; }
+
+  ul.pts { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 6px; }
+  ul.pts li { position: relative; padding-left: 18px; font-size: 14.5px; color: var(--ink-soft); }
+  ul.pts li::before { content: ""; position: absolute; left: 2px; top: 9px; width: 5px; height: 5px;
+    border-radius: 1px; background: var(--blue); transform: rotate(45deg); }
+  ul.pts li.warn::before { background: var(--red); }
+  code { font-family: var(--mono); font-size: .9em; background: var(--blue-soft);
+    color: var(--blue); padding: 1px 5px; border-radius: 5px; }
+  :root[data-theme="dark"] code, .node code { }
+
+  .callout { margin-top: 13px; border-left: 3px solid var(--red); background: var(--red-soft);
+    border-radius: 0 8px 8px 0; padding: 11px 14px; font-size: 14px; color: var(--ink-soft); }
+  .callout b { color: var(--ink); }
+
+  footer { margin-top: 60px; padding-top: 22px; border-top: 1px solid var(--hair);
+    color: var(--meta); font-size: 13.5px; display: flex; justify-content: space-between;
+    flex-wrap: wrap; gap: 10px; }
+  footer code { background: none; color: var(--ink-soft); padding: 0; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .node, .era, .fact { animation: rise .5s cubic-bezier(.2,.7,.3,1) both; }
+    .node:nth-child(2){animation-delay:.04s}.node:nth-child(3){animation-delay:.08s}
+    .node:nth-child(4){animation-delay:.12s}.node:nth-child(5){animation-delay:.16s}
+    @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  }
+  @media (max-width: 520px) {
+    .wrap { padding: 48px 18px 72px; }
+    .facts { gap: 8px; } .fact { flex: 1 1 40%; }
+  }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Technical changelog</div>
+    <h1>Studio S</h1>
+    <p class="lede">Tauri&nbsp;v2&nbsp;/&nbsp;vanilla-JS macOS app for Supergood's AI image&#8209;to&#8209;video pipeline. Version history at the code level — files, functions, Rust commands, and the landmines a new maintainer must know.</p>
+    <p class="former">Formerly <b>AI Film Studio</b> · renamed v0.3.0, 1 Jul 2026 · versions before 0.3.0 are <b>inferred</b> — repo has no git history; reconstructed from <code>_archive/</code> snapshots + <code>release-v*</code> folders.</p>
+
+    <div class="facts">
+      <div class="fact"><div class="k">Current</div><div class="v mono"><span class="dot"></span>v0.3.5</div></div>
+      <div class="fact"><div class="k">Storage key</div><div class="v mono">aifs.v1</div></div>
+      <div class="fact"><div class="k">Bundle id</div><div class="v mono">com.supergood.studios</div></div>
+      <div class="fact"><div class="k">Rust cmds</div><div class="v">3 · lib.rs</div></div>
+    </div>
+  </header>
+
+  <!-- ERA I -->
+  <section class="era">
+    <div class="era-line">
+      <span class="era-num">Era I</span>
+      <h2>AI Film Studio</h2>
+      <span class="span">pre-0.2.0 → v0.2.0 · 15–30 Jun</span>
+    </div>
+    <p>Single-file HTML prompt tool → Claude-backed generator → multi-page <code>src/</code> app. Unversioned until the hardening pass that became v0.2.0.</p>
+  </section>
+
+  <div class="track">
+    <div class="node">
+      <div class="stamp"><span class="date">15 Jun 2026</span><span class="ver pre">single-file</span><span class="tag">Origin</span></div>
+      <h3>Deterministic prompt compiler</h3>
+      <p class="body">One self-contained HTML app. Compiles prompts for AI film/image tools (stills, Kling, Runway, Suno, ElevenLabs) with a <b>deterministic</b> engine — no model at runtime ("words that work").</p>
+      <ul class="pts">
+        <li>Core: <code>generatePrompts()</code> — now only in <code>_archive/AI_Film_Studio_2026-06-15_2327.html</code> (~L2551).</li>
+      </ul>
+    </div>
+
+    <div class="node">
+      <div class="stamp"><span class="date">16 Jun 2026</span><span class="ver pre">single-file</span><span class="tag">Feature</span></div>
+      <h3>Claude integration (Opus 4.8)</h3>
+      <ul class="pts">
+        <li>Rust proxy <code>anthropic_messages</code> in <code>src-tauri/src/lib.rs</code> — keeps the API key server-side, avoids CORS.</li>
+        <li>JS surface: <code>generatePromptsAI</code>, <code>AI_FILM_SYSTEM_PROMPT</code>, <code>PROMPT_SCHEMA</code>.</li>
+        <li>Falls back to deterministic <code>generatePrompts()</code> when no key / not in Tauri.</li>
+      </ul>
+    </div>
+
+    <div class="node">
+      <div class="stamp"><span class="date">26 Jun 2026</span><span class="ver pre">single-file</span><span class="tag">Reframe</span></div>
+      <h3>Workflow bridge + wry fixes</h3>
+      <ul class="pts">
+        <li>Rust <code>scan_plan_folder</code> command reads a Claude-authored plan JSON from disk (the "Plan with Claude" bridge).</li>
+        <li>Per-project onboarding gate; Palmier &amp; Finishing nav sections; gamification (wrap reel / streak / badges).</li>
+        <li>wry webview fixes: <code>sgPrompt()</code> (native <code>prompt()</code> returns null), <code>openExternal()</code> (<code>window.open</code> no-op), <code>npm run ship</code> signing abort.</li>
+      </ul>
+    </div>
+
+    <div class="node">
+      <div class="stamp"><span class="date">28 Jun 2026</span><span class="ver pre">single-file</span><span class="tag">Rewrite</span></div>
+      <h3>Multi-page <code>src/</code> app + store.js</h3>
+      <ul class="pts">
+        <li>Migrated mock pages → standalone <code>src/*.html</code> pages, each loading <code>store.js</code> then <code>nav.js</code>.</li>
+        <li><code>store.js</code> = localStorage data layer, key <code>aifs.v1</code>.</li>
+        <li>SG Tools design system: blue <code>#0217D3</code>, red <code>#FF002E</code>, Karbon + Host Grotesk, light-not-dark.</li>
+      </ul>
+      <div class="callout"><b>⚠ Debt introduced:</b> the rewrite dropped the deterministic <code>generatePrompts()</code> engine. The v0.3.x compiler (<code>stillProfiles()</code> / <code>videoProfiles()</code> in <code>promptbuilder.html</code>) is a <b>mock</b> of hardcoded strings. Porting the real engine back is Phase 1.</div>
+    </div>
+
+    <div class="node">
+      <div class="stamp"><span class="date">~29–30 Jun</span><span class="ver">v0.2.0</span><span class="tag">Hardening</span></div>
+      <h3>Multi-page stabilization</h3>
+      <ul class="pts">
+        <li>Root cause fix: <code>Store.setActive</code> key mismatch (short keys vs. <code>activeProjectId/…</code>) — had broken shot-switching + open-project.</li>
+        <li>OmniEdit removed (<code>nav.js</code> <code>REMOVED</code> map); Palmier snapshot data-driven (<code>renderSnapshot()</code>); delete-project; +Seedance 2.0 shot-list option.</li>
+      </ul>
+      <div class="callout"><b>⚠ First-hop trap:</b> v0.2.0 predates <code>updater.js</code> — it will <b>not</b> auto-detect updates. Getting from 0.2.0 → 0.3.0 requires a manual DMG install; every release after auto-updates.</div>
+    </div>
+  </div>
+
+  <!-- ERA II -->
+  <section class="era">
+    <div class="era-line">
+      <span class="era-num">Era II</span>
+      <h2>Studio S</h2>
+      <span class="span">v0.3.0 → v0.3.5 · 1–9 Jul</span>
+    </div>
+    <p>Rename + productization: versioned, signed, auto-updating; then a store-schema rewrite that repositions the app around the whole team.</p>
+  </section>
+
+  <div class="track">
+    <div class="node pivot">
+      <div class="stamp"><span class="date">1 Jul 2026</span><span class="ver">v0.3.0</span><span class="tag">Rename · release</span></div>
+      <h3>Rename + auto-update</h3>
+      <ul class="pts">
+        <li>AI Film Studio → Studio S; folder → <code>~/Documents/Studio S/</code>, old copy archived.</li>
+        <li>Auto-update: <code>src/updater.js</code> launch banner + Tauri updater plugin, <code>createUpdaterArtifacts: true</code>, releases on <code>sofirichof/studio-s</code>. <b>First auto-updating release.</b></li>
+        <li>Docs reorganized into <code>docs/</code>; token-discipline <code>CLAUDE.md</code> added.</li>
+      </ul>
+      <div class="callout"><b>⚠ Storage trap:</b> bundle id changed to <code>com.supergood.studios</code> — WebKit keys localStorage by bundle id, so all projects <i>appeared</i> wiped (they were intact in the old domain). Never change the id again without migrating <code>aifs.v1</code> between the two sqlite DBs.</div>
+    </div>
+
+    <div class="node">
+      <div class="stamp"><span class="date">2 Jul 2026</span><span class="ver">v0.3.x</span><span class="tag">Milestone</span></div>
+      <h3>Stakeholder demo → requirements</h3>
+      <p class="body">Demo drove the v0.3.5 direction. Org asks logged as the multi-user engineering scope:</p>
+      <ul class="pts">
+        <li>Platform integration, multiplayer/distribution, studio-look style templates, per-client AI cost attribution, traditional shot-list port.</li>
+        <li>Constraint held: compiler stays offline/deterministic — Claude only refreshes profile data, never writes prompts at runtime.</li>
+      </ul>
+    </div>
+
+    <div class="node pivot">
+      <div class="stamp"><span class="date">9 Jul 2026</span><span class="ver">v0.3.5</span><span class="tag">Schema v2</span></div>
+      <h3>store.js schema v2 + Work dashboard</h3>
+      <ul class="pts">
+        <li><b>Schema v2:</b> <code>clients</code> → <code>projects</code> → <code>deliverables</code>, plus unified typed <code>assets</code> (reference / generated / cut), <code>versions</code>, <code>people</code>.</li>
+        <li><code>migrate()</code> folds v1 (<code>project→concept→shot</code> + flat <code>references[]</code>) forward — idempotent, non-destructive; <code>listReferences</code>/<code>addReference</code> back-compat shim.</li>
+        <li>New API: <code>registerCut</code>, <code>getWork</code>, <code>getProjectBrand</code>, <code>createDeliverable</code>, <code>createAsset</code>/<code>listAssets</code>.</li>
+        <li>New front door <code>src/work.html</code> (Work dashboard), wired via <code>index.html</code> redirect + <code>nav.js</code> MAP.</li>
+        <li class="warn">Deferred to engineering handoff: multi-user shared state, live Frame.io/Drive sync, cost attribution. This solo build is the standardization proof.</li>
+      </ul>
+    </div>
+  </div>
+
+  <footer>
+    <span>Studio S · Supergood · sofia@gosupergood.com</span>
+    <span>Full engineering context → <code>docs/HANDOFF-2026-07-09.md</code></span>
+  </footer>
+</div>

@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="./vendor/fonts/host-grotesk.css" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Host Grotesk', 'Inter', system-ui, sans-serif; background: #F6F6F4; overflow: hidden; }
+
+  .nav-item { transition: background 0.12s, color 0.12s; cursor: pointer; }
+  .nav-item:hover { background: #F0F1F4 !important; color: #16161D !important; }
+  .nav-item:hover svg { color: #16161D !important; }
+
+  .concept-card { transition: box-shadow 0.12s, border-color 0.12s, transform 0.12s; cursor: pointer; }
+  .concept-card:hover { box-shadow: 0 4px 16px rgba(16,16,32,0.10) !important; border-color: rgba(16,16,32,0.20) !important; transform: translateY(-1px); }
+
+  .action-btn:hover { background: #F0F1F4 !important; border-color: rgba(16,16,32,0.20) !important; }
+  .primary-btn:hover { background: #0212A8 !important; }
+
+  .task-row:hover { background: #F6F6F4 !important; }
+
+  .tab-btn { transition: color 0.12s; cursor: pointer; }
+  .tab-btn:hover { color: #16161D !important; }
+
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(16,16,32,0.12); border-radius: 2px; }
+</style>
+</helmet>
+
+<div style="display:flex; height:100vh; width:100vw; overflow:hidden;">
+
+  <!-- ── Left rail ── -->
+  <div style="width:248px; background:#fff; border-right:1px solid rgba(16,16,32,0.08); display:flex; flex-direction:column; flex-shrink:0;">
+
+    <!-- Brand mark -->
+    <div style="padding:16px 16px 12px; border-bottom:1px solid rgba(16,16,32,0.06);">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <img src="uploads/logo.png" alt="Studio S" style="width:28px; height:28px; border-radius:7px; flex-shrink:0;" />
+        <div>
+          <p style="font-size:13px; font-weight:500; color:#16161D; line-height:1.2;">Studio S</p>
+          <p style="font-size:11px; color:#9A9AA8; line-height:1.2;">Supergood</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Nav -->
+    <div style="flex:1; overflow-y:auto; padding:12px 8px;">
+
+      <!-- Project selector -->
+      <div style="padding:0 8px; margin-bottom:16px;">
+        <div style="position:relative;">
+          <select id="project-select" onchange="{{ switchProject }}" style="width:100%; height:32px; background:#F6F6F4; border:1px solid rgba(16,16,32,0.08); border-radius:8px; padding:0 28px 0 10px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:12px; color:#16161D; appearance:none; cursor:pointer; font-weight:500;">
+            <option value="">No project yet</option>
+          </select>
+          <svg style="position:absolute; right:8px; top:50%; transform:translateY(-50%); pointer-events:none;" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#9A9AA8" stroke-width="1.5" stroke-linecap="round"><path d="M3 5l3 3 3-3"/></svg>
+        </div>
+      </div>
+
+      <!-- Create group -->
+      <p style="font-size:12px; font-weight:500; color:#9A9AA8; padding:0 12px; margin-bottom:4px;">Create</p>
+      <div class="nav-item" style="display:flex; align-items:center; gap:10px; padding:0 12px; height:36px; border-radius:8px; margin-bottom:2px; color:#5A5A6B;">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>
+        <span style="font-size:14px;">Prompt builder</span>
+      </div>
+      <div class="nav-item" style="display:flex; align-items:center; gap:10px; padding:0 12px; height:36px; border-radius:8px; margin-bottom:2px; color:#5A5A6B;">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="6" height="10" rx="1"/><rect x="9" y="3" width="6" height="6" rx="1"/><rect x="9" y="11" width="6" height="2" rx="1"/></svg>
+        <span style="font-size:14px;">References</span>
+      </div>
+      <div class="nav-item" style="display:flex; align-items:center; gap:10px; padding:0 12px; height:36px; border-radius:8px; margin-bottom:2px; color:#5A5A6B;">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="2" width="5" height="12" rx="1"/><rect x="9" y="2" width="5" height="7" rx="1"/><rect x="9" y="11" width="5" height="3" rx="1"/></svg>
+        <span style="font-size:14px;">Multi-Shot</span>
+      </div>
+
+      <!-- Manage group -->
+      <p style="font-size:12px; font-weight:500; color:#9A9AA8; padding:8px 12px 4px; margin-top:8px;">Manage</p>
+      <!-- Active item -->
+      <div style="display:flex; align-items:center; gap:10px; padding:0 12px; height:36px; border-radius:8px; margin-bottom:2px; background:#EEF0FF; position:relative; cursor:pointer;">
+        <div style="position:absolute; left:0; top:8px; bottom:8px; width:2px; background:#0217D3; border-radius:0 2px 2px 0;"></div>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#0217D3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="12" height="10" rx="2"/><path d="M2 7h12"/></svg>
+        <span style="font-size:14px; color:#0217D3;">Projects</span>
+      </div>
+
+      <!-- Edit & handoff group -->
+      <p style="font-size:12px; font-weight:500; color:#9A9AA8; padding:8px 12px 4px; margin-top:8px;">Edit &amp; handoff</p>
+      <div class="nav-item" style="display:flex; align-items:center; gap:10px; padding:0 12px; height:36px; border-radius:8px; margin-bottom:2px; color:#5A5A6B;">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 8h10M3 4h10M3 12h6"/></svg>
+        <span style="font-size:14px;">Palmier</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px; padding:0 12px; height:36px; border-radius:8px; margin-bottom:2px; opacity:0.4; cursor:default;">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#9A9AA8" stroke-width="1.5" stroke-linecap="round"><rect x="4" y="7" width="8" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg>
+        <span style="font-size:14px; color:#9A9AA8;">Finishing</span>
+      </div>
+
+      <!-- Help group -->
+      <p style="font-size:12px; font-weight:500; color:#9A9AA8; padding:8px 12px 4px; margin-top:8px;">Help</p>
+      <div class="nav-item" style="display:flex; align-items:center; gap:10px; padding:0 12px; height:36px; border-radius:8px; margin-bottom:2px; color:#5A5A6B;">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 4h12M2 8h8M2 12h5"/></svg>
+        <span style="font-size:14px;">Workflow guide</span>
+      </div>
+      <div class="nav-item" style="display:flex; align-items:center; gap:10px; padding:0 12px; height:36px; border-radius:8px; margin-bottom:2px; color:#5A5A6B;">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><path d="M8 7.5V11M8 5.5v.5"/></svg>
+        <span style="font-size:14px;">AI setup</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Main content ── -->
+  <div style="flex:1; display:flex; flex-direction:column; overflow:hidden; min-width:0;">
+
+    <!-- Toolbar -->
+    <div style="background:#fff; border-bottom:1px solid rgba(16,16,32,0.08); padding:0 28px; flex-shrink:0;">
+      <div style="display:flex; align-items:center; justify-content:space-between; height:52px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size:14px; font-weight:500; color:#16161D;">Projects</span>
+        </div>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <button class="primary-btn" onclick="{{ openNewProject }}" style="height:32px; padding:0 14px; background:#0217D3; border:none; border-radius:8px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:13px; font-weight:500; color:#fff; cursor:pointer; display:flex; align-items:center; gap:6px; transition:background 0.12s;">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round"><line x1="7" y1="2" x2="7" y2="12"/><line x1="2" y1="7" x2="12" y2="7"/></svg>
+            New project
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scrollable content -->
+    <div style="flex:1; overflow-y:auto; padding:28px;">
+      <div id="projects-mount"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Register cut modal -->
+<div id="rc-modal" style="display:none; position:fixed; inset:0; background:rgba(16,16,32,0.32); z-index:100; align-items:center; justify-content:center;">
+  <div style="background:#fff; border-radius:14px; width:460px; max-width:90vw; padding:24px; box-shadow:0 12px 40px rgba(16,16,32,0.2);">
+    <p style="font-size:16px; font-weight:500; color:#16161D; margin-bottom:4px;">Register a cut</p>
+    <p id="rc-sub" style="font-size:13px; color:#5A5A6B; margin-bottom:20px; line-height:1.5;">Drop a link to the cut and its Frame.io review. It logs as a new version on this deliverable.</p>
+    <div style="display:flex; flex-direction:column; gap:14px;">
+      <div style="display:flex; gap:12px;">
+        <div style="flex:1;">
+          <label style="font-size:12px; font-weight:500; color:#16161D; display:block; margin-bottom:6px;">Cut type</label>
+          <select id="rc-cuttype" style="width:100%; height:36px; background:#fff; border:1px solid rgba(16,16,32,0.12); border-radius:10px; padding:0 10px; font-family:inherit; font-size:14px; color:#16161D;">
+            <option value="string-out">String-out</option>
+            <option value="rough">Rough cut</option>
+            <option value="review">Review cut</option>
+            <option value="final">Final</option>
+          </select>
+        </div>
+        <div style="flex:1;">
+          <label style="font-size:12px; font-weight:500; color:#16161D; display:block; margin-bottom:6px;">Review status</label>
+          <select id="rc-status" style="width:100%; height:36px; background:#fff; border:1px solid rgba(16,16,32,0.12); border-radius:10px; padding:0 10px; font-family:inherit; font-size:14px; color:#16161D;">
+            <option value="needs-review">Needs review</option>
+            <option value="changes">Changes requested</option>
+            <option value="approved">Approved</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <label style="font-size:12px; font-weight:500; color:#16161D; display:block; margin-bottom:6px;">Frame.io review link</label>
+        <input id="rc-frameio" type="text" placeholder="https://f.io/…" style="width:100%; height:36px; background:#fff; border:1px solid rgba(16,16,32,0.12); border-radius:10px; padding:0 12px; font-family:inherit; font-size:14px; color:#16161D; outline:none;" />
+      </div>
+      <div style="display:flex; gap:12px;">
+        <div style="flex:1;">
+          <label style="font-size:12px; font-weight:500; color:#16161D; display:block; margin-bottom:6px;">Reviewer</label>
+          <input id="rc-reviewer" type="text" placeholder="e.g. Elana" style="width:100%; height:36px; background:#fff; border:1px solid rgba(16,16,32,0.12); border-radius:10px; padding:0 12px; font-family:inherit; font-size:14px; color:#16161D; outline:none;" />
+        </div>
+        <div style="flex:1;">
+          <label style="font-size:12px; font-weight:500; color:#16161D; display:block; margin-bottom:6px;">Round <span style="color:#9A9AA8;font-weight:400;">(optional)</span></label>
+          <input id="rc-round" type="number" min="1" placeholder="auto" style="width:100%; height:36px; background:#fff; border:1px solid rgba(16,16,32,0.12); border-radius:10px; padding:0 12px; font-family:inherit; font-size:14px; color:#16161D; outline:none;" />
+        </div>
+      </div>
+      <div>
+        <label style="font-size:12px; font-weight:500; color:#16161D; display:block; margin-bottom:6px;">Note <span style="color:#9A9AA8;font-weight:400;">(optional)</span></label>
+        <input id="rc-note" type="text" placeholder="e.g. beat switch at 0:06.7" style="width:100%; height:36px; background:#fff; border:1px solid rgba(16,16,32,0.12); border-radius:10px; padding:0 12px; font-family:inherit; font-size:14px; color:#16161D; outline:none;" />
+      </div>
+    </div>
+    <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:24px;">
+      <button onclick="{{ closeRegisterCut }}" style="height:36px; padding:0 16px; background:#fff; border:1px solid rgba(16,16,32,0.12); border-radius:8px; font-family:inherit; font-size:14px; font-weight:500; color:#16161D; cursor:pointer;">Cancel</button>
+      <button onclick="{{ submitRegisterCut }}" style="height:36px; padding:0 18px; background:#0217D3; border:none; border-radius:8px; font-family:inherit; font-size:14px; font-weight:500; color:#fff; cursor:pointer;">Register cut</button>
+    </div>
+  </div>
+</div>
+
+<!-- New deliverable modal -->
+<div id="nd-modal" style="display:none; position:fixed; inset:0; background:rgba(16,16,32,0.32); z-index:100; align-items:center; justify-content:center;">
+  <div style="background:#fff; border-radius:14px; width:460px; max-width:90vw; padding:24px; box-shadow:0 12px 40px rgba(16,16,32,0.2);">
+    <p style="font-size:16px; font-weight:500; color:#16161D; margin-bottom:4px;">New deliverable</p>
+    <p style="font-size:13px; color:#5A5A6B; margin-bottom:20px; line-height:1.5;">A required output for this project — carries its own specs, status, and review versions.</p>
+    <div id="nd-brand-ctx"></div>
+    <div style="display:flex; flex-direction:column; gap:14px;">
+      <div>
+        <label style="font-size:12px; font-weight:500; color:#16161D; display:block; margin-bottom:6px;">Name</label>
+        <input id="nd-name" type="text" placeholder="e.g. BTS :15 — 9:16 — Meta" style="width:100%; height:36px; background:#fff; border:1px solid rgba(16,16,32,0.12); border-radius:10px; padding:0 12px; font-family:inherit; font-size:14px; color:#16161D; outline:none;" />
+      </div>
+      <div style="display:flex; gap:12px;">
+        <div style="flex:1;">
+          <label style="font-size:12px; font-weight:500; color:#16161D; display:block; margin-bottom:6px;">Ratio</label>
+          <input id="nd-ratio" type="text" placeholder="9:16" style="width:100%; height:36px; background:#fff; border:1px solid rgba(16,16,32,0.12); border-radius:10px; padding:0 12px; font-family:inherit; font-size:14px; color:#16161D; outline:none;" />
+        </div>
+        <div style="flex:1;">
+          <label style="font-size:12px; font-weight:500; color:#16161D; display:block; margin-bottom:6px;">Runtime</label>
+          <input id="nd-runtime" type="text" placeholder=":15" style="width:100%; height:36px; background:#fff; border:1px solid rgba(16,16,32,0.12); border-radius:10px; padding:0 12px; font-family:inherit; font-size:14px; color:#16161D; outline:none;" />
+        </div>
+      </div>
+      <div style="display:flex; gap:12px;">
+        <div style="flex:1;">
+          <label style="font-size:12px; font-weight:500; color:#16161D; display:block; margin-bottom:6px;">Platform</label>
+          <input id="nd-platform" type="text" placeholder="Meta" style="width:100%; height:36px; background:#fff; border:1px solid rgba(16,16,32,0.12); border-radius:10px; padding:0 12px; font-family:inherit; font-size:14px; color:#16161D; outline:none;" />
+        </div>
+        <div style="flex:1;">
+          <label style="font-size:12px; font-weight:500; color:#16161D; display:block; margin-bottom:6px;">Legal <span style="color:#9A9AA8;font-weight:400;">(optional)</span></label>
+          <input id="nd-legal" type="text" placeholder="e.g. NFL clearance" style="width:100%; height:36px; background:#fff; border:1px solid rgba(16,16,32,0.12); border-radius:10px; padding:0 12px; font-family:inherit; font-size:14px; color:#16161D; outline:none;" />
+        </div>
+      </div>
+    </div>
+    <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:24px;">
+      <button onclick="{{ closeNewDeliverable }}" style="height:36px; padding:0 16px; background:#fff; border:1px solid rgba(16,16,32,0.12); border-radius:8px; font-family:inherit; font-size:14px; font-weight:500; color:#16161D; cursor:pointer;">Cancel</button>
+      <button onclick="{{ submitNewDeliverable }}" style="height:36px; padding:0 18px; background:#0217D3; border:none; border-radius:8px; font-family:inherit; font-size:14px; font-weight:500; color:#fff; cursor:pointer;">Create deliverable</button>
+    </div>
+  </div>
+</div>
+
+<!-- New project modal -->
+<div id="np-modal" style="display:none; position:fixed; inset:0; background:rgba(16,16,32,0.32); z-index:100; align-items:center; justify-content:center;">
+  <div style="background:#fff; border-radius:14px; width:440px; max-width:90vw; padding:24px; box-shadow:0 12px 40px rgba(16,16,32,0.2);">
+    <p style="font-size:16px; font-weight:500; color:#16161D; margin-bottom:4px;">New project</p>
+    <p style="font-size:13px; color:#5A5A6B; margin-bottom:20px; line-height:1.5;">Name it and point Claude at your assets. We'll scan the folder for a production plan and scaffold concepts and shots if one's there.</p>
+    <div style="display:flex; flex-direction:column; gap:16px;">
+      <div>
+        <label style="font-size:12px; font-weight:500; color:#16161D; display:block; margin-bottom:6px;">Project name</label>
+        <input id="np-name" type="text" placeholder="e.g. US Bank — Rotation 4" style="width:100%; height:36px; background:#fff; border:1px solid rgba(16,16,32,0.12); border-radius:10px; padding:0 12px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:14px; color:#16161D; outline:none;" />
+      </div>
+      <div>
+        <label style="font-size:12px; font-weight:500; color:#16161D; display:block; margin-bottom:6px;">Assets folder</label>
+        <div style="display:flex; gap:8px;">
+          <div style="flex:1; height:36px; background:#F6F6F4; border:1px solid rgba(16,16,32,0.08); border-radius:10px; padding:0 12px; display:flex; align-items:center;">
+            <span id="np-folder" style="font-size:13px; color:#9A9AA8; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">No folder selected</span>
+          </div>
+          <button onclick="{{ npPickFolder }}" style="height:36px; padding:0 14px; background:#fff; border:1px solid rgba(16,16,32,0.12); border-radius:8px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:13px; font-weight:500; color:#16161D; cursor:pointer; white-space:nowrap;">Choose</button>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:24px;">
+      <button onclick="{{ closeNewProject }}" style="height:36px; padding:0 16px; background:#fff; border:1px solid rgba(16,16,32,0.12); border-radius:8px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:14px; font-weight:500; color:#16161D; cursor:pointer;">Cancel</button>
+      <button onclick="{{ createProject }}" style="height:36px; padding:0 18px; background:#0217D3; border:none; border-radius:8px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:14px; font-weight:500; color:#fff; cursor:pointer;">Create project</button>
+    </div>
+  </div>
+</div>
+
+
+<style>
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1440, &quot;height&quot;: 900}}">
+class Component extends DCLogic {
+  state = { npFolder: '', view: 'hub', openId: '', cutTarget: '' };
+
+  componentDidMount() {
+    this.renderProjects();
+    this.renderSelector();
+    // Deep-link: ?project=<id> opens that project's hub directly (e.g. the
+    // "Register cut in project" jump from the Finish surface, §9.3 ⑥).
+    try {
+      const pid = new URLSearchParams(window.location.search).get('project');
+      if (pid && window.Store && Store.getProject(pid)) this.openOverview(pid);
+    } catch (e) {}
+  }
+
+  shotCount(p) {
+    return (p.concepts || []).reduce(function (n, c) { return n + (c.shots || []).length; }, 0);
+  }
+
+  esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
+  // Shared status palette for deliverables + version reviews (§4 statuses).
+  statusStyle(s) {
+    const m = {
+      'not-started': { bg: '#F0F1F4', fg: '#5A5A6B', label: 'Not started' },
+      'in-progress': { bg: '#EEF0FF', fg: '#0217D3', label: 'In progress' },
+      'in-review':   { bg: '#FFF4E5', fg: '#B8730B', label: 'In review' },
+      'needs-review':{ bg: '#FFF4E5', fg: '#B8730B', label: 'Needs review' },
+      'changes':     { bg: '#FDECEE', fg: '#C2213B', label: 'Changes' },
+      'blocked':     { bg: '#FDECEE', fg: '#C2213B', label: 'Blocked' },
+      'approved':    { bg: '#E8F7F1', fg: '#1D9E75', label: 'Approved' },
+      'delivered':   { bg: '#E8F7F1', fg: '#137A5A', label: 'Delivered' }
+    };
+    return m[s] || m['not-started'];
+  }
+
+  badge(s) {
+    const st = this.statusStyle(s);
+    return '<span style="font-size:11px;font-weight:500;background:' + st.bg + ';color:' + st.fg + ';padding:2px 9px;border-radius:999px;white-space:nowrap;">' + st.label + '</span>';
+  }
+
+  renderSelector() {
+    const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    if (!window.Store) return;
+    const sel = document.getElementById('project-select');
+    if (!sel) return;
+    const projects = Store.listProjects();
+    const active = Store.getActive();
+    if (!projects.length) { sel.innerHTML = '<option value="">No project yet</option>'; return; }
+    sel.innerHTML = projects.map(function (p) {
+      const on = p.id === active.projectId ? ' selected' : '';
+      return '<option value="' + p.id + '"' + on + '>' + esc(p.name) + '</option>';
+    }).join('');
+  }
+
+  renderProjects() {
+    const mount = document.getElementById('projects-mount');
+    if (!mount || !window.Store) return;
+    const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const projects = Store.listProjects();
+
+    if (!projects.length) {
+      mount.innerHTML =
+        '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:80px 24px;">' +
+          '<div style="width:56px;height:56px;border-radius:14px;background:#EEF0FF;display:flex;align-items:center;justify-content:center;margin-bottom:18px;">' +
+            '<svg width="26" height="26" viewBox="0 0 16 16" fill="none" stroke="#0217D3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="12" height="10" rx="2"/><path d="M2 7h12"/></svg>' +
+          '</div>' +
+          '<p style="font-size:18px;font-weight:500;color:#16161D;margin-bottom:6px;">No projects yet</p>' +
+          '<p style="font-size:14px;color:#5A5A6B;max-width:360px;line-height:1.6;margin-bottom:22px;">Create your first project to start building shots. Point Claude at your assets and we\'ll scaffold concepts and a shot list.</p>' +
+          '<button id="empty-create" style="height:40px;padding:0 22px;background:#0217D3;border:none;border-radius:8px;font-family:inherit;font-size:14px;font-weight:500;color:#fff;cursor:pointer;">Create your first project</button>' +
+        '</div>';
+      const b = document.getElementById('empty-create');
+      if (b) b.onclick = () => this.renderVals().openNewProject();
+      return;
+    }
+
+    mount.innerHTML =
+      '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;">' +
+        projects.map((p) => {
+          const shots = this.shotCount(p);
+          const concepts = (p.concepts || []).length;
+          return '<div class="concept-card" style="position:relative;background:#fff;border:1px solid rgba(16,16,32,0.08);border-radius:12px;overflow:hidden;box-shadow:0 1px 2px rgba(16,16,32,0.04);">' +
+            '<button data-delete="' + p.id + '" title="Delete project" style="position:absolute;top:8px;right:8px;z-index:2;width:26px;height:26px;border-radius:7px;border:none;background:rgba(255,255,255,0.92);box-shadow:0 1px 3px rgba(16,16,32,0.18);color:#5A5A6B;font-size:14px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>' +
+            '<div data-open="' + p.id + '" style="cursor:pointer;">' +
+              '<div style="height:96px;background:repeating-linear-gradient(45deg,#e8eaf0 0,#e8eaf0 1px,#F0F1F4 1px,#F0F1F4 10px);"></div>' +
+              '<div style="padding:14px 16px 16px;">' +
+                '<p style="font-size:14px;font-weight:500;color:#16161D;margin-bottom:4px;">' + esc(p.name) + '</p>' +
+                '<p style="font-size:12px;color:#5A5A6B;">' + concepts + ' concept' + (concepts === 1 ? '' : 's') + ' · ' + shots + ' shot' + (shots === 1 ? '' : 's') + '</p>' +
+              '</div>' +
+            '</div>' +
+          '</div>';
+        }).join('') +
+      '</div>';
+
+    mount.querySelectorAll('[data-open]').forEach((el) => {
+      el.onclick = () => { this.openOverview(el.getAttribute('data-open')); };
+    });
+    mount.querySelectorAll('[data-delete]').forEach((el) => {
+      el.onclick = (e) => {
+        e.stopPropagation();
+        const id = el.getAttribute('data-delete');
+        const proj = Store.listProjects().filter((x) => x.id === id)[0];
+        const label = proj ? proj.name : 'this project';
+        if (!window.confirm('Delete “' + label + '”? This removes its concepts and shots. This cannot be undone.')) return;
+        Store.deleteProject(id);
+        this.renderProjects();
+        this.renderSelector();
+      };
+    });
+  }
+
+  // Open a project in-page. The default view is the Project hub (deliverables
+  // + versions + assets, §6); the legacy concepts/shots (Generate) view stays
+  // reachable via a tab. Sets the project active so the selector/builder sync.
+  openOverview(id) {
+    if (!window.Store) return;
+    Store.setActive({ projectId: id });
+    this.setState({ openId: id, view: 'hub' });
+    this.renderSelector();
+    this.renderProjectView(id);
+  }
+
+  renderProjectView(id) {
+    if (this.state.view === 'concepts') this.renderConcepts(id);
+    else this.renderHub(id);
+  }
+
+  // Governed brand context (§9.3⑦). READ LIVE from the client brand via
+  // getProjectBrand at render time — never snapshot-copied onto the project or
+  // deliverable. Editing the brand in Brands & Assets (updateBrand) therefore
+  // propagates here automatically ("update once → propagates"). mode==='mandatories'
+  // returns a bare compact chip (modal + deliverable card); default is the full
+  // governance block for the project hub. Returns '' when there's nothing governed.
+  governedBrand(id, mode) {
+    if (!window.Store || !Store.getProjectBrand) return '';
+    const esc = (s) => this.esc(s);
+    const b = Store.getProjectBrand(id);
+    if (!b) return '';
+    const p = Store.getProject(id);
+    const cli = p && p.clientId ? Store.getClient(p.clientId) : null;
+    const cliName = cli ? cli.name : '';
+    const wl = (b.whitelists || []).map((w) => {
+      if (!w) return '';
+      if (typeof w === 'string') return w;
+      const vals = Array.isArray(w.values) ? w.values.join(', ') : '';
+      return (w.name ? w.name + (vals ? ': ' : '') : '') + vals;
+    }).filter(Boolean);
+    const phr = (b.phrasingRules || []).filter(Boolean);
+    const per = (b.personas || []).map((x) => { if (!x) return ''; return typeof x === 'string' ? x : ((x.name || '') + (x.note ? ' — ' + x.note : '')); }).filter(Boolean);
+
+    if (mode === 'mandatories') {
+      if (!b.mandatories) return '';
+      return '<div style="background:#FBFBFA;border:1px solid rgba(2,23,211,0.14);border-radius:8px;padding:8px 10px;">' +
+        '<p style="font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#0217D3;margin-bottom:3px;">Brand mandatories' + (cliName ? ' · ' + esc(cliName) : '') + '</p>' +
+        '<p style="font-size:12px;color:#16161D;line-height:1.5;white-space:pre-wrap;">' + esc(b.mandatories) + '</p>' +
+      '</div>';
+    }
+
+    if (!(b.mandatories || b.legal || wl.length || phr.length || per.length)) return '';
+    const txt = (s) => '<p style="font-size:13px;color:#16161D;line-height:1.55;white-space:pre-wrap;">' + esc(s) + '</p>';
+    const chips = (arr) => '<div style="display:flex;flex-wrap:wrap;gap:6px;">' + arr.map((x) => '<span style="font-size:12px;color:#16161D;background:#F0F1F4;border-radius:6px;padding:3px 9px;">' + esc(x) + '</span>').join('') + '</div>';
+    const lines = (arr) => '<div style="display:flex;flex-direction:column;gap:4px;">' + arr.map((x) => '<p style="font-size:13px;color:#16161D;line-height:1.5;">' + esc(x) + '</p>').join('') + '</div>';
+    const item = (label, valueHtml) => valueHtml
+      ? '<div style="margin-bottom:10px;"><p style="font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#9A9AA8;margin-bottom:3px;">' + label + '</p>' + valueHtml + '</div>'
+      : '';
+    return '<div style="background:#fff;border:1px solid rgba(2,23,211,0.16);border-radius:12px;padding:16px 18px;margin-bottom:16px;box-shadow:0 1px 2px rgba(16,16,32,0.04);">' +
+        '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;">' +
+          '<p style="font-size:12px;font-weight:600;color:#0217D3;">Brand governance' + (cliName ? ' · ' + esc(cliName) : '') + '</p>' +
+          '<span style="font-size:11px;color:#9A9AA8;">Inherited live · edit in Brands &amp; Assets</span>' +
+        '</div>' +
+        item('Mandatories', b.mandatories ? txt(b.mandatories) : '') +
+        item('Legal', b.legal ? txt(b.legal) : '') +
+        item('Whitelists', wl.length ? chips(wl) : '') +
+        item('Approved phrasing', phr.length ? lines(phr) : '') +
+        item('Personas', per.length ? lines(per) : '') +
+      '</div>';
+  }
+
+  // Shared header for both project views: back link + title + brand, and a tab
+  // bar switching between the Project hub (deliverables) and Generate (concepts).
+  projectHeader(id, active) {
+    const p = Store.getProject(id);
+    const cli = p && p.clientId ? Store.getClient(p.clientId) : null;
+    const sub = cli ? this.esc(cli.name) : 'No client';
+    const tab = (key, label) => {
+      const on = key === active;
+      return '<button data-view="' + key + '" style="height:32px;padding:0 14px;border:none;background:none;font-family:inherit;font-size:13px;font-weight:500;cursor:pointer;border-bottom:2px solid ' + (on ? '#0217D3' : 'transparent') + ';color:' + (on ? '#16161D' : '#9A9AA8') + ';">' + label + '</button>';
+    };
+    return '<button id="ov-back" style="display:inline-flex;align-items:center;gap:6px;background:none;border:none;padding:0;font-family:inherit;font-size:13px;font-weight:500;color:#5A5A6B;cursor:pointer;margin-bottom:12px;">' +
+        '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg> All projects' +
+      '</button>' +
+      '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:6px;">' +
+        '<div><p style="font-size:20px;font-weight:600;color:#16161D;line-height:1.2;">' + this.esc(p ? p.name : 'Project') + '</p>' +
+          '<p style="font-size:12px;color:#9A9AA8;margin-top:2px;">' + sub + '</p></div>' +
+        '<button id="ov-export" title="Export this project (brand + deliverables + cuts) as portable JSON (Claude Design / platform handoff)" style="height:32px;padding:0 12px;background:#fff;border:1px solid rgba(16,16,32,.14);border-radius:8px;font-family:inherit;font-size:13px;font-weight:500;color:#16161D;cursor:pointer;display:inline-flex;align-items:center;gap:6px;flex-shrink:0;">' +
+          '<svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 1v8"></path><path d="M4 6l3 3 3-3"></path><path d="M2 12h10"></path></svg>' +
+          'Export JSON' +
+        '</button>' +
+      '</div>' +
+      '<div style="display:flex;gap:4px;border-bottom:1px solid rgba(16,16,32,0.08);margin-bottom:22px;">' +
+        tab('hub', 'Deliverables') + tab('concepts', 'Concepts &amp; shots') +
+      '</div>';
+  }
+
+  wireProjectHeader(id) {
+    const back = document.getElementById('ov-back');
+    if (back) back.onclick = () => { this.setState({ openId: '', view: 'hub' }); this.renderProjects(); };
+    const exp = document.getElementById('ov-export');
+    if (exp) exp.onclick = () => { if (window.Exporter) Exporter.downloadProject(id); };
+    document.querySelectorAll('[data-view]').forEach((el) => {
+      el.onclick = () => { this.setState({ view: el.getAttribute('data-view') }); this.renderProjectView(id); };
+    });
+  }
+
+  // ── Project hub (§6): deliverables with specs, status, current version,
+  // review rounds, and attached assets. Manual cut registration per deliverable.
+  renderHub(id) {
+    const mount = document.getElementById('projects-mount');
+    if (!mount || !window.Store) return;
+    const p = Store.getProject(id);
+    if (!p) { this.renderProjects(); return; }
+    const esc = (s) => this.esc(s);
+    const dlvs = Store.listDeliverables(id);
+
+    let html = this.projectHeader(id, 'hub');
+    html += this.governedBrand(id);
+
+    if (!dlvs.length) {
+      html +=
+        '<div style="background:#fff;border:1px dashed rgba(16,16,32,0.16);border-radius:12px;padding:48px 24px;text-align:center;">' +
+          '<p style="font-size:15px;font-weight:500;color:#16161D;margin-bottom:6px;">No deliverables yet</p>' +
+          '<p style="font-size:13px;color:#5A5A6B;max-width:380px;margin:0 auto 18px;line-height:1.6;">A deliverable is a required output (a ratio, a runtime, a platform). Add one to track its specs, review rounds, and cuts.</p>' +
+          '<button id="hub-add" style="height:36px;padding:0 18px;background:#0217D3;border:none;border-radius:8px;font-family:inherit;font-size:14px;font-weight:500;color:#fff;cursor:pointer;">New deliverable</button>' +
+        '</div>';
+      mount.innerHTML = html;
+      this.wireProjectHeader(id);
+      const b = document.getElementById('hub-add');
+      if (b) b.onclick = () => this.renderVals().openNewDeliverable(id);
+      return;
+    }
+
+    html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">' +
+        '<p style="font-size:14px;font-weight:500;color:#16161D;">' + dlvs.length + ' deliverable' + (dlvs.length === 1 ? '' : 's') + '</p>' +
+        '<button id="hub-add" style="height:30px;padding:0 12px;background:#fff;border:1px solid rgba(16,16,32,0.12);border-radius:7px;font-family:inherit;font-size:12px;font-weight:500;color:#16161D;cursor:pointer;display:flex;align-items:center;gap:6px;">' +
+          '<svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><line x1="7" y1="2" x2="7" y2="12"/><line x1="2" y1="7" x2="12" y2="7"/></svg> New deliverable</button>' +
+      '</div>';
+
+    html += '<div style="display:flex;flex-direction:column;gap:14px;">' +
+      dlvs.map((d) => this.deliverableCard(d)).join('') +
+      '</div>';
+
+    mount.innerHTML = html;
+    this.wireProjectHeader(id);
+    this.wireHub(id);
+  }
+
+  // One deliverable: specs, status control, review rounds, attached assets.
+  deliverableCard(d) {
+    const esc = (s) => this.esc(s);
+    const versions = Store.listVersions(d.id).slice().sort((a, b) => (b.round || 0) - (a.round || 0));
+    const assets = Store.listAssets({ deliverableId: d.id });
+    const refA = assets.filter((a) => a.type === 'reference');
+    const genA = assets.filter((a) => a.type === 'generated');
+    const cutA = assets.filter((a) => a.type === 'cut');
+
+    const specBits = [];
+    if (d.specs) {
+      if (d.specs.ratio) specBits.push(esc(d.specs.ratio));
+      if (d.specs.runtime) specBits.push(esc(d.specs.runtime));
+      if (d.specs.platform) specBits.push(esc(d.specs.platform));
+      if (d.specs.legal) specBits.push('⚖ ' + esc(d.specs.legal));
+    }
+    const specLine = specBits.length
+      ? '<p style="font-size:12px;color:#5A5A6B;margin-top:3px;">' + specBits.join(' &nbsp;·&nbsp; ') + '</p>'
+      : '<p style="font-size:12px;color:#9A9AA8;margin-top:3px;">No specs set</p>';
+
+    const dlvStatusOpts = ['not-started', 'in-progress', 'in-review', 'blocked', 'approved', 'delivered'];
+    const dlvSelect = '<select data-dlv-status="' + d.id + '" style="height:28px;background:#fff;border:1px solid rgba(16,16,32,0.12);border-radius:7px;padding:0 8px;font-family:inherit;font-size:12px;color:#16161D;cursor:pointer;">' +
+      dlvStatusOpts.map((s) => '<option value="' + s + '"' + (d.status === s ? ' selected' : '') + '>' + this.statusStyle(s).label + '</option>').join('') +
+      '</select>';
+
+    // Review rounds — newest first; current version flagged.
+    const verStatusOpts = ['needs-review', 'changes', 'approved'];
+    const verRows = versions.length
+      ? versions.map((v) => {
+          const isCurrent = v.id === d.currentVersionId;
+          const asset = v.assetId ? Store.getAsset(v.assetId) : null;
+          const cutType = asset && asset.cutType ? asset.cutType : '';
+          const sel = '<select data-ver-status="' + v.id + '" style="height:26px;background:#fff;border:1px solid rgba(16,16,32,0.12);border-radius:6px;padding:0 6px;font-family:inherit;font-size:11px;color:#16161D;cursor:pointer;">' +
+            verStatusOpts.map((s) => '<option value="' + s + '"' + (v.status === s ? ' selected' : '') + '>' + this.statusStyle(s).label + '</option>').join('') + '</select>';
+          const fio = v.frameioUrl
+            ? '<a href="' + esc(v.frameioUrl) + '" target="_blank" rel="noopener" style="font-size:11px;color:#0217D3;text-decoration:none;white-space:nowrap;">Frame.io ↗</a>'
+            : '<span style="font-size:11px;color:#C9C9D2;">no link</span>';
+          return '<div style="display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:8px;background:' + (isCurrent ? '#EEF0FF' : '#F6F6F4') + ';">' +
+            '<span style="font-size:11px;font-weight:600;color:' + (isCurrent ? '#0217D3' : '#5A5A6B') + ';width:34px;flex-shrink:0;">R' + (v.round || '?') + '</span>' +
+            '<span style="font-size:12px;color:#16161D;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (cutType ? esc(cutType) : 'version') + (v.reviewer ? ' · ' + esc(v.reviewer) : '') + (isCurrent ? ' · <span style="color:#0217D3;font-weight:500;">current</span>' : '') + (v.note ? ' · <span style="color:#9A9AA8;">' + esc(v.note) + '</span>' : '') + '</span>' +
+            fio + sel +
+            '<button data-del-ver="' + v.id + '" title="Delete version" style="width:22px;height:22px;border:none;background:none;color:#B8B8C2;font-size:13px;line-height:1;cursor:pointer;flex-shrink:0;">✕</button>' +
+          '</div>';
+        }).join('')
+      : '<p style="font-size:12px;color:#9A9AA8;padding:4px 2px;">No versions yet. Register a cut to log the first review round.</p>';
+
+    // Attached reference/generated assets (cuts appear as versions above).
+    const assetChips = (arr, dotColor) => arr.map((a) =>
+      '<span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;color:#5A5A6B;background:#F0F1F4;border-radius:999px;padding:2px 9px;">' +
+        '<span style="width:6px;height:6px;border-radius:50%;background:' + dotColor + ';"></span>' + esc(a.name || a.type) + '</span>').join('');
+    const chips = assetChips(refA, '#0217D3') + assetChips(genA, '#FF002E');
+    const assetLine = (refA.length + genA.length)
+      ? '<div style="display:flex;flex-wrap:wrap;gap:6px;">' + chips + '</div>'
+      : '<p style="font-size:12px;color:#9A9AA8;">No reference or generated assets attached.</p>';
+
+    return '<div style="background:#fff;border:1px solid rgba(16,16,32,0.08);border-radius:12px;padding:18px 20px;box-shadow:0 1px 2px rgba(16,16,32,0.04);">' +
+        '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">' +
+          '<div style="min-width:0;">' +
+            '<p style="font-size:15px;font-weight:600;color:#16161D;">' + esc(d.name) + '</p>' + specLine +
+          '</div>' +
+          '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">' + this.badge(d.status) + dlvSelect + '</div>' +
+        '</div>' +
+        ((mand) => mand ? '<div style="margin-top:12px;">' + mand + '</div>' : '')(this.governedBrand(d.projectId, 'mandatories')) +
+        '<div style="height:1px;background:rgba(16,16,32,0.06);margin:14px 0;"></div>' +
+        '<p style="font-size:12px;font-weight:500;color:#9A9AA8;margin-bottom:8px;">Review rounds</p>' +
+        '<div style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px;">' + verRows + '</div>' +
+        '<p style="font-size:12px;font-weight:500;color:#9A9AA8;margin-bottom:8px;">Attached assets ' +
+          '<span style="color:#C9C9D2;font-weight:400;">· ' + refA.length + ' ref · ' + genA.length + ' gen · ' + cutA.length + ' cut</span></p>' +
+        assetLine +
+        '<div style="display:flex;gap:8px;margin-top:16px;">' +
+          '<button data-generate="' + d.id + '" style="height:32px;padding:0 14px;background:#fff;border:1px solid #0217D3;border-radius:8px;font-family:inherit;font-size:13px;font-weight:500;color:#0217D3;cursor:pointer;">Generate</button>' +
+          '<button data-register-cut="' + d.id + '" style="height:32px;padding:0 14px;background:#0217D3;border:none;border-radius:8px;font-family:inherit;font-size:13px;font-weight:500;color:#fff;cursor:pointer;">Register cut</button>' +
+          '<button data-del-dlv="' + d.id + '" style="height:32px;padding:0 12px;background:#fff;border:1px solid rgba(16,16,32,0.12);border-radius:8px;font-family:inherit;font-size:13px;font-weight:500;color:#5A5A6B;cursor:pointer;">Delete</button>' +
+        '</div>' +
+      '</div>';
+  }
+
+  wireHub(id) {
+    const mount = document.getElementById('projects-mount');
+    const add = document.getElementById('hub-add');
+    if (add) add.onclick = () => this.renderVals().openNewDeliverable(id);
+    mount.querySelectorAll('[data-register-cut]').forEach((el) => {
+      el.onclick = () => this.renderVals().openRegisterCut(el.getAttribute('data-register-cut'));
+    });
+    // Generate is an action launched from the deliverable — carries its id (and
+    // the project) into the prompt builder as governed launch context (§9.3).
+    mount.querySelectorAll('[data-generate]').forEach((el) => {
+      el.onclick = () => {
+        const dlvId = el.getAttribute('data-generate');
+        Store.setActive({ projectId: id, deliverableId: dlvId });
+        window.location.href = 'promptbuilder.html?deliverable=' + encodeURIComponent(dlvId);
+      };
+    });
+    mount.querySelectorAll('[data-dlv-status]').forEach((el) => {
+      el.onchange = () => { Store.updateDeliverable(el.getAttribute('data-dlv-status'), { status: el.value }); this.renderHub(id); };
+    });
+    mount.querySelectorAll('[data-ver-status]').forEach((el) => {
+      el.onchange = () => { Store.updateVersion(el.getAttribute('data-ver-status'), { status: el.value }); this.renderHub(id); };
+    });
+    mount.querySelectorAll('[data-del-ver]').forEach((el) => {
+      el.onclick = () => {
+        if (!window.confirm('Delete this version? This cannot be undone.')) return;
+        Store.deleteVersion(el.getAttribute('data-del-ver')); this.renderHub(id);
+      };
+    });
+    mount.querySelectorAll('[data-del-dlv]').forEach((el) => {
+      el.onclick = () => {
+        const d = Store.getDeliverable(el.getAttribute('data-del-dlv'));
+        if (!window.confirm('Delete “' + (d ? d.name : 'this deliverable') + '”? This removes its versions and cut assets. This cannot be undone.')) return;
+        Store.deleteDeliverable(el.getAttribute('data-del-dlv')); this.renderHub(id);
+      };
+    });
+  }
+
+  // Project overview — implements Projects.dc.html (production progress card,
+  // project to-do column, concepts grid) driven entirely by Store data.
+  // The to-do list is scaffolded from the Claude handoff plan (studio-s-plan.json
+  // "todos") and toggleable here; progress is computed from it.
+  // Legacy Generate view — concepts + shots + production to-do. Reached via the
+  // "Concepts & shots" tab; clicking a shot still enters the prompt builder.
+  renderConcepts(id) {
+    const mount = document.getElementById('projects-mount');
+    if (!mount || !window.Store) return;
+    const p = Store.getProject(id);
+    if (!p) { this.renderProjects(); return; }
+    const concepts = p.concepts || [];
+    const todos = Store.listTodos(id);
+    const activeC = Store.getActive().conceptId;
+    const esc = (s) => this.esc(s);
+    const gridIco = '<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="1" y="1" width="4" height="4" rx=".5"/><rect x="7" y="1" width="4" height="4" rx=".5"/><rect x="1" y="7" width="4" height="4" rx=".5"/><rect x="7" y="7" width="4" height="4" rx=".5"/></svg>';
+    const check = '<svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,5 4.5,7.5 8.5,2.5"/></svg>';
+
+    // ── Header: back + tabs (shared) ──
+    let html = this.projectHeader(id, 'concepts');
+
+    // ── Production progress (computed from the plan's to-do list) ──
+    const doneN = todos.filter((t) => t.done).length;
+    const pct = todos.length ? Math.round((doneN / todos.length) * 100) : 0;
+    html +=
+      '<div style="background:#fff;border:1px solid rgba(16,16,32,0.08);border-radius:12px;padding:20px;margin-bottom:20px;">' +
+        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">' +
+          '<div>' +
+            '<p style="font-size:14px;font-weight:500;color:#16161D;margin-bottom:2px;">Production progress</p>' +
+            '<p style="font-size:12px;color:#9A9AA8;">' + esc(p.name) + ' · ' + concepts.length + ' concept' + (concepts.length === 1 ? '' : 's') + ' · ' + this.shotCount(p) + ' shot' + (this.shotCount(p) === 1 ? '' : 's') + '</p>' +
+          '</div>' +
+          (todos.length ? '<span style="font-size:13px;font-weight:500;color:#0217D3;">' + pct + '%</span>' : '') +
+        '</div>' +
+        (todos.length
+          ? '<div style="height:4px;background:#ECEDF0;border-radius:999px;overflow:hidden;">' +
+              '<div style="width:' + pct + '%;height:100%;background:#FF002E;border-radius:999px;"></div>' +
+            '</div>'
+          : '<p style="font-size:12px;color:#9A9AA8;">Progress tracks your production plan’s to-do list. Import a plan from Claude to see it here.</p>') +
+      '</div>';
+
+    // ── Two-col: to-do + concepts grid ──
+    const firstOpen = todos.findIndex((t) => !t.done);
+    const todoRows = todos.length
+      ? todos.map((t, i) => {
+          const isActive = i === firstOpen;
+          const box = t.done
+            ? '<div style="width:18px;height:18px;border-radius:5px;background:#0217D3;display:flex;align-items:center;justify-content:center;flex-shrink:0;">' + check + '</div>'
+            : '<div style="width:18px;height:18px;border-radius:5px;border:1.5px solid ' + (isActive ? '#0217D3' : 'rgba(16,16,32,0.12)') + ';flex-shrink:0;"></div>';
+          const label = t.done
+            ? '<span style="font-size:13px;color:#9A9AA8;text-decoration:line-through;">' + esc(t.label) + '</span>'
+            : '<span style="font-size:13px;color:' + (isActive ? '#0217D3;font-weight:500' : '#5A5A6B') + ';">' + esc(t.label) + '</span>';
+          return '<div class="task-row" data-todo="' + i + '" style="display:flex;align-items:center;gap:10px;padding:8px;border-radius:8px;cursor:pointer;transition:background 0.1s;' + (isActive ? 'background:#EEF0FF;' : '') + '">' + box + label + '</div>';
+        }).join('')
+      : '<p style="font-size:13px;color:#9A9AA8;line-height:1.6;">No to-dos yet. They’re scaffolded from your Claude production plan (studio-s-plan.json) when you import it.</p>';
+
+    const conceptCards = concepts.map((c) => {
+      const shots = c.shots || [];
+      const isActive = c.id === activeC;
+      const shotRows = shots.map((s) =>
+        '<div class="task-row" data-shot="' + c.id + '|' + s.id + '" style="display:flex;align-items:center;gap:8px;padding:5px 6px;margin:0 -6px;border-radius:6px;cursor:pointer;transition:background 0.1s;">' +
+          '<svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="#9A9AA8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="12" height="10" rx="2"/><path d="m6.5 6 3.5 2-3.5 2z"/></svg>' +
+          '<span style="flex:1;font-size:12px;color:#5A5A6B;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(s.name || 'Untitled shot') + '</span>' +
+          '<span style="font-size:10px;font-weight:500;color:#9A9AA8;background:#F0F1F4;border-radius:999px;padding:1px 7px;flex-shrink:0;">' + esc(s.status || 'draft') + '</span>' +
+        '</div>').join('');
+      return '<div class="concept-card" style="background:#fff;border:1px solid ' + (isActive ? 'rgba(2,23,211,0.35)' : 'rgba(16,16,32,0.08)') + ';border-radius:12px;overflow:hidden;box-shadow:0 1px 2px rgba(16,16,32,0.04);">' +
+        '<div style="height:96px;background:repeating-linear-gradient(45deg,#e8eaf0 0,#e8eaf0 1px,#F0F1F4 1px,#F0F1F4 10px);display:flex;align-items:center;justify-content:center;position:relative;">' +
+          '<span style="font-size:11px;color:#9A9AA8;font-weight:500;">still placeholder</span>' +
+        '</div>' +
+        '<div style="padding:14px 16px 16px;">' +
+          '<p style="font-size:14px;font-weight:500;color:#16161D;margin-bottom:4px;">' + esc(c.name || 'Concept') + '</p>' +
+          (c.desc ? '<p style="font-size:12px;color:#5A5A6B;margin-bottom:12px;line-height:1.5;">' + esc(c.desc) + '</p>' : '') +
+          (shotRows ? '<div style="display:flex;flex-direction:column;gap:1px;margin-bottom:12px;">' + shotRows + '</div>' : '<p style="font-size:12px;color:#9A9AA8;margin-bottom:12px;">No shots yet.</p>') +
+          '<div style="display:flex;align-items:center;justify-content:space-between;">' +
+            '<span style="font-size:12px;color:#9A9AA8;display:flex;align-items:center;gap:4px;">' + gridIco + ' ' + shots.length + ' shot' + (shots.length === 1 ? '' : 's') + '</span>' +
+            '<button data-open-concept="' + c.id + '" style="height:28px;padding:0 12px;background:' + (isActive ? '#0217D3;border:none;color:#fff' : '#fff;border:1px solid rgba(16,16,32,0.12);color:#16161D') + ';border-radius:6px;font-family:inherit;font-size:12px;font-weight:500;cursor:pointer;">Open</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+
+    const addCard =
+      '<div id="ov-add-concept" class="concept-card" style="background:#F6F6F4;border:1px dashed rgba(16,16,32,0.16);border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-height:200px;padding:24px;cursor:pointer;">' +
+        '<div style="width:36px;height:36px;border:1.5px solid rgba(16,16,32,0.16);border-radius:8px;display:flex;align-items:center;justify-content:center;">' +
+          '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#9A9AA8" stroke-width="1.5" stroke-linecap="round"><line x1="8" y1="3" x2="8" y2="13"/><line x1="3" y1="8" x2="13" y2="8"/></svg>' +
+        '</div>' +
+        '<div style="text-align:center;">' +
+          '<p style="font-size:13px;font-weight:500;color:#5A5A6B;margin-bottom:4px;">New concept</p>' +
+          '<p style="font-size:12px;color:#9A9AA8;line-height:1.5;">Add another creative direction to this project.</p>' +
+        '</div>' +
+      '</div>';
+
+    html +=
+      '<div style="display:grid;grid-template-columns:300px 1fr;gap:20px;align-items:start;">' +
+        '<div style="background:#fff;border:1px solid rgba(16,16,32,0.08);border-radius:12px;padding:20px;">' +
+          '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">' +
+            '<p style="font-size:14px;font-weight:500;color:#16161D;">Project to-do</p>' +
+            (todos.length ? '<span style="font-size:11px;font-weight:500;background:#E8F7F1;color:#1D9E75;padding:2px 8px;border-radius:999px;">' + doneN + ' of ' + todos.length + ' done</span>' : '') +
+          '</div>' +
+          '<div style="display:flex;flex-direction:column;gap:2px;">' + todoRows + '</div>' +
+        '</div>' +
+        '<div>' +
+          '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">' +
+            '<p style="font-size:14px;font-weight:500;color:#16161D;">Concepts</p>' +
+          '</div>' +
+          '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">' + conceptCards + addCard + '</div>' +
+        '</div>' +
+      '</div>';
+
+    mount.innerHTML = html;
+
+    // ── Wiring ──
+    this.wireProjectHeader(id);
+    mount.querySelectorAll('[data-todo]').forEach((el) => {
+      el.onclick = () => {
+        Store.toggleTodo(id, parseInt(el.getAttribute('data-todo'), 10));
+        this.renderConcepts(id);
+      };
+    });
+    mount.querySelectorAll('[data-open-concept]').forEach((el) => {
+      el.onclick = () => {
+        const cid = el.getAttribute('data-open-concept');
+        const c = (Store.getProject(id).concepts || []).filter((x) => x.id === cid)[0];
+        const sid = c && c.shots && c.shots[0] ? c.shots[0].id : '';
+        Store.setActive({ projectId: id, conceptId: cid, shotId: sid });
+        window.location.href = 'promptbuilder.html';
+      };
+    });
+    mount.querySelectorAll('[data-shot]').forEach((el) => {
+      el.onclick = (e) => {
+        e.stopPropagation();
+        const parts = el.getAttribute('data-shot').split('|');
+        Store.setActive({ projectId: id, conceptId: parts[0], shotId: parts[1] });
+        window.location.href = 'promptbuilder.html';
+      };
+    });
+    const add = document.getElementById('ov-add-concept');
+    if (add) add.onclick = () => {
+      Store.addConcept(id, {});
+      this.renderConcepts(id);
+    };
+  }
+
+  async pickDir() {
+    try {
+      const t = window.__TAURI__;
+      if (t && t.dialog && t.dialog.open) {
+        const r = await t.dialog.open({ directory: true, multiple: false });
+        return typeof r === 'string' ? r : '';
+      }
+    } catch (e) {}
+    return '';
+  }
+
+  renderVals() {
+    return {
+      switchProject: (e) => {
+        const id = e.currentTarget.value;
+        if (id && window.Store) { this.openOverview(id); }
+      },
+      openNewDeliverable: (id) => {
+        const pid = id || this.state.openId;
+        this.setState({ cutTarget: pid });
+        ['nd-name', 'nd-ratio', 'nd-runtime', 'nd-platform', 'nd-legal'].forEach((k) => {
+          const el = document.getElementById(k); if (el) el.value = '';
+        });
+        // Pre-fill legal from the client brand — a convenience DEFAULT (copied
+        // once, fully editable per deliverable), NOT the propagation path. The
+        // mandatories below are read live and stay governed.
+        const brand = (window.Store && Store.getProjectBrand) ? Store.getProjectBrand(pid) : null;
+        if (brand && brand.legal) { const le = document.getElementById('nd-legal'); if (le) le.value = brand.legal; }
+        const ctx = document.getElementById('nd-brand-ctx');
+        if (ctx) {
+          const mand = this.governedBrand(pid, 'mandatories');
+          ctx.innerHTML = mand;
+          ctx.style.marginBottom = mand ? '16px' : '0';
+        }
+        const m = document.getElementById('nd-modal'); if (m) m.style.display = 'flex';
+      },
+      closeNewDeliverable: () => {
+        const m = document.getElementById('nd-modal'); if (m) m.style.display = 'none';
+      },
+      submitNewDeliverable: () => {
+        if (!window.Store) return;
+        const id = this.state.cutTarget || this.state.openId;
+        if (!id) return;
+        const val = (k) => (document.getElementById(k) || {}).value || '';
+        const name = val('nd-name').trim();
+        if (!name) { const el = document.getElementById('nd-name'); if (el) el.focus(); return; }
+        Store.createDeliverable(id, {
+          name: name,
+          specs: { ratio: val('nd-ratio').trim(), runtime: val('nd-runtime').trim(), platform: val('nd-platform').trim(), legal: val('nd-legal').trim() }
+        });
+        const m = document.getElementById('nd-modal'); if (m) m.style.display = 'none';
+        this.setState({ view: 'hub' });
+        this.renderHub(id);
+      },
+      openRegisterCut: (dlvId) => {
+        this.setState({ cutTarget: dlvId });
+        const d = Store.getDeliverable(dlvId);
+        const sub = document.getElementById('rc-sub');
+        if (sub && d) sub.textContent = 'Logs a new version on “' + d.name + '” — the deliverable points at it as the current cut.';
+        ['rc-frameio', 'rc-reviewer', 'rc-round', 'rc-note'].forEach((k) => {
+          const el = document.getElementById(k); if (el) el.value = '';
+        });
+        const ct = document.getElementById('rc-cuttype'); if (ct) ct.value = 'rough';
+        const st = document.getElementById('rc-status'); if (st) st.value = 'needs-review';
+        const m = document.getElementById('rc-modal'); if (m) m.style.display = 'flex';
+      },
+      closeRegisterCut: () => {
+        const m = document.getElementById('rc-modal'); if (m) m.style.display = 'none';
+      },
+      submitRegisterCut: () => {
+        if (!window.Store) return;
+        const dlvId = this.state.cutTarget;
+        if (!dlvId) return;
+        const val = (k) => (document.getElementById(k) || {}).value || '';
+        const roundRaw = val('rc-round').trim();
+        const opts = {
+          cutType: val('rc-cuttype'),
+          frameioUrl: val('rc-frameio').trim(),
+          reviewer: val('rc-reviewer').trim(),
+          status: val('rc-status'),
+          note: val('rc-note').trim(),
+          name: val('rc-cuttype')
+        };
+        if (roundRaw) opts.round = parseInt(roundRaw, 10) || undefined;
+        Store.registerCut(dlvId, opts);
+        const m = document.getElementById('rc-modal'); if (m) m.style.display = 'none';
+        const pid = this.state.openId;
+        this.setState({ view: 'hub' });
+        this.renderHub(pid);
+      },
+      openNewProject: () => {
+        // New projects run the full onboarding quiz (name/model/plan import).
+        window.location.href = 'index.html?new=1';
+      },
+      closeNewProject: () => {
+        const m = document.getElementById('np-modal'); if (m) m.style.display = 'none';
+      },
+      npPickFolder: async () => {
+        const dir = await this.pickDir();
+        if (!dir) return;
+        this.setState({ npFolder: dir });
+        const f = document.getElementById('np-folder');
+        if (f) { f.textContent = dir; f.style.color = '#16161D'; }
+      },
+      createProject: async () => {
+        if (!window.Store) return;
+        const name = (document.getElementById('np-name') || {}).value || 'Untitled project';
+        const assets = this.state.npFolder;
+        const p = Store.createProject({ name: name, assetsFolder: assets });
+        if (assets) {
+          try {
+            const t = window.__TAURI__;
+            if (t && t.core && t.core.invoke) {
+              const plan = await t.core.invoke('scan_plan_folder', { dir: assets });
+              if (plan && plan.content) Store.scaffoldFromPlan(p.id, plan.content);
+            }
+          } catch (e) {}
+        }
+        // A new project lands on its hub (deliverables), not the demoted Generate
+        // front door — generation is reached per-deliverable from there (§9.3).
+        const m = document.getElementById('np-modal'); if (m) m.style.display = 'none';
+        this.openOverview(p.id);
+      }
+    };
+  }
+}
+
+</script>
+<script src="./store.js"></script>
+<script src="./export.js"></script>
+<script src="./nav.js"></script>
+</body>
+</html>

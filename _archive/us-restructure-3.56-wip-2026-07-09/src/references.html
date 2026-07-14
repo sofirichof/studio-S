@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="./vendor/fonts/host-grotesk.css" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Host Grotesk',system-ui,sans-serif;background:#F6F6F4;overflow:hidden;}
+  .nav-item{transition:background .12s,color .12s;cursor:pointer;}
+  .nav-item:hover{background:#F0F1F4!important;color:#16161D!important;}
+  .asset-card{transition:box-shadow .12s,border-color .12s;cursor:pointer;}
+  .asset-card:hover{box-shadow:0 4px 14px rgba(16,16,32,.09)!important;border-color:rgba(16,16,32,.18)!important;}
+  .tab-btn{transition:all .12s;cursor:pointer;}
+  .chip{transition:all .12s;cursor:pointer;}
+  ::-webkit-scrollbar{width:4px;}
+  ::-webkit-scrollbar-thumb{background:rgba(16,16,32,.12);border-radius:2px;}
+</style>
+</helmet>
+<div style="display:flex;height:100vh;width:100vw;overflow:hidden;">
+  <!-- Nav -->
+  <div style="width:248px;background:#fff;border-right:1px solid rgba(16,16,32,.08);display:flex;flex-direction:column;flex-shrink:0;">
+    <div style="padding:16px 16px 12px;border-bottom:1px solid rgba(16,16,32,.06);">
+      <div style="display:flex;align-items:center;gap:10px;"><img src="uploads/logo.png" style="width:28px;height:28px;border-radius:7px;flex-shrink:0;"/><div><p style="font-size:13px;font-weight:500;color:#16161D;">Studio S</p><p style="font-size:11px;color:#9A9AA8;">Supergood</p></div></div>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:12px 8px;">
+      <div style="padding:0 8px;margin-bottom:16px;"><div style="position:relative;"><select id="ba-side-proj" style="width:100%;height:32px;background:#F6F6F4;border:1px solid rgba(16,16,32,.08);border-radius:8px;padding:0 28px 0 10px;font-family:'Host Grotesk',system-ui;font-size:12px;color:#16161D;appearance:none;font-weight:500;cursor:pointer;"></select><svg style="position:absolute;right:8px;top:50%;transform:translateY(-50%);pointer-events:none;" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#9A9AA8" stroke-width="1.5" stroke-linecap="round"><path d="M3 5l3 3 3-3"></path></svg></div></div>
+      <div class="nav-item" style="display:flex;align-items:center;gap:10px;padding:0 12px;height:36px;border-radius:8px;margin-bottom:2px;color:#5A5A6B;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="12" height="5" rx="1.5"></rect><rect x="2" y="9" width="12" height="5" rx="1.5"></rect></svg><span style="font-size:14px;">Work</span></div>
+      <div class="nav-item" style="display:flex;align-items:center;gap:10px;padding:0 12px;height:36px;border-radius:8px;margin-bottom:2px;color:#5A5A6B;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="12" height="10" rx="2"></rect><path d="M2 7h12"></path></svg><span style="font-size:14px;">Projects</span></div>
+      <p style="font-size:12px;font-weight:500;color:#9A9AA8;padding:8px 12px 4px;margin-top:8px;">Library</p>
+      <!-- Active: Brands & Assets (routes as "References" via nav.js; label reflects new IA §6) -->
+      <div style="display:flex;align-items:center;gap:10px;padding:0 12px;height:36px;border-radius:8px;margin-bottom:2px;background:#EEF0FF;position:relative;cursor:pointer;"><div style="position:absolute;left:0;top:8px;bottom:8px;width:2px;background:#0217D3;border-radius:0 2px 2px 0;"></div><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#0217D3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="6" height="10" rx="1"></rect><rect x="9" y="3" width="6" height="6" rx="1"></rect><rect x="9" y="11" width="6" height="2" rx="1"></rect></svg><span style="font-size:14px;color:#0217D3;font-weight:500;">Brands &amp; Assets</span></div>
+      <p style="font-size:12px;font-weight:500;color:#9A9AA8;padding:8px 12px 4px;margin-top:8px;">Create</p>
+      <div class="nav-item" style="display:flex;align-items:center;gap:10px;padding:0 12px;height:36px;border-radius:8px;margin-bottom:2px;color:#5A5A6B;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="5" height="5" rx="1"></rect><rect x="9" y="2" width="5" height="5" rx="1"></rect><rect x="2" y="9" width="5" height="5" rx="1"></rect><rect x="9" y="9" width="5" height="5" rx="1"></rect></svg><span style="font-size:14px;">Prompt builder</span></div>
+      <div class="nav-item" style="display:flex;align-items:center;gap:10px;padding:0 12px;height:36px;border-radius:8px;margin-bottom:2px;color:#5A5A6B;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="2" width="5" height="12" rx="1"></rect><rect x="9" y="2" width="5" height="7" rx="1"></rect><rect x="9" y="11" width="5" height="3" rx="1"></rect></svg><span style="font-size:14px;">Multi-Shot</span></div>
+      <p style="font-size:12px;font-weight:500;color:#9A9AA8;padding:8px 12px 4px;margin-top:8px;">Edit &amp; handoff</p>
+      <div class="nav-item" style="display:flex;align-items:center;gap:10px;padding:0 12px;height:36px;border-radius:8px;margin-bottom:2px;color:#5A5A6B;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 8h10M3 4h10M3 12h6"></path></svg><span style="font-size:14px;">Palmier</span></div>
+      <div class="nav-item" style="display:flex;align-items:center;gap:10px;padding:0 12px;height:36px;border-radius:8px;margin-bottom:2px;color:#5A5A6B;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 4h12M2 8h8M2 12h5"></path></svg><span style="font-size:14px;">Finishing</span></div>
+      <p style="font-size:12px;font-weight:500;color:#9A9AA8;padding:8px 12px 4px;margin-top:8px;">Help</p>
+      <div class="nav-item" style="display:flex;align-items:center;gap:10px;padding:0 12px;height:36px;border-radius:8px;margin-bottom:2px;color:#5A5A6B;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 4h12M2 8h8M2 12h5"></path></svg><span style="font-size:14px;">Workflow guide</span></div>
+      <div class="nav-item" style="display:flex;align-items:center;gap:10px;padding:0 12px;height:36px;border-radius:8px;margin-bottom:2px;color:#5A5A6B;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="6"></circle><path d="M8 7.5V11M8 5.5v.5"></path></svg><span style="font-size:14px;">AI setup</span></div>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div id="ba-root" style="flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;">
+    <div style="background:#fff;border-bottom:1px solid rgba(16,16,32,.08);padding:0 28px;flex-shrink:0;">
+      <div style="display:flex;align-items:center;justify-content:space-between;height:52px;">
+        <div style="display:flex;align-items:center;gap:8px;"><span id="ba-client" style="font-size:12px;color:#9A9AA8;">No client</span><span style="font-size:12px;color:rgba(16,16,32,.2);">›</span><span style="font-size:14px;font-weight:500;color:#16161D;">Brands &amp; Assets</span></div>
+        <div style="display:flex;align-items:center;gap:8px;">
+        <button data-act="export-client" title="Export this client's brand kit + projects as portable JSON (Claude Design / platform handoff)" style="height:32px;padding:0 12px;background:#fff;border:1px solid rgba(16,16,32,.14);border-radius:8px;font-family:'Host Grotesk',system-ui;font-size:13px;font-weight:500;color:#16161D;cursor:pointer;display:flex;align-items:center;gap:6px;">
+          <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 1v8"></path><path d="M4 6l3 3 3-3"></path><path d="M2 12h10"></path></svg>
+          Export JSON
+        </button>
+        <button data-act="add-asset" style="height:32px;padding:0 14px;background:#0217D3;border:none;border-radius:8px;font-family:'Host Grotesk',system-ui;font-size:13px;font-weight:500;color:#fff;cursor:pointer;display:flex;align-items:center;gap:6px;">
+          <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round"><line x1="7" y1="1" x2="7" y2="13"></line><line x1="1" y1="7" x2="13" y2="7"></line></svg>
+          Add asset
+        </button>
+        </div>
+      </div>
+    </div>
+
+    <div style="flex:1;overflow-y:auto;">
+      <!-- Brand kit -->
+      <div id="ba-brand" style="padding:20px 28px 4px;"></div>
+      <!-- Tabs + filters -->
+      <div id="ba-controls" style="padding:0 28px;"></div>
+      <!-- Asset grid -->
+      <div style="padding:16px 28px 28px;"><div id="ba-assets"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Asset modal -->
+<div id="asset-modal" style="display:none;position:fixed;inset:0;background:rgba(16,16,32,0.32);z-index:100;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:14px;width:460px;max-width:92vw;max-height:88vh;overflow-y:auto;padding:24px;box-shadow:0 12px 40px rgba(16,16,32,0.2);">
+    <p id="asset-modal-title" style="font-size:16px;font-weight:500;color:#16161D;margin-bottom:18px;">Add asset</p>
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      <div>
+        <label style="font-size:12px;font-weight:500;color:#16161D;display:block;margin-bottom:6px;">Asset type</label>
+        <div style="position:relative;">
+          <select id="a-type" data-act="asset-type-change" style="width:100%;height:36px;background:#fff;border:1px solid rgba(16,16,32,0.12);border-radius:10px;padding:0 28px 0 12px;font-family:'Host Grotesk',system-ui;font-size:14px;color:#16161D;appearance:none;cursor:pointer;outline:none;"><option value="reference">Reference</option><option value="generated">Generated</option></select>
+          <svg style="position:absolute;right:10px;top:50%;transform:translateY(-50%);pointer-events:none;" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#9A9AA8" stroke-width="1.5" stroke-linecap="round"><path d="M3 5l3 3 3-3"></path></svg>
+        </div>
+      </div>
+      <div>
+        <label style="font-size:12px;font-weight:500;color:#16161D;display:block;margin-bottom:6px;">Name</label>
+        <input id="a-name" type="text" placeholder="e.g. Hero A, CMC still, Kitchen B" style="width:100%;height:36px;background:#fff;border:1px solid rgba(16,16,32,0.12);border-radius:10px;padding:0 12px;font-family:'Host Grotesk',system-ui;font-size:14px;color:#16161D;outline:none;" />
+      </div>
+      <!-- Reference-only -->
+      <div id="a-ref-fields" style="display:flex;flex-direction:column;gap:14px;">
+        <div>
+          <label style="font-size:12px;font-weight:500;color:#16161D;display:block;margin-bottom:6px;">Kind</label>
+          <div style="position:relative;">
+            <select id="a-kind" style="width:100%;height:36px;background:#fff;border:1px solid rgba(16,16,32,0.12);border-radius:10px;padding:0 28px 0 12px;font-family:'Host Grotesk',system-ui;font-size:14px;color:#16161D;appearance:none;cursor:pointer;outline:none;"><option value="character">Character</option><option value="product">Product</option><option value="location">Location</option><option value="style">Style</option><option value="persona">Persona</option></select>
+            <svg style="position:absolute;right:10px;top:50%;transform:translateY(-50%);pointer-events:none;" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#9A9AA8" stroke-width="1.5" stroke-linecap="round"><path d="M3 5l3 3 3-3"></path></svg>
+          </div>
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:500;color:#16161D;display:block;margin-bottom:6px;">Reference links <span style="color:#9A9AA8;font-weight:400;">— one URL/path per line</span></label>
+          <textarea id="a-refs" rows="3" placeholder="drive.google.com/…&#10;/Volumes/DAM/hero-a/front.png" style="width:100%;background:#fff;border:1px solid rgba(16,16,32,0.12);border-radius:10px;padding:10px 12px;font-family:'Host Grotesk',system-ui;font-size:14px;color:#16161D;outline:none;resize:vertical;"></textarea>
+        </div>
+      </div>
+      <!-- Generated-only -->
+      <div id="a-gen-fields" style="display:none;flex-direction:column;gap:14px;">
+        <div>
+          <label style="font-size:12px;font-weight:500;color:#16161D;display:block;margin-bottom:6px;">Model</label>
+          <input id="a-model" type="text" placeholder="e.g. kling, gpt-image, higgsfield" style="width:100%;height:36px;background:#fff;border:1px solid rgba(16,16,32,0.12);border-radius:10px;padding:0 12px;font-family:'Host Grotesk',system-ui;font-size:14px;color:#16161D;outline:none;" />
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:500;color:#16161D;display:block;margin-bottom:6px;">Prompt</label>
+          <textarea id="a-prompt" rows="3" placeholder="The prompt used to generate this asset" style="width:100%;background:#fff;border:1px solid rgba(16,16,32,0.12);border-radius:10px;padding:10px 12px;font-family:'Host Grotesk',system-ui;font-size:14px;color:#16161D;outline:none;resize:vertical;"></textarea>
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:500;color:#16161D;display:block;margin-bottom:6px;">Cost <span style="color:#9A9AA8;font-weight:400;">— credits/$ (optional)</span></label>
+          <input id="a-cost" type="number" min="0" step="0.01" placeholder="0" style="width:100%;height:36px;background:#fff;border:1px solid rgba(16,16,32,0.12);border-radius:10px;padding:0 12px;font-family:'Host Grotesk',system-ui;font-size:14px;color:#16161D;outline:none;" />
+        </div>
+      </div>
+      <div>
+        <label style="font-size:12px;font-weight:500;color:#16161D;display:block;margin-bottom:6px;">Asset link <span style="color:#9A9AA8;font-weight:400;">— Drive/Frame.io/path (optional)</span></label>
+        <input id="a-url" type="text" placeholder="drive.google.com/…" style="width:100%;height:36px;background:#fff;border:1px solid rgba(16,16,32,0.12);border-radius:10px;padding:0 12px;font-family:'Host Grotesk',system-ui;font-size:14px;color:#16161D;outline:none;" />
+      </div>
+      <div>
+        <label style="font-size:12px;font-weight:500;color:#16161D;display:block;margin-bottom:6px;">Project scope</label>
+        <div style="position:relative;">
+          <select id="a-project" style="width:100%;height:36px;background:#fff;border:1px solid rgba(16,16,32,0.12);border-radius:10px;padding:0 28px 0 12px;font-family:'Host Grotesk',system-ui;font-size:14px;color:#16161D;appearance:none;cursor:pointer;outline:none;"></select>
+          <svg style="position:absolute;right:10px;top:50%;transform:translateY(-50%);pointer-events:none;" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#9A9AA8" stroke-width="1.5" stroke-linecap="round"><path d="M3 5l3 3 3-3"></path></svg>
+        </div>
+      </div>
+      <div>
+        <label style="font-size:12px;font-weight:500;color:#16161D;display:block;margin-bottom:6px;">Note <span style="color:#9A9AA8;font-weight:400;">— optional</span></label>
+        <textarea id="a-note" rows="2" placeholder="Usage notes, clearances, etc." style="width:100%;background:#fff;border:1px solid rgba(16,16,32,0.12);border-radius:10px;padding:10px 12px;font-family:'Host Grotesk',system-ui;font-size:14px;color:#16161D;outline:none;resize:vertical;"></textarea>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:space-between;align-items:center;margin-top:22px;">
+      <button id="a-delete" data-act="delete-asset" style="display:none;height:36px;padding:0 14px;background:#fff;border:1px solid rgba(255,0,46,0.35);border-radius:8px;font-family:'Host Grotesk',system-ui;font-size:14px;font-weight:500;color:#FF002E;cursor:pointer;">Delete</button>
+      <div style="display:flex;gap:10px;margin-left:auto;">
+        <button data-act="close-asset" style="height:36px;padding:0 16px;background:#fff;border:1px solid rgba(16,16,32,0.12);border-radius:8px;font-family:'Host Grotesk',system-ui;font-size:14px;font-weight:500;color:#16161D;cursor:pointer;">Cancel</button>
+        <button data-act="save-asset" style="height:36px;padding:0 18px;background:#0217D3;border:none;border-radius:8px;font-family:'Host Grotesk',system-ui;font-size:14px;font-weight:500;color:#fff;cursor:pointer;">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Brand modal -->
+<div id="brand-modal" style="display:none;position:fixed;inset:0;background:rgba(16,16,32,0.32);z-index:100;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:14px;width:480px;max-width:92vw;max-height:88vh;overflow-y:auto;padding:24px;box-shadow:0 12px 40px rgba(16,16,32,0.2);">
+    <p style="font-size:16px;font-weight:500;color:#16161D;margin-bottom:4px;">Edit brand kit</p>
+    <p style="font-size:12px;color:#9A9AA8;margin-bottom:18px;">Update once → propagates to every project on this client.</p>
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      <div>
+        <label style="font-size:12px;font-weight:500;color:#16161D;display:block;margin-bottom:6px;">Style / look</label>
+        <textarea id="b-style" rows="2" placeholder="e.g. warm cinematic, ARRI look, shallow DOF" style="width:100%;background:#fff;border:1px solid rgba(16,16,32,0.12);border-radius:10px;padding:10px 12px;font-family:'Host Grotesk',system-ui;font-size:14px;color:#16161D;outline:none;resize:vertical;"></textarea>
+      </div>
+      <div>
+        <label style="font-size:12px;font-weight:500;color:#16161D;display:block;margin-bottom:6px;">Palette <span style="color:#9A9AA8;font-weight:400;">— hex values, comma/space separated</span></label>
+        <input id="b-palette" type="text" placeholder="#0217D3, #FF002E, #16161D" style="width:100%;height:36px;background:#fff;border:1px solid rgba(16,16,32,0.12);border-radius:10px;padding:0 12px;font-family:'Host Grotesk',system-ui;font-size:14px;color:#16161D;outline:none;" />
+      </div>
+      <div>
+        <label style="font-size:12px;font-weight:500;color:#16161D;display:block;margin-bottom:6px;">Logo link <span style="color:#9A9AA8;font-weight:400;">— optional</span></label>
+        <input id="b-logo" type="text" placeholder="drive.google.com/… or /path/logo.png" style="width:100%;height:36px;background:#fff;border:1px solid rgba(16,16,32,0.12);border-radius:10px;padding:0 12px;font-family:'Host Grotesk',system-ui;font-size:14px;color:#16161D;outline:none;" />
+      </div>
+      <div>
+        <label style="font-size:12px;font-weight:500;color:#16161D;display:block;margin-bottom:6px;">Mandatories</label>
+        <textarea id="b-mandatories" rows="2" placeholder="Required elements on every deliverable" style="width:100%;background:#fff;border:1px solid rgba(16,16,32,0.12);border-radius:10px;padding:10px 12px;font-family:'Host Grotesk',system-ui;font-size:14px;color:#16161D;outline:none;resize:vertical;"></textarea>
+      </div>
+      <div>
+        <label style="font-size:12px;font-weight:500;color:#16161D;display:block;margin-bottom:6px;">Legal</label>
+        <textarea id="b-legal" rows="2" placeholder="Legal lines, disclaimers, clearances" style="width:100%;background:#fff;border:1px solid rgba(16,16,32,0.12);border-radius:10px;padding:10px 12px;font-family:'Host Grotesk',system-ui;font-size:14px;color:#16161D;outline:none;resize:vertical;"></textarea>
+      </div>
+      <div>
+        <label style="font-size:12px;font-weight:500;color:#16161D;display:block;margin-bottom:6px;">Personas <span style="color:#9A9AA8;font-weight:400;">— one per line, "Name — note"</span></label>
+        <textarea id="b-personas" rows="2" placeholder="Small-business owner — time-poor, values trust" style="width:100%;background:#fff;border:1px solid rgba(16,16,32,0.12);border-radius:10px;padding:10px 12px;font-family:'Host Grotesk',system-ui;font-size:14px;color:#16161D;outline:none;resize:vertical;"></textarea>
+      </div>
+      <div>
+        <label style="font-size:12px;font-weight:500;color:#16161D;display:block;margin-bottom:6px;">Approved phrasing <span style="color:#9A9AA8;font-weight:400;">— one per line</span></label>
+        <textarea id="b-phrasing" rows="2" placeholder="Member benefits (not &quot;perks&quot;)" style="width:100%;background:#fff;border:1px solid rgba(16,16,32,0.12);border-radius:10px;padding:10px 12px;font-family:'Host Grotesk',system-ui;font-size:14px;color:#16161D;outline:none;resize:vertical;"></textarea>
+      </div>
+      <div>
+        <label style="font-size:12px;font-weight:500;color:#16161D;display:block;margin-bottom:6px;">Whitelists <span style="color:#9A9AA8;font-weight:400;">— one per line, "Name: v1, v2"</span></label>
+        <textarea id="b-whitelists" rows="2" placeholder="49ers numbers: 13, 85, 97" style="width:100%;background:#fff;border:1px solid rgba(16,16,32,0.12);border-radius:10px;padding:10px 12px;font-family:'Host Grotesk',system-ui;font-size:14px;color:#16161D;outline:none;resize:vertical;"></textarea>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:22px;">
+      <button data-act="close-brand" style="height:36px;padding:0 16px;background:#fff;border:1px solid rgba(16,16,32,0.12);border-radius:8px;font-family:'Host Grotesk',system-ui;font-size:14px;font-weight:500;color:#16161D;cursor:pointer;">Cancel</button>
+      <button data-act="save-brand" style="height:36px;padding:0 18px;background:#0217D3;border:none;border-radius:8px;font-family:'Host Grotesk',system-ui;font-size:14px;font-weight:500;color:#fff;cursor:pointer;">Save brand</button>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900}}">
+class Component extends DCLogic {
+  componentDidMount() {
+    this.filter = { type: 'all', kind: '', projectId: '' };
+    this.editingId = null;
+    this.bindDelegates();
+    this.render();
+  }
+
+  esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
+  currentClient() {
+    if (!window.Store) return null;
+    const active = Store.getActive();
+    if (active.client) return active.client;
+    const cs = Store.listClients();
+    return cs[0] || null;
+  }
+
+  bindDelegates() {
+    const root = document.getElementById('ba-root');
+    if (root && !root._bound) {
+      root._bound = true;
+      root.addEventListener('click', (e) => {
+        const t = e.target.closest ? e.target.closest('[data-act]') : null;
+        if (!t) return;
+        this.handle(t.getAttribute('data-act'), t.getAttribute('data-id'), t.getAttribute('data-val'), t);
+      });
+    }
+    // Modals live outside #ba-root — wire them too.
+    ['asset-modal', 'brand-modal'].forEach((mid) => {
+      const m = document.getElementById(mid);
+      if (m && !m._bound) {
+        m._bound = true;
+        m.addEventListener('click', (e) => {
+          if (e.target === m) { m.style.display = 'none'; return; } // click backdrop to close
+          const t = e.target.closest ? e.target.closest('[data-act]') : null;
+          if (!t) return;
+          this.handle(t.getAttribute('data-act'), t.getAttribute('data-id'), t.getAttribute('data-val'), t);
+        });
+      }
+      if (m) {
+        const sel = document.getElementById('a-type');
+        if (mid === 'asset-modal' && sel && !sel._bound) {
+          sel._bound = true;
+          sel.addEventListener('change', () => this.toggleAssetFields());
+        }
+      }
+    });
+  }
+
+  handle(act, id, val) {
+    switch (act) {
+      case 'set-type': this.filter.type = val; this.filter.kind = ''; this.render(); break;
+      case 'set-kind': this.filter.kind = (this.filter.kind === val ? '' : val); this.render(); break;
+      case 'set-project': {
+        const el = document.getElementById('ba-project-filter');
+        this.filter.projectId = el ? el.value : '';
+        this.render();
+        break;
+      }
+      case 'add-asset': this.openAsset(null); break;
+      case 'export-client': {
+        const c = this.currentClient();
+        if (c && window.Exporter) Exporter.downloadClient(c.id);
+        break;
+      }
+      case 'open-asset': this.openAsset(id); break;
+      case 'generate-asset': {
+        const a = Store.getAsset(id);
+        if (a && a.projectId) Store.setActive({ projectId: a.projectId });
+        window.location.href = 'promptbuilder.html?asset=' + encodeURIComponent(id);
+        break;
+      }
+      case 'close-asset': { const m = document.getElementById('asset-modal'); if (m) m.style.display = 'none'; break; }
+      case 'asset-type-change': this.toggleAssetFields(); break;
+      case 'save-asset': this.saveAsset(); break;
+      case 'delete-asset': this.deleteAsset(); break;
+      case 'edit-brand': this.openBrand(); break;
+      case 'close-brand': { const m = document.getElementById('brand-modal'); if (m) m.style.display = 'none'; break; }
+      case 'save-brand': this.saveBrand(); break;
+    }
+  }
+
+  render() {
+    if (!window.Store) return;
+    const client = this.currentClient();
+    const clientEl = document.getElementById('ba-client');
+    if (clientEl) clientEl.textContent = client ? client.name : 'No client';
+
+    // BUG-08: sidebar project selector reflects the REAL projects (was a hardcoded
+    // "US Bank — Rotation 4"); switching sets the active project.
+    const sideProj = document.getElementById('ba-side-proj');
+    if (sideProj) {
+      const projs = client ? Store.listProjects(client.id) : [];
+      const active = Store.getActive();
+      sideProj.innerHTML = projs.length
+        ? projs.map((p) => '<option value="' + this.esc(p.id) + '"' + (p.id === active.projectId ? ' selected' : '') + '>' + this.esc(p.name || 'Untitled project') + '</option>').join('')
+        : '<option value="">No projects yet</option>';
+      if (!sideProj._bound) {
+        sideProj._bound = true;
+        sideProj.addEventListener('change', () => { if (sideProj.value && window.Store) { Store.setActive({ projectId: sideProj.value }); location.reload(); } });
+      }
+    }
+
+    const brandEl = document.getElementById('ba-brand');
+    const controlsEl = document.getElementById('ba-controls');
+    const gridEl = document.getElementById('ba-assets');
+    if (!brandEl || !controlsEl || !gridEl) return;
+
+    if (!client) {
+      brandEl.innerHTML = '';
+      controlsEl.innerHTML = '';
+      gridEl.innerHTML =
+        '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:72px 24px;">' +
+          '<div style="width:52px;height:52px;border-radius:13px;background:#EEF0FF;display:flex;align-items:center;justify-content:center;margin-bottom:16px;">' +
+            '<svg width="24" height="24" viewBox="0 0 16 16" fill="none" stroke="#0217D3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="6" height="10" rx="1"/><rect x="9" y="3" width="6" height="6" rx="1"/><rect x="9" y="11" width="6" height="2" rx="1"/></svg>' +
+          '</div>' +
+          '<p style="font-size:17px;font-weight:500;color:#16161D;margin-bottom:6px;">No client yet</p>' +
+          '<p style="font-size:14px;color:#5A5A6B;max-width:360px;line-height:1.6;">Brands &amp; Assets is organised by client. Create a client (with its brand kit) from Projects, then its brand and reusable assets live here.</p>' +
+        '</div>';
+      return;
+    }
+
+    this.renderBrand(brandEl, client);
+    this.renderControls(controlsEl, client);
+    this.renderAssets(gridEl, client);
+  }
+
+  renderBrand(el, client) {
+    const esc = this.esc.bind(this);
+    const b = client.brand || {};
+    const palette = Array.isArray(b.palette) ? b.palette : [];
+    const personas = Array.isArray(b.personas) ? b.personas : [];
+    const phrasing = Array.isArray(b.phrasingRules) ? b.phrasingRules : [];
+    const whitelists = Array.isArray(b.whitelists) ? b.whitelists : [];
+
+    const swatches = palette.length
+      ? palette.map((c) => '<span title="' + esc(c) + '" style="width:20px;height:20px;border-radius:5px;border:1px solid rgba(16,16,32,.12);background:' + esc(c) + ';display:inline-block;"></span>').join('')
+      : '<span style="font-size:13px;color:#9A9AA8;">—</span>';
+
+    const chips = (arr, fmt) => arr.length
+      ? arr.map(fmt).join('')
+      : '<span style="font-size:13px;color:#9A9AA8;">—</span>';
+
+    const field = (label, valueHtml) =>
+      '<div style="margin-bottom:12px;">' +
+        '<p style="font-size:11px;font-weight:500;color:#9A9AA8;text-transform:uppercase;letter-spacing:.03em;margin-bottom:5px;">' + label + '</p>' +
+        '<div style="font-size:13px;color:#16161D;line-height:1.5;">' + valueHtml + '</div>' +
+      '</div>';
+
+    const txt = (s) => s ? esc(s) : '<span style="color:#9A9AA8;">—</span>';
+    const chipStyle = 'display:inline-block;padding:3px 9px;border-radius:20px;background:#F0F1F4;font-size:12px;color:#3A3A48;margin:0 5px 5px 0;';
+
+    el.innerHTML =
+      '<div style="background:#fff;border:1px solid rgba(16,16,32,.08);border-radius:14px;padding:18px 20px;box-shadow:0 1px 2px rgba(16,16,32,.04);">' +
+        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">' +
+          '<div style="display:flex;align-items:center;gap:12px;">' +
+            (b.logo
+              ? '<img src="' + esc(b.logo) + '" style="width:38px;height:38px;border-radius:9px;object-fit:cover;border:1px solid rgba(16,16,32,.08);" onerror="this.style.display=\'none\'"/>'
+              : '<div style="width:38px;height:38px;border-radius:9px;background:#EEF0FF;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600;color:#0217D3;">' + esc((client.name || '?').slice(0, 1).toUpperCase()) + '</div>') +
+            '<div><p style="font-size:15px;font-weight:500;color:#16161D;">' + esc(client.name) + '</p><p style="font-size:12px;color:#9A9AA8;">Brand kit — governs every project on this client</p></div>' +
+          '</div>' +
+          '<button data-act="edit-brand" style="height:30px;padding:0 12px;background:#fff;border:1px solid rgba(16,16,32,0.12);border-radius:8px;font-family:\'Host Grotesk\',system-ui;font-size:13px;font-weight:500;color:#16161D;cursor:pointer;">Edit brand</button>' +
+        '</div>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 32px;">' +
+          '<div>' +
+            field('Style / look', txt(b.styleLook)) +
+            field('Palette', '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">' + swatches + '</div>') +
+            field('Personas', chips(personas, (p) => '<span style="' + chipStyle + '" title="' + esc(p && p.note) + '">' + esc(p && p.name ? p.name : p) + '</span>')) +
+          '</div>' +
+          '<div>' +
+            field('Mandatories', txt(b.mandatories)) +
+            field('Legal', txt(b.legal)) +
+            field('Approved phrasing', chips(phrasing, (s) => '<span style="' + chipStyle + '">' + esc(s) + '</span>')) +
+            field('Whitelists', chips(whitelists, (w) => '<span style="' + chipStyle + '">' + esc(w && w.name ? (w.name + ': ' + (Array.isArray(w.values) ? w.values.join(', ') : '')) : w) + '</span>')) +
+          '</div>' +
+        '</div>' +
+      '</div>';
+  }
+
+  renderControls(el, client) {
+    const esc = this.esc.bind(this);
+    const f = this.filter;
+    const tab = (val, label) => {
+      const on = f.type === val;
+      return '<button data-act="set-type" data-val="' + val + '" class="tab-btn" style="height:42px;padding:0 16px;border:none;border-bottom:2px solid ' + (on ? '#0217D3' : 'transparent') + ';background:transparent;font-family:\'Host Grotesk\',system-ui;font-size:13px;font-weight:' + (on ? '500' : '400') + ';color:' + (on ? '#0217D3' : '#9A9AA8') + ';cursor:pointer;">' + label + '</button>';
+    };
+
+    const projects = Store.listProjects(client.id);
+    const projOpts = ['<option value="">All projects</option>']
+      .concat(projects.map((p) => '<option value="' + esc(p.id) + '"' + (f.projectId === p.id ? ' selected' : '') + '>' + esc(p.name) + '</option>'))
+      .join('');
+
+    // Kind chips only make sense when viewing references (or all).
+    let kindRow = '';
+    if (f.type === 'reference' || f.type === 'all') {
+      const kinds = ['character', 'product', 'location', 'style', 'persona'];
+      kindRow = '<div style="display:flex;gap:6px;flex-wrap:wrap;padding:12px 0 2px;">' +
+        kinds.map((k) => {
+          const on = f.kind === k;
+          return '<button data-act="set-kind" data-val="' + k + '" class="chip" style="text-transform:capitalize;padding:5px 12px;border-radius:20px;border:1px solid ' + (on ? '#0217D3' : 'rgba(16,16,32,.12)') + ';background:' + (on ? '#EEF0FF' : '#fff') + ';font-family:\'Host Grotesk\',system-ui;font-size:12px;font-weight:500;color:' + (on ? '#0217D3' : '#5A5A6B') + ';">' + k + '</button>';
+        }).join('') +
+      '</div>';
+    }
+
+    el.innerHTML =
+      '<div style="border-bottom:1px solid rgba(16,16,32,.06);display:flex;align-items:flex-end;justify-content:space-between;">' +
+        '<div style="display:flex;gap:0;height:42px;align-items:flex-end;">' +
+          tab('all', 'All') + tab('reference', 'References') + tab('generated', 'Generated') +
+        '</div>' +
+        '<div style="position:relative;margin-bottom:6px;">' +
+          '<select id="ba-project-filter" data-act="set-project" style="height:30px;background:#fff;border:1px solid rgba(16,16,32,0.12);border-radius:8px;padding:0 26px 0 10px;font-family:\'Host Grotesk\',system-ui;font-size:12px;color:#16161D;appearance:none;cursor:pointer;outline:none;">' + projOpts + '</select>' +
+          '<svg style="position:absolute;right:8px;top:50%;transform:translateY(-50%);pointer-events:none;" width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="#9A9AA8" stroke-width="1.5" stroke-linecap="round"><path d="M3 5l3 3 3-3"></path></svg>' +
+        '</div>' +
+      '</div>' + kindRow;
+
+    const sel = document.getElementById('ba-project-filter');
+    if (sel && !sel._bound) {
+      sel._bound = true;
+      sel.addEventListener('change', () => { this.filter.projectId = sel.value; this.render(); });
+    }
+  }
+
+  renderAssets(el, client) {
+    const esc = this.esc.bind(this);
+    const f = this.filter;
+    // BUG-06: include assets logged to this client's projects even if they carry no
+    // clientId (e.g. logged from a client-less project), so nothing is orphaned/hidden.
+    const projIds = Store.listProjects(client.id).map((p) => p.id);
+    let items = Store.listAssets({})
+      .filter((a) => a.type === 'reference' || a.type === 'generated')
+      .filter((a) => a.clientId === client.id || (!a.clientId && projIds.indexOf(a.projectId) !== -1));
+    if (f.type !== 'all') items = items.filter((a) => a.type === f.type);
+    if (f.kind) items = items.filter((a) => a.type === 'reference' && a.kind === f.kind);
+    if (f.projectId) items = items.filter((a) => a.projectId === f.projectId);
+
+    if (!items.length) {
+      el.innerHTML =
+        '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:56px 24px;">' +
+          '<div style="width:48px;height:48px;border-radius:12px;background:#F0F1F4;display:flex;align-items:center;justify-content:center;margin-bottom:14px;">' +
+            '<svg width="22" height="22" viewBox="0 0 16 16" fill="none" stroke="#9A9AA8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="6" height="10" rx="1"/><rect x="9" y="3" width="6" height="6" rx="1"/><rect x="9" y="11" width="6" height="2" rx="1"/></svg>' +
+          '</div>' +
+          '<p style="font-size:15px;font-weight:500;color:#16161D;margin-bottom:4px;">No assets here yet</p>' +
+          '<p style="font-size:13px;color:#5A5A6B;max-width:340px;line-height:1.6;">Add reference assets (characters, products, locations, styles, personas) and generated stills/clips — they become reusable across every project on this client.</p>' +
+        '</div>';
+      return;
+    }
+
+    const projName = (pid) => {
+      if (!pid) return 'Client-wide';
+      const p = Store.getProject(pid);
+      return p ? p.name : 'Client-wide';
+    };
+    const badge = (text, color, bg) =>
+      '<span style="display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:500;color:' + color + ';background:' + bg + ';text-transform:capitalize;">' + esc(text) + '</span>';
+
+    el.innerHTML =
+      '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;">' +
+        items.map((a) => {
+          const isGen = a.type === 'generated';
+          const meta = isGen
+            ? ((a.recipe && a.recipe.model ? esc(a.recipe.model) : 'generated') + (a.recipe && a.recipe.cost ? ' · ' + esc(a.recipe.cost) : ''))
+            : (esc(a.kind || 'reference') + (Array.isArray(a.refs) && a.refs.length ? ' · ' + a.refs.length + ' ref' + (a.refs.length === 1 ? '' : 's') : ''));
+          const typeBadge = isGen ? badge('Generated', '#0217D3', '#EEF0FF') : badge('Reference', '#3A3A48', '#F0F1F4');
+          const thumb = a.url
+            ? '<img src="' + esc(a.url) + '" style="width:100%;height:120px;object-fit:cover;display:block;" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'block\'"/><div style="display:none;height:120px;background:repeating-linear-gradient(45deg,#e8eaf0 0,#e8eaf0 1px,#F0F1F4 1px,#F0F1F4 10px);"></div>'
+            : '<div style="height:120px;background:repeating-linear-gradient(45deg,#e8eaf0 0,#e8eaf0 1px,#F0F1F4 1px,#F0F1F4 10px);"></div>';
+          // Generated assets can be re-opened in the prompt builder, pre-seeded
+          // from their own recipe/builder — Generate as an action on the asset (§9.3).
+          const genBtn = isGen
+            ? '<button data-act="generate-asset" data-id="' + esc(a.id) + '" title="Open in Generate" style="position:absolute;top:8px;right:8px;height:24px;padding:0 9px;background:rgba(255,255,255,0.92);border:1px solid #0217D3;border-radius:6px;font-family:\'Host Grotesk\',system-ui;font-size:11px;font-weight:500;color:#0217D3;cursor:pointer;">Generate</button>'
+            : '';
+          return '<div class="asset-card" data-act="open-asset" data-id="' + esc(a.id) + '" style="background:#fff;border:1px solid rgba(16,16,32,.08);border-radius:12px;overflow:hidden;box-shadow:0 1px 2px rgba(16,16,32,.04);">' +
+            '<div style="position:relative;">' + thumb +
+              '<div style="position:absolute;top:8px;left:8px;">' + typeBadge + '</div>' + genBtn +
+            '</div>' +
+            '<div style="padding:11px 13px;">' +
+              '<p style="font-size:13px;font-weight:500;color:#16161D;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + esc(a.name) + '</p>' +
+              '<p style="font-size:12px;color:#9A9AA8;text-transform:capitalize;margin-bottom:6px;">' + meta + '</p>' +
+              '<p style="font-size:11px;color:#B4B4C0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + esc(projName(a.projectId)) + '</p>' +
+            '</div>' +
+          '</div>';
+        }).join('') +
+      '</div>';
+  }
+
+  toggleAssetFields() {
+    const type = (document.getElementById('a-type') || {}).value || 'reference';
+    const ref = document.getElementById('a-ref-fields');
+    const gen = document.getElementById('a-gen-fields');
+    if (ref) ref.style.display = (type === 'reference') ? 'flex' : 'none';
+    if (gen) gen.style.display = (type === 'generated') ? 'flex' : 'none';
+  }
+
+  fillProjectSelect(client, selectedId) {
+    const esc = this.esc.bind(this);
+    const sel = document.getElementById('a-project');
+    if (!sel) return;
+    const projects = Store.listProjects(client.id);
+    sel.innerHTML = ['<option value="">Client-wide (no project)</option>']
+      .concat(projects.map((p) => '<option value="' + esc(p.id) + '"' + (selectedId === p.id ? ' selected' : '') + '>' + esc(p.name) + '</option>'))
+      .join('');
+  }
+
+  openAsset(id) {
+    const client = this.currentClient();
+    if (!client) { window.alert('Create a client first (from Projects).'); return; }
+    this.editingId = id || null;
+    const a = id ? Store.getAsset(id) : null;
+    const set = (elId, v) => { const e = document.getElementById(elId); if (e) e.value = v == null ? '' : v; };
+
+    document.getElementById('asset-modal-title').textContent = a ? 'Edit asset' : 'Add asset';
+    set('a-type', a ? a.type : 'reference');
+    set('a-name', a ? a.name : '');
+    set('a-url', a ? a.url : '');
+    set('a-note', a ? a.note : '');
+    // reference fields
+    set('a-kind', a && a.type === 'reference' ? (a.kind || 'character') : 'character');
+    set('a-refs', a && a.type === 'reference' && Array.isArray(a.refs) ? a.refs.join('\n') : '');
+    // generated fields
+    const rec = (a && a.recipe) || {};
+    set('a-model', a && a.type === 'generated' ? (rec.model || '') : '');
+    set('a-prompt', a && a.type === 'generated' ? (rec.prompt || '') : '');
+    set('a-cost', a && a.type === 'generated' && rec.cost ? rec.cost : '');
+
+    this.fillProjectSelect(client, a ? a.projectId : '');
+    this.toggleAssetFields();
+
+    const del = document.getElementById('a-delete');
+    if (del) del.style.display = a ? 'block' : 'none';
+
+    const m = document.getElementById('asset-modal');
+    if (m) m.style.display = 'flex';
+    const n = document.getElementById('a-name'); if (n) n.focus();
+  }
+
+  saveAsset() {
+    const client = this.currentClient();
+    if (!client) return;
+    const val = (elId) => ((document.getElementById(elId) || {}).value || '').trim();
+    const name = val('a-name');
+    if (!name) { const n = document.getElementById('a-name'); if (n) n.focus(); return; }
+    const type = val('a-type') || 'reference';
+    const projectId = val('a-project');
+
+    const patch = {
+      type: type,
+      name: name,
+      url: val('a-url'),
+      note: val('a-note'),
+      clientId: client.id,
+      projectId: projectId
+    };
+    if (type === 'reference') {
+      patch.kind = val('a-kind') || 'character';
+      patch.refs = val('a-refs').split('\n').map((s) => s.trim()).filter(Boolean);
+    } else {
+      patch.recipe = {
+        model: val('a-model'),
+        prompt: val('a-prompt'),
+        cost: parseFloat(val('a-cost')) || 0
+      };
+    }
+
+    if (this.editingId) {
+      Store.updateAsset(this.editingId, patch);
+    } else {
+      Store.createAsset(patch);
+    }
+    this.editingId = null;
+    const m = document.getElementById('asset-modal'); if (m) m.style.display = 'none';
+    this.render();
+  }
+
+  deleteAsset() {
+    if (!this.editingId) return;
+    if (!window.confirm('Delete this asset? This cannot be undone.')) return;
+    Store.deleteAsset(this.editingId);
+    this.editingId = null;
+    const m = document.getElementById('asset-modal'); if (m) m.style.display = 'none';
+    this.render();
+  }
+
+  openBrand() {
+    const client = this.currentClient();
+    if (!client) return;
+    const b = client.brand || {};
+    const set = (elId, v) => { const e = document.getElementById(elId); if (e) e.value = v == null ? '' : v; };
+    set('b-style', b.styleLook);
+    set('b-palette', Array.isArray(b.palette) ? b.palette.join(', ') : '');
+    set('b-logo', b.logo);
+    set('b-mandatories', b.mandatories);
+    set('b-legal', b.legal);
+    set('b-personas', Array.isArray(b.personas)
+      ? b.personas.map((p) => (p && p.name ? p.name : p) + (p && p.note ? ' — ' + p.note : '')).join('\n')
+      : '');
+    set('b-phrasing', Array.isArray(b.phrasingRules) ? b.phrasingRules.join('\n') : '');
+    set('b-whitelists', Array.isArray(b.whitelists)
+      ? b.whitelists.map((w) => (w && w.name ? w.name + ': ' + (Array.isArray(w.values) ? w.values.join(', ') : '') : w)).join('\n')
+      : '');
+    const m = document.getElementById('brand-modal'); if (m) m.style.display = 'flex';
+  }
+
+  saveBrand() {
+    const client = this.currentClient();
+    if (!client) return;
+    const val = (elId) => ((document.getElementById(elId) || {}).value || '').trim();
+    const lines = (elId) => val(elId).split('\n').map((s) => s.trim()).filter(Boolean);
+
+    const personas = lines('b-personas').map((ln) => {
+      const parts = ln.split(/\s+[—-]\s+/);
+      return { name: parts[0], note: parts.slice(1).join(' — ') };
+    });
+    const whitelists = lines('b-whitelists').map((ln) => {
+      const idx = ln.indexOf(':');
+      if (idx === -1) return { name: ln, values: [] };
+      return {
+        name: ln.slice(0, idx).trim(),
+        values: ln.slice(idx + 1).split(',').map((s) => s.trim()).filter(Boolean)
+      };
+    });
+    const palette = val('b-palette').split(/[\s,]+/).map((s) => s.trim()).filter(Boolean);
+
+    Store.updateBrand(client.id, {
+      styleLook: val('b-style'),
+      palette: palette,
+      logo: val('b-logo'),
+      mandatories: val('b-mandatories'),
+      legal: val('b-legal'),
+      personas: personas,
+      phrasingRules: lines('b-phrasing'),
+      whitelists: whitelists
+    });
+    const m = document.getElementById('brand-modal'); if (m) m.style.display = 'none';
+    this.render();
+  }
+
+  renderVals() { return {}; }
+}
+</script>
+<script src="./store.js"></script>
+<script src="./export.js"></script>
+<script src="./nav.js"></script>
+</body>
+</html>

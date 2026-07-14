@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="./vendor/fonts/host-grotesk.css" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Host Grotesk',system-ui,sans-serif;background:#F6F6F4;overflow:hidden;}
+  .nav-item{transition:background .12s,color .12s;cursor:pointer;}
+  .nav-item:hover{background:#F0F1F4!important;color:#16161D!important;}
+  .shot-row{transition:background .1s;cursor:pointer;}
+  .shot-row:hover{background:#F6F6F4!important;}
+  .primary-btn:hover{background:#0212A8!important;}
+  textarea:focus{outline:3px solid rgba(2,23,211,0.2);outline-offset:1px;border-color:#0217D3!important;}
+  ::-webkit-scrollbar{width:4px;}
+  ::-webkit-scrollbar-thumb{background:rgba(16,16,32,.12);border-radius:2px;}
+</style>
+</helmet>
+<div style="display:flex;height:100vh;width:100vw;overflow:hidden;">
+  <!-- Nav -->
+  <div style="width:248px;background:#fff;border-right:1px solid rgba(16,16,32,.08);display:flex;flex-direction:column;flex-shrink:0;">
+    <div style="padding:16px 16px 12px;border-bottom:1px solid rgba(16,16,32,.06);">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <img src="uploads/logo.png" style="width:28px;height:28px;border-radius:7px;flex-shrink:0;" />
+        <div><p style="font-size:13px;font-weight:500;color:#16161D;">Studio S</p><p style="font-size:11px;color:#9A9AA8;">Supergood</p></div>
+      </div>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:12px 8px;">
+      <div style="padding:0 8px;margin-bottom:16px;"><div style="position:relative;"><select style="width:100%;height:32px;background:#F6F6F4;border:1px solid rgba(16,16,32,.08);border-radius:8px;padding:0 28px 0 10px;font-family:'Host Grotesk',system-ui;font-size:12px;color:#16161D;appearance:none;font-weight:500;"><option>US Bank — Rotation 4</option></select><svg style="position:absolute;right:8px;top:50%;transform:translateY(-50%);pointer-events:none;" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#9A9AA8" stroke-width="1.5" stroke-linecap="round"><path d="M3 5l3 3 3-3"></path></svg></div></div>
+      <p style="font-size:12px;font-weight:500;color:#9A9AA8;padding:0 12px;margin-bottom:4px;">Create</p>
+      <div class="nav-item" style="display:flex;align-items:center;gap:10px;padding:0 12px;height:36px;border-radius:8px;margin-bottom:2px;color:#5A5A6B;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="5" height="5" rx="1"></rect><rect x="9" y="2" width="5" height="5" rx="1"></rect><rect x="2" y="9" width="5" height="5" rx="1"></rect><rect x="9" y="9" width="5" height="5" rx="1"></rect></svg><span style="font-size:14px;">Prompt builder</span></div>
+      <div class="nav-item" style="display:flex;align-items:center;gap:10px;padding:0 12px;height:36px;border-radius:8px;margin-bottom:2px;color:#5A5A6B;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="6" height="10" rx="1"></rect><rect x="9" y="3" width="6" height="6" rx="1"></rect><rect x="9" y="11" width="6" height="2" rx="1"></rect></svg><span style="font-size:14px;">References</span></div>
+      <!-- Active: Multi-Shot -->
+      <div style="display:flex;align-items:center;gap:10px;padding:0 12px;height:36px;border-radius:8px;margin-bottom:2px;background:#EEF0FF;position:relative;cursor:pointer;"><div style="position:absolute;left:0;top:8px;bottom:8px;width:2px;background:#0217D3;border-radius:0 2px 2px 0;"></div><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#0217D3" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="2" width="5" height="12" rx="1"></rect><rect x="9" y="2" width="5" height="7" rx="1"></rect><rect x="9" y="11" width="5" height="3" rx="1"></rect></svg><span style="font-size:14px;color:#0217D3;font-weight:500;">Multi-Shot</span></div>
+      <p style="font-size:12px;font-weight:500;color:#9A9AA8;padding:8px 12px 4px;margin-top:8px;">Manage</p>
+      <div class="nav-item" style="display:flex;align-items:center;gap:10px;padding:0 12px;height:36px;border-radius:8px;margin-bottom:2px;color:#5A5A6B;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="12" height="10" rx="2"></rect><path d="M2 7h12"></path></svg><span style="font-size:14px;">Projects</span></div>
+      <p style="font-size:12px;font-weight:500;color:#9A9AA8;padding:8px 12px 4px;margin-top:8px;">Edit &amp; handoff</p>
+      <div class="nav-item" style="display:flex;align-items:center;gap:10px;padding:0 12px;height:36px;border-radius:8px;margin-bottom:2px;color:#5A5A6B;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 8h10M3 4h10M3 12h6"></path></svg><span style="font-size:14px;">Palmier</span></div>
+      <div style="display:flex;align-items:center;gap:10px;padding:0 12px;height:36px;border-radius:8px;margin-bottom:2px;opacity:.4;cursor:default;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#9A9AA8" stroke-width="1.5" stroke-linecap="round"><rect x="4" y="7" width="8" height="7" rx="1.5"></rect><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"></path></svg><span style="font-size:14px;color:#9A9AA8;">Finishing</span></div>
+      <p style="font-size:12px;font-weight:500;color:#9A9AA8;padding:8px 12px 4px;margin-top:8px;">Help</p>
+      <div class="nav-item" style="display:flex;align-items:center;gap:10px;padding:0 12px;height:36px;border-radius:8px;margin-bottom:2px;color:#5A5A6B;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 4h12M2 8h8M2 12h5"></path></svg><span style="font-size:14px;">Workflow guide</span></div>
+      <div class="nav-item" style="display:flex;align-items:center;gap:10px;padding:0 12px;height:36px;border-radius:8px;margin-bottom:2px;color:#5A5A6B;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="6"></circle><path d="M8 7.5V11M8 5.5v.5"></path></svg><span style="font-size:14px;">AI setup</span></div>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;">
+    <div style="background:#fff;border-bottom:1px solid rgba(16,16,32,.08);padding:0 28px;flex-shrink:0;">
+      <div style="display:flex;align-items:center;justify-content:space-between;height:52px;">
+        <div style="display:flex;align-items:center;gap:8px;"><span id="ms-project" style="font-size:12px;color:#9A9AA8;">No project</span><span style="font-size:12px;color:rgba(16,16,32,.2);">›</span><span style="font-size:14px;font-weight:500;color:#16161D;">Multi-Shot</span></div>
+        <div style="display:flex;gap:8px;">
+          <button onclick="{{ addShot }}" style="height:32px;padding:0 14px;background:#fff;border:1px solid rgba(16,16,32,.12);border-radius:8px;font-family:'Host Grotesk',system-ui;font-size:13px;font-weight:500;color:#16161D;cursor:pointer;display:flex;align-items:center;gap:6px;">
+            <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="7" y1="1" x2="7" y2="13"></line><line x1="1" y1="7" x2="13" y2="7"></line></svg>
+            Add shot
+          </button>
+          <button class="primary-btn" onclick="{{ generateAll }}" style="height:32px;padding:0 14px;background:#0217D3;border:none;border-radius:8px;font-family:'Host Grotesk',system-ui;font-size:13px;font-weight:500;color:#fff;cursor:pointer;display:flex;align-items:center;gap:6px;transition:background .12s;">
+            <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round"><path d="M3 7h8M7 3l4 4-4 4"></path></svg>
+            Mark all prompted
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div style="flex:1;overflow-y:auto;padding:28px;">
+      <div id="ms-mount"></div>
+    </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900}}">
+class Component extends DCLogic {
+  componentDidMount() { this.seedBrandPrefix(); this.renderAll(); }
+
+  // Multi-shot is demoted to an action launched from a deliverable/asset (§9.3).
+  // When launched (?deliverable=… / ?asset=…) with no style prefix yet, seed it
+  // from the client brand's look so every shot starts governed/on-brand.
+  seedBrandPrefix() {
+    if (!window.Store) return;
+    if (!/[?&](deliverable|asset)=/.test(window.location.search || '')) return;
+    const a = Store.getActive();
+    if (!a.projectId || (Store.getStylePrefix(a.projectId) || '').trim()) return;
+    const brand = Store.getProjectBrand(a.projectId);
+    if (brand && brand.styleLook) Store.setStylePrefix(a.projectId, brand.styleLook);
+  }
+
+  shotLabel(v){ return ({extreme:'Extreme CU',close:'Close-up',mcu:'Medium CU',medium:'Medium',mfull:'Medium full',wide:'Wide',aerial:'Aerial'})[v]||v; }
+  dpLabel(v){ return ({deakins:'Deakins',lubezki:'Lubezki',hoytema:'Hoytema',fraser:'Fraser',young:'Young',khondji:'Khondji',morrison:'Morrison',pfister:'Pfister',anderson:'Anderson',villeneuve:'Villeneuve'})[v]||''; }
+  statusPill(st){
+    var m = { done:['#E8F7F1','#1D9E75','Done'], ready:['#EEF0FF','#0217D3','Ready'], prompted:['#EEF0FF','#0217D3','Prompted'], draft:['#F0F1F4','#9A9AA8','Draft'] }[st||'draft'] || ['#F0F1F4','#9A9AA8','Draft'];
+    return '<span style="font-size:11px;font-weight:500;background:'+m[0]+';color:'+m[1]+';padding:2px 8px;border-radius:999px;white-space:nowrap;">'+m[2]+'</span>';
+  }
+  tag(t,bg,col){ return '<span style="font-size:11px;background:'+(bg||'#F0F1F4')+';color:'+(col||'#5A5A6B')+';padding:2px 7px;border-radius:4px;">'+t+'</span>'; }
+
+  renderAll() {
+    if (!window.Store) return;
+    const a = Store.getActive();
+    const projEl = document.getElementById('ms-project');
+    if (projEl) projEl.textContent = a.project ? a.project.name : 'No project';
+    const mount = document.getElementById('ms-mount');
+    if (!mount) return;
+
+    if (!a.project) {
+      mount.innerHTML = '<div style="text-align:center;padding:80px 24px;color:#5A5A6B;"><p style="font-size:17px;font-weight:500;color:#16161D;margin-bottom:6px;">No project open</p><p style="font-size:14px;">Create or open a project in Projects to see its connected shot list.</p></div>';
+      return;
+    }
+
+    const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+    const concepts = a.project.concepts || [];
+    const allShots = concepts.reduce((n,c)=>n+(c.shots||[]).length,0);
+    const count = (st)=>{ let n=0; concepts.forEach(c=>(c.shots||[]).forEach(s=>{ if((s.status||'draft')===st)n++; })); return n; };
+
+    const modelUse = {};
+    concepts.forEach(c=>(c.shots||[]).forEach(s=>{ const b=s.builder||{}; [b.stillModel,b.videoModel].forEach(m=>{ if(m) modelUse[m]=(modelUse[m]||0)+1; }); }));
+    const modelName = { gpt:'GPT Image', nano:'Nano Banana Pro', seedream:'Seedream 4.5', flux:'FLUX.2', mj:'Midjourney v7', kling:'Kling 3.0', seedance:'Seedance', runway:'Runway Gen-4', sora:'Sora' };
+
+    const conceptHtml = concepts.map((c)=>{
+      const rows = (c.shots||[]).map((s)=>{
+        const b = s.builder || {};
+        const summary = [this.shotLabel(b.shot), b.lens?b.lens+'mm':'', this.dpLabel(b.dp), b.depth].filter(Boolean).join(' · ');
+        const looktags = [this.dpLabel(b.dp), b.lens?b.lens+'mm':'', this.shotLabel(b.shot)].filter(Boolean).map((t)=>this.tag(t)).join('');
+        const models = [b.stillModel,b.videoModel].filter(Boolean).map((m)=>this.tag((modelName[m]||m).split(' ')[0],'#EEF0FF','#0217D3')).join('');
+        const override = b.prefixOverride ? this.tag('Prefix override','#FFECEE','#FF002E') : '';
+        return '<div class="shot-row" data-shot="'+s.id+'" data-concept="'+c.id+'" style="display:grid;grid-template-columns:2fr 1.2fr 1fr 80px;gap:12px;padding:12px 16px;border-bottom:1px solid rgba(16,16,32,.05);align-items:center;">' +
+            '<div><p style="font-size:13px;font-weight:500;color:#16161D;margin-bottom:2px;">'+esc(s.name)+'</p><p style="font-size:11px;color:#9A9AA8;font-family:ui-monospace,monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+(summary||'no settings yet')+'</p></div>' +
+            '<div style="display:flex;flex-wrap:wrap;gap:4px;">'+looktags+override+'</div>' +
+            '<div style="display:flex;flex-wrap:wrap;gap:4px;">'+(models||'<span style="font-size:11px;color:#9A9AA8;">—</span>')+'</div>' +
+            this.statusPill(s.status) +
+          '</div>';
+      }).join('');
+      return '<div style="background:#fff;border:1px solid rgba(16,16,32,.08);border-radius:12px;overflow:hidden;margin-bottom:12px;">' +
+        '<div style="padding:10px 16px;background:#F6F6F4;border-bottom:1px solid rgba(16,16,32,.06);display:flex;align-items:center;gap:8px;">' +
+          '<div style="width:8px;height:8px;border-radius:50%;background:#1D9E75;flex-shrink:0;"></div>' +
+          '<span style="font-size:12px;font-weight:500;color:#16161D;">'+esc(c.name)+'</span>' +
+          '<span style="font-size:11px;color:#9A9AA8;">'+(c.shots||[]).length+' shot'+((c.shots||[]).length===1?'':'s')+'</span>' +
+          '<button data-addto="'+c.id+'" style="margin-left:auto;font-size:11px;background:none;border:none;color:#0217D3;cursor:pointer;font-family:inherit;font-weight:500;">+ Add shot</button>' +
+        '</div>' + (rows || '<div style="padding:14px 16px;font-size:12px;color:#9A9AA8;">No shots yet.</div>') +
+      '</div>';
+    }).join('');
+
+    const summaryRail =
+      '<div style="display:flex;flex-direction:column;gap:14px;">' +
+        '<div style="background:#fff;border:1px solid rgba(16,16,32,.08);border-radius:12px;padding:18px;">' +
+          '<p style="font-size:12px;font-weight:500;color:#16161D;margin-bottom:14px;">Shot summary</p>' +
+          '<div style="display:flex;flex-direction:column;gap:10px;">' +
+            this.sumRow('Shots', allShots, '#16161D') + this.sumRow('Done', count('done'), '#1D9E75') +
+            this.sumRow('Prompted', count('prompted') + count('ready'), '#0217D3') +
+            this.sumRow('Draft', count('draft'), '#9A9AA8') +
+          '</div>' +
+        '</div>' +
+        '<div style="background:#fff;border:1px solid rgba(16,16,32,.08);border-radius:12px;padding:18px;">' +
+          '<p style="font-size:12px;font-weight:500;color:#16161D;margin-bottom:12px;">Models in use</p>' +
+          '<div style="display:flex;flex-direction:column;gap:8px;">' +
+            (Object.keys(modelUse).length ? Object.keys(modelUse).map((m)=>'<div style="display:flex;justify-content:space-between;"><span style="font-size:13px;color:#16161D;">'+(modelName[m]||m)+'</span><span style="font-size:11px;color:#9A9AA8;">'+modelUse[m]+' shot'+(modelUse[m]===1?'':'s')+'</span></div>').join('') : '<span style="font-size:12px;color:#9A9AA8;">No models selected yet.</span>') +
+          '</div>' +
+        '</div>' +
+        '<div style="background:#EEF0FF;border:1px solid rgba(2,23,211,.12);border-radius:12px;padding:16px;"><p style="font-size:12px;color:#5A5A6B;line-height:1.55;"><strong style="color:#16161D;">Style prefix</strong> is inherited by every shot. Click a shot to edit it — toggle a per-shot override there when it should depart from the global look.</p></div>' +
+      '</div>';
+
+    // Governed brand guardrails — READ LIVE via getProjectBrand (never snapshotted);
+    // editing the brand in Brands & Assets propagates here. Compact, read-only —
+    // sits alongside the styleLook seeded into the prefix above.
+    const gb = Store.getProjectBrand(a.projectId);
+    const gWl = gb ? (gb.whitelists || []).map((w) => { if (!w) return ''; if (typeof w === 'string') return w; const v = Array.isArray(w.values) ? w.values.join(', ') : ''; return (w.name ? w.name + (v ? ': ' : '') : '') + v; }).filter(Boolean) : [];
+    const gBits = [];
+    if (gb && gb.mandatories) gBits.push('<strong style="color:#16161D;font-weight:600;">Mandatories:</strong> ' + esc(gb.mandatories));
+    if (gb && gb.legal) gBits.push('<strong style="color:#16161D;font-weight:600;">Legal:</strong> ' + esc(gb.legal));
+    if (gWl.length) gBits.push('<strong style="color:#16161D;font-weight:600;">Whitelist:</strong> ' + esc(gWl.join(' · ')));
+    const guardLine = gBits.length
+      ? '<div style="background:#FBFBFA;border:1px solid rgba(2,23,211,.14);border-radius:12px;padding:14px 16px;margin-bottom:12px;"><p style="font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#0217D3;margin-bottom:5px;">Brand guardrails · live</p><p style="font-size:12px;color:#5A5A6B;line-height:1.6;">' + gBits.join('<br>') + '</p></div>'
+      : '';
+
+    mount.innerHTML =
+      '<div style="display:grid;grid-template-columns:1fr 280px;gap:20px;align-items:start;">' +
+        '<div>' +
+          '<div style="background:#fff;border:1px solid rgba(2,23,211,.16);border-radius:12px;padding:20px;margin-bottom:12px;">' +
+            '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;"><div style="display:flex;align-items:center;gap:8px;"><div style="width:8px;height:8px;border-radius:50%;background:#0217D3;"></div><p style="font-size:13px;font-weight:500;color:#16161D;">Global style prefix</p></div><span style="font-size:11px;color:#9A9AA8;">Applied to every shot</span></div>' +
+            '<textarea id="ms-prefix" placeholder="One shared look — light, camera, palette, aspect — inherited by every shot. e.g. Golden-hour warm light, 24mm, Deakins naturalistic palette, 16:9." style="width:100%;height:76px;background:#F6F6F4;border:1px solid rgba(16,16,32,.08);border-radius:10px;padding:10px 12px;font-family:ui-monospace,monospace;font-size:12px;color:#16161D;resize:none;line-height:1.7;outline:none;">'+esc(Store.getStylePrefix(a.projectId)||'')+'</textarea>' +
+            '<p style="font-size:12px;color:#9A9AA8;margin-top:8px;">Edit once → updates every shot’s compiled prompt. Per-shot overrides layer on top.</p>' +
+          '</div>' +
+          guardLine +
+          (conceptHtml || '<p style="font-size:13px;color:#9A9AA8;padding:20px;">No concepts yet.</p>') +
+        '</div>' +
+        summaryRail +
+      '</div>';
+
+    const prefix = document.getElementById('ms-prefix');
+    if (prefix) prefix.addEventListener('change', ()=>{ Store.setStylePrefix(a.projectId, prefix.value); });
+    mount.querySelectorAll('[data-shot]').forEach((row)=>{
+      row.addEventListener('click', ()=>{
+        Store.setActive({ conceptId: row.getAttribute('data-concept'), shotId: row.getAttribute('data-shot') });
+        window.location.href = 'promptbuilder.html';
+      });
+    });
+    mount.querySelectorAll('[data-addto]').forEach((b)=>{
+      b.addEventListener('click', (e)=>{ e.stopPropagation(); Store.addShot(a.projectId, b.getAttribute('data-addto'), { builder: Store.defaultBuilder() }); this.renderAll(); });
+    });
+  }
+
+  sumRow(label, val, col){
+    return '<div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-size:13px;color:#5A5A6B;">'+label+'</span><span style="font-size:13px;font-weight:500;color:'+col+';">'+val+'</span></div>';
+  }
+
+  renderVals() {
+    return {
+      addShot: () => {
+        if (!window.Store) return;
+        const a = Store.getActive();
+        if (!a.project) { window.alert('Open a project first.'); return; }
+        const cid = a.conceptId || (a.project.concepts[0] && a.project.concepts[0].id);
+        if (!cid) Store.addConcept(a.projectId, {});
+        const c2 = Store.getActive();
+        Store.addShot(a.projectId, c2.conceptId || cid, { builder: Store.defaultBuilder() });
+        this.renderAll();
+      },
+      generateAll: () => {
+        if (!window.Store) return;
+        const doc = Store.load();
+        const a = Store.getActive();
+        const p = doc.projects.filter((x)=>x.id===a.projectId)[0];
+        if (!p) return;
+        (p.concepts||[]).forEach((c)=>(c.shots||[]).forEach((s)=>{ s.status='prompted'; }));
+        Store.save(doc);
+        this.renderAll();
+      }
+    };
+  }
+}
+</script>
+<script src="./store.js"></script>
+<script src="./nav.js"></script>
+</body>
+</html>

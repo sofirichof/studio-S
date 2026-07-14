@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="./vendor/fonts/host-grotesk.css" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Host Grotesk', 'Inter', system-ui, sans-serif; background: #F6F6F4; overflow: hidden; }
+
+  .nav-item { transition: background 0.12s, color 0.12s; cursor: pointer; }
+  .nav-item:hover { background: #F0F1F4 !important; color: #16161D !important; }
+  .nav-item:hover svg { color: #16161D !important; }
+
+  .primary-btn:hover { background: #0212A8 !important; }
+  .fchip { transition: background 0.12s, border-color 0.12s, color 0.12s; cursor: pointer; }
+  .fchip:hover { border-color: rgba(2,23,211,0.30) !important; }
+  .fbtn:hover { background: #F0F1F4 !important; border-color: rgba(16,16,32,0.20) !important; }
+  .dcard { transition: box-shadow 0.12s, border-color 0.12s; }
+  .dcard:hover { box-shadow: 0 4px 16px rgba(16,16,32,0.08) !important; }
+
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(16,16,32,0.12); border-radius: 2px; }
+</style>
+</helmet>
+
+<div style="display:flex; height:100vh; width:100vw; overflow:hidden;">
+
+  <!-- ── Left rail ── -->
+  <div style="width:248px; background:#fff; border-right:1px solid rgba(16,16,32,0.08); display:flex; flex-direction:column; flex-shrink:0;">
+
+    <!-- Brand mark -->
+    <div style="padding:16px 16px 12px; border-bottom:1px solid rgba(16,16,32,0.06);">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <img src="uploads/logo.png" alt="Studio S" style="width:28px; height:28px; border-radius:7px; flex-shrink:0;" />
+        <div>
+          <p style="font-size:13px; font-weight:500; color:#16161D; line-height:1.2;">Studio S</p>
+          <p style="font-size:11px; color:#9A9AA8; line-height:1.2;">Supergood</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Nav -->
+    <div style="flex:1; overflow-y:auto; padding:12px 8px;">
+
+      <!-- Home group -->
+      <p style="font-size:12px; font-weight:500; color:#9A9AA8; padding:0 12px 4px; margin-bottom:0;">Home</p>
+      <div class="nav-item" style="display:flex; align-items:center; gap:10px; padding:0 12px; height:36px; border-radius:8px; margin-bottom:2px; color:#5A5A6B;">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>
+        <span style="font-size:14px;">Work</span>
+      </div>
+
+      <!-- Manage group -->
+      <p style="font-size:12px; font-weight:500; color:#9A9AA8; padding:8px 12px 4px; margin-top:8px;">Manage</p>
+      <div class="nav-item" style="display:flex; align-items:center; gap:10px; padding:0 12px; height:36px; border-radius:8px; margin-bottom:2px; color:#5A5A6B;">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="12" height="10" rx="2"/><path d="M2 7h12"/></svg>
+        <span style="font-size:14px;">Projects</span>
+      </div>
+      <div class="nav-item" style="display:flex; align-items:center; gap:10px; padding:0 12px; height:36px; border-radius:8px; margin-bottom:2px; color:#5A5A6B;">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="1" y="3" width="6" height="10" rx="1"/><rect x="9" y="3" width="6" height="6" rx="1"/><rect x="9" y="11" width="6" height="2" rx="1"/></svg>
+        <span style="font-size:14px;">References</span>
+      </div>
+
+      <!-- Create group (Prompt builder / Multi-Shot hidden centrally by nav.js §9.3) -->
+      <p style="font-size:12px; font-weight:500; color:#9A9AA8; padding:8px 12px 4px; margin-top:8px;">Create</p>
+      <div class="nav-item" style="display:flex; align-items:center; gap:10px; padding:0 12px; height:36px; border-radius:8px; margin-bottom:2px; color:#5A5A6B;">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>
+        <span style="font-size:14px;">Prompt builder</span>
+      </div>
+      <div class="nav-item" style="display:flex; align-items:center; gap:10px; padding:0 12px; height:36px; border-radius:8px; margin-bottom:2px; color:#5A5A6B;">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="2" width="5" height="12" rx="1"/><rect x="9" y="2" width="5" height="7" rx="1"/><rect x="9" y="11" width="5" height="3" rx="1"/></svg>
+        <span style="font-size:14px;">Multi-Shot</span>
+      </div>
+
+      <!-- Finish group — active -->
+      <p style="font-size:12px; font-weight:500; color:#9A9AA8; padding:8px 12px 4px; margin-top:8px;">Finish</p>
+      <div style="display:flex; align-items:center; gap:10px; padding:0 12px; height:36px; border-radius:8px; margin-bottom:2px; background:#EEF0FF; position:relative; cursor:pointer;">
+        <div style="position:absolute; left:0; top:8px; bottom:8px; width:2px; background:#0217D3; border-radius:0 2px 2px 0;"></div>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#0217D3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="7" width="8" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg>
+        <span style="font-size:14px; color:#0217D3; font-weight:500;">Finish</span>
+      </div>
+
+      <!-- Help group -->
+      <p style="font-size:12px; font-weight:500; color:#9A9AA8; padding:8px 12px 4px; margin-top:8px;">Help</p>
+      <div class="nav-item" style="display:flex; align-items:center; gap:10px; padding:0 12px; height:36px; border-radius:8px; margin-bottom:2px; color:#5A5A6B;">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 4h12M2 8h8M2 12h5"/></svg>
+        <span style="font-size:14px;">Workflow guide</span>
+      </div>
+      <div class="nav-item" style="display:flex; align-items:center; gap:10px; padding:0 12px; height:36px; border-radius:8px; margin-bottom:2px; color:#5A5A6B;">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><path d="M8 7.5V11M8 5.5v.5"/></svg>
+        <span style="font-size:14px;">AI setup</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Main content ── -->
+  <div style="flex:1; display:flex; flex-direction:column; overflow:hidden; min-width:0;">
+
+    <!-- Toolbar -->
+    <div style="background:#fff; border-bottom:1px solid rgba(16,16,32,0.08); padding:0 28px; flex-shrink:0;">
+      <div style="display:flex; align-items:center; justify-content:space-between; height:52px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size:14px; font-weight:500; color:#16161D;">Finish</span>
+          <span style="font-size:12px; color:rgba(16,16,32,0.2);">›</span>
+          <span style="font-size:12px; color:#9A9AA8;">Cuts &amp; review — every deliverable, all clients</span>
+        </div>
+        <div id="finish-summary" style="display:flex; gap:14px; align-items:center;"></div>
+      </div>
+    </div>
+
+    <!-- Scrollable content -->
+    <div style="flex:1; overflow-y:auto; padding:28px;">
+      <div id="finish-mount" style="max-width:1100px;"></div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1440, &quot;height&quot;: 900}}">
+class Component extends DCLogic {
+  // Cross-project cuts & review surface (§76 / §9.3 ⑥). Read/manage view over what
+  // registerCut (on the Project hub) produces: every deliverable's review rounds,
+  // current cut, and status across all clients/projects — filterable as a queue.
+  state = { fClient: '', fProject: '', fStatus: '' };
+
+  componentDidMount() {
+    this.renderAll();
+  }
+
+  esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
+  // Shared status palette — identical to projects.html so the two surfaces read
+  // the same. (§4 statuses: deliverable + version review.)
+  statusStyle(s) {
+    const m = {
+      'not-started': { bg: '#F0F1F4', fg: '#5A5A6B', label: 'Not started' },
+      'in-progress': { bg: '#EEF0FF', fg: '#0217D3', label: 'In progress' },
+      'in-review':   { bg: '#FFF4E5', fg: '#B8730B', label: 'In review' },
+      'needs-review':{ bg: '#FFF4E5', fg: '#B8730B', label: 'Needs review' },
+      'changes':     { bg: '#FDECEE', fg: '#C2213B', label: 'Changes' },
+      'blocked':     { bg: '#FDECEE', fg: '#C2213B', label: 'Blocked' },
+      'approved':    { bg: '#E8F7F1', fg: '#1D9E75', label: 'Approved' },
+      'delivered':   { bg: '#E8F7F1', fg: '#137A5A', label: 'Delivered' }
+    };
+    return m[s] || m['not-started'];
+  }
+
+  badge(s) {
+    const st = this.statusStyle(s);
+    return '<span style="font-size:11px;font-weight:500;background:' + st.bg + ';color:' + st.fg + ';padding:2px 9px;border-radius:999px;white-space:nowrap;">' + st.label + '</span>';
+  }
+
+  // ── Cross-project aggregation ──
+  // No single "all versions" call exists, so compose it: listProjects →
+  // listDeliverables → listVersions (newest round first). getWork only aggregates
+  // in-review/blocked, so it drives the headline strip; the queue itself is built
+  // here where full per-deliverable version history is needed.
+  collect() {
+    if (!window.Store) return [];
+    const rows = [];
+    Store.listProjects().forEach((p) => {
+      const client = p.clientId ? Store.getClient(p.clientId) : null;
+      Store.listDeliverables(p.id).forEach((d) => {
+        const versions = Store.listVersions(d.id).slice().sort((a, b) => (b.round || 0) - (a.round || 0));
+        rows.push({ project: p, client: client, deliverable: d, versions: versions });
+      });
+    });
+    return rows;
+  }
+
+  filterRows(rows) {
+    const st = this.state;
+    return rows.filter((r) => {
+      if (st.fClient && (r.project.clientId || '') !== st.fClient) return false;
+      if (st.fProject && r.project.id !== st.fProject) return false;
+      if (st.fStatus && (r.deliverable.status || 'not-started') !== st.fStatus) return false;
+      return true;
+    });
+  }
+
+  statusCounts(rows) {
+    const c = { total: rows.length, 'not-started': 0, 'in-progress': 0, 'in-review': 0, 'blocked': 0, 'approved': 0, 'delivered': 0 };
+    rows.forEach((r) => { const s = r.deliverable.status || 'not-started'; if (c[s] != null) c[s]++; });
+    return c;
+  }
+
+  // ── Filter bar (client · project · status) + status queue chips ──
+  filterBar(allRows) {
+    const esc = (s) => this.esc(s);
+    const st = this.state;
+    const clients = window.Store ? Store.listProjects().reduce((acc, p) => {
+      if (p.clientId && !acc.some((c) => c.id === p.clientId)) {
+        const cli = Store.getClient(p.clientId);
+        if (cli) acc.push(cli);
+      }
+      return acc;
+    }, []) : [];
+    // Project options narrow to the selected client when one is chosen.
+    const projects = (window.Store ? Store.listProjects() : []).filter((p) => !st.fClient || p.clientId === st.fClient);
+
+    const opt = (val, label, sel) => '<option value="' + esc(val) + '"' + (sel ? ' selected' : '') + '>' + esc(label) + '</option>';
+    const selCss = 'height:32px;background:#fff;border:1px solid rgba(16,16,32,0.12);border-radius:8px;padding:0 10px;font-family:inherit;font-size:13px;color:#16161D;cursor:pointer;min-width:150px;';
+
+    const clientSel = '<select id="f-client" style="' + selCss + '">' +
+      opt('', 'All clients', !st.fClient) +
+      clients.map((c) => opt(c.id, c.name, st.fClient === c.id)).join('') + '</select>';
+    const projSel = '<select id="f-project" style="' + selCss + '">' +
+      opt('', 'All projects', !st.fProject) +
+      projects.map((p) => opt(p.id, p.name, st.fProject === p.id)).join('') + '</select>';
+    const statusOrder = ['not-started', 'in-progress', 'in-review', 'blocked', 'approved', 'delivered'];
+    const statusSel = '<select id="f-status" style="' + selCss + '">' +
+      opt('', 'All statuses', !st.fStatus) +
+      statusOrder.map((s) => opt(s, this.statusStyle(s).label, st.fStatus === s)).join('') + '</select>';
+
+    const active = st.fClient || st.fProject || st.fStatus;
+    const clearBtn = active
+      ? '<button id="f-clear" class="fbtn" style="height:32px;padding:0 12px;background:#fff;border:1px solid rgba(16,16,32,0.12);border-radius:8px;font-family:inherit;font-size:13px;font-weight:500;color:#5A5A6B;cursor:pointer;">Clear filters</button>'
+      : '';
+
+    // Status queue chips — click to filter, click active to clear. Counts are over
+    // the client/project-filtered set so the numbers track the visible queue.
+    const scoped = allRows.filter((r) => {
+      if (st.fClient && (r.project.clientId || '') !== st.fClient) return false;
+      if (st.fProject && r.project.id !== st.fProject) return false;
+      return true;
+    });
+    const counts = this.statusCounts(scoped);
+    const chip = (key, label, count) => {
+      const on = st.fStatus === key;
+      const ss = key ? this.statusStyle(key) : { bg: '#EEF0FF', fg: '#0217D3' };
+      const bg = on ? ss.bg : '#fff';
+      const fg = on ? ss.fg : '#5A5A6B';
+      const bd = on ? ss.fg : 'rgba(16,16,32,0.12)';
+      return '<button class="fchip" data-chip="' + key + '" style="height:30px;padding:0 12px;background:' + bg + ';border:1px solid ' + bd + ';border-radius:999px;font-family:inherit;font-size:12px;font-weight:500;color:' + fg + ';cursor:pointer;display:inline-flex;align-items:center;gap:6px;">' +
+        label + '<span style="font-size:11px;color:' + (on ? fg : '#9A9AA8') + ';">' + count + '</span></button>';
+    };
+    const chips = '<div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:14px;">' +
+      chip('', 'All', counts.total) +
+      chip('in-review', 'In review', counts['in-review']) +
+      chip('blocked', 'Blocked', counts.blocked) +
+      chip('in-progress', 'In progress', counts['in-progress']) +
+      chip('approved', 'Approved', counts.approved) +
+      chip('delivered', 'Delivered', counts.delivered) +
+      chip('not-started', 'Not started', counts['not-started']) +
+      '</div>';
+
+    return '<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">' +
+        clientSel + projSel + statusSel + clearBtn +
+      '</div>' + chips;
+  }
+
+  // ── Deliverable card — cross-project variant of projects.html deliverableCard.
+  // Adds the client · project breadcrumb and linked-out editor / register jumps;
+  // the review-round row markup + status selects are the same pattern. ──
+  deliverableCard(row) {
+    const esc = (s) => this.esc(s);
+    const d = row.deliverable, p = row.project, cli = row.client;
+    const versions = row.versions;
+
+    const specBits = [];
+    if (d.specs) {
+      if (d.specs.ratio) specBits.push(esc(d.specs.ratio));
+      if (d.specs.runtime) specBits.push(esc(d.specs.runtime));
+      if (d.specs.platform) specBits.push(esc(d.specs.platform));
+      if (d.specs.legal) specBits.push('⚖ ' + esc(d.specs.legal));
+    }
+    const specLine = specBits.length
+      ? '<p style="font-size:12px;color:#5A5A6B;margin-top:3px;">' + specBits.join(' &nbsp;·&nbsp; ') + '</p>'
+      : '<p style="font-size:12px;color:#9A9AA8;margin-top:3px;">No specs set</p>';
+
+    const dlvStatusOpts = ['not-started', 'in-progress', 'in-review', 'blocked', 'approved', 'delivered'];
+    const dlvSelect = '<select data-dlv-status="' + d.id + '" style="height:28px;background:#fff;border:1px solid rgba(16,16,32,0.12);border-radius:7px;padding:0 8px;font-family:inherit;font-size:12px;color:#16161D;cursor:pointer;">' +
+      dlvStatusOpts.map((s) => '<option value="' + s + '"' + (d.status === s ? ' selected' : '') + '>' + this.statusStyle(s).label + '</option>').join('') +
+      '</select>';
+
+    // Review rounds — newest first; current version flagged.
+    const verStatusOpts = ['needs-review', 'changes', 'approved'];
+    const verRows = versions.length
+      ? versions.map((v) => {
+          const isCurrent = v.id === d.currentVersionId;
+          const asset = v.assetId ? Store.getAsset(v.assetId) : null;
+          const cutType = asset && asset.cutType ? asset.cutType : '';
+          const sel = '<select data-ver-status="' + v.id + '" style="height:26px;background:#fff;border:1px solid rgba(16,16,32,0.12);border-radius:6px;padding:0 6px;font-family:inherit;font-size:11px;color:#16161D;cursor:pointer;">' +
+            verStatusOpts.map((s) => '<option value="' + s + '"' + (v.status === s ? ' selected' : '') + '>' + this.statusStyle(s).label + '</option>').join('') + '</select>';
+          const fio = v.frameioUrl
+            ? '<a href="' + esc(v.frameioUrl) + '" target="_blank" rel="noopener" style="font-size:11px;color:#0217D3;text-decoration:none;white-space:nowrap;">Frame.io ↗</a>'
+            : '<span style="font-size:11px;color:#C9C9D2;">no link</span>';
+          return '<div style="display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:8px;background:' + (isCurrent ? '#EEF0FF' : '#F6F6F4') + ';">' +
+            '<span style="font-size:11px;font-weight:600;color:' + (isCurrent ? '#0217D3' : '#5A5A6B') + ';width:34px;flex-shrink:0;">R' + (v.round || '?') + '</span>' +
+            '<span style="font-size:12px;color:#16161D;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (cutType ? esc(cutType) : 'version') + (v.reviewer ? ' · ' + esc(v.reviewer) : '') + (isCurrent ? ' · <span style="color:#0217D3;font-weight:500;">current</span>' : '') + (v.note ? ' · <span style="color:#9A9AA8;">' + esc(v.note) + '</span>' : '') + '</span>' +
+            fio + sel +
+            '<button data-del-ver="' + v.id + '" title="Delete version" style="width:22px;height:22px;border:none;background:none;color:#B8B8C2;font-size:13px;line-height:1;cursor:pointer;flex-shrink:0;">✕</button>' +
+          '</div>';
+        }).join('')
+      : '<p style="font-size:12px;color:#9A9AA8;padding:4px 2px;">No versions yet. Register a cut on the project hub to log the first review round.</p>';
+
+    return '<div class="dcard" style="background:#fff;border:1px solid rgba(16,16,32,0.08);border-radius:12px;padding:18px 20px;box-shadow:0 1px 2px rgba(16,16,32,0.04);">' +
+        '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">' +
+          '<div style="min-width:0;">' +
+            '<p style="font-size:11px;color:#9A9AA8;margin-bottom:3px;">' + esc(cli ? cli.name : 'No client') + ' &nbsp;›&nbsp; ' + esc(p.name) + '</p>' +
+            '<p style="font-size:15px;font-weight:600;color:#16161D;">' + esc(d.name) + '</p>' + specLine +
+          '</div>' +
+          '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">' + this.badge(d.status) + dlvSelect + '</div>' +
+        '</div>' +
+        '<div style="height:1px;background:rgba(16,16,32,0.06);margin:14px 0;"></div>' +
+        '<p style="font-size:12px;font-weight:500;color:#9A9AA8;margin-bottom:8px;">Review rounds</p>' +
+        '<div style="display:flex;flex-direction:column;gap:6px;">' + verRows + '</div>' +
+        '<div style="display:flex;gap:8px;margin-top:16px;">' +
+          '<button data-palmier="' + p.id + '" style="height:32px;padding:0 14px;background:#fff;border:1px solid rgba(16,16,32,0.12);border-radius:8px;font-family:inherit;font-size:13px;font-weight:500;color:#16161D;cursor:pointer;display:inline-flex;align-items:center;gap:6px;">Open in Palmier ↗</button>' +
+          '<button data-in-project="' + p.id + '" style="height:32px;padding:0 14px;background:#fff;border:1px solid #0217D3;border-radius:8px;font-family:inherit;font-size:13px;font-weight:500;color:#0217D3;cursor:pointer;">Register cut in project ↗</button>' +
+        '</div>' +
+      '</div>';
+  }
+
+  // Group filtered rows by project, preserving listProjects order (collect()
+  // already iterates projects in order, so first-seen order is correct).
+  groupByProject(rows) {
+    const order = [], byId = {};
+    rows.forEach((r) => {
+      if (!byId[r.project.id]) { byId[r.project.id] = { project: r.project, client: r.client, rows: [] }; order.push(r.project.id); }
+      byId[r.project.id].rows.push(r);
+    });
+    return order.map((id) => byId[id]);
+  }
+
+  renderSummary() {
+    const el = document.getElementById('finish-summary');
+    if (!el || !window.Store) return;
+    const w = Store.getWork();
+    const pill = (label, n, color) => '<span style="font-size:12px;font-weight:500;color:' + color + ';">' + n + ' ' + label + '</span>';
+    el.innerHTML =
+      pill('in review', w.counts.inReview, '#B8730B') +
+      '<span style="width:1px;height:12px;background:rgba(16,16,32,0.12);"></span>' +
+      pill('blocked', w.counts.blocked, '#C2213B') +
+      '<span style="width:1px;height:12px;background:rgba(16,16,32,0.12);"></span>' +
+      pill('active projects', w.counts.projects, '#5A5A6B');
+  }
+
+  renderAll() {
+    const mount = document.getElementById('finish-mount');
+    if (!mount) return;
+    this.renderSummary();
+
+    if (!window.Store) { mount.innerHTML = ''; return; }
+    const allRows = this.collect();
+
+    if (!allRows.length) {
+      mount.innerHTML = this.filterBar(allRows) +
+        '<div style="background:#fff;border:1px dashed rgba(16,16,32,0.16);border-radius:12px;padding:48px 24px;text-align:center;margin-top:18px;">' +
+          '<p style="font-size:15px;font-weight:600;color:#16161D;margin-bottom:6px;">No deliverables yet</p>' +
+          '<p style="font-size:13px;color:#5A5A6B;max-width:400px;margin:0 auto;line-height:1.6;">Deliverables and their cuts show up here once you create them on a project and register cuts. This is the cross-team view of every review round.</p>' +
+        '</div>';
+      this.wire();
+      return;
+    }
+
+    const rows = this.filterRows(allRows);
+    let body;
+    if (!rows.length) {
+      body = '<div style="background:#fff;border:1px dashed rgba(16,16,32,0.16);border-radius:12px;padding:40px 24px;text-align:center;margin-top:18px;">' +
+        '<p style="font-size:14px;font-weight:500;color:#16161D;margin-bottom:4px;">Nothing matches these filters</p>' +
+        '<p style="font-size:13px;color:#9A9AA8;">Clear a filter to widen the queue.</p>' +
+      '</div>';
+    } else {
+      const groups = this.groupByProject(rows);
+      body = groups.map((g) => {
+        const esc = (s) => this.esc(s);
+        const head = '<div style="display:flex;align-items:baseline;gap:8px;margin:22px 0 12px;">' +
+            '<span style="font-size:13px;font-weight:600;color:#16161D;">' + esc(g.project.name) + '</span>' +
+            '<span style="font-size:12px;color:#9A9AA8;">' + esc(g.client ? g.client.name : 'No client') + ' · ' + g.rows.length + ' deliverable' + (g.rows.length === 1 ? '' : 's') + '</span>' +
+          '</div>';
+        const cards = '<div style="display:flex;flex-direction:column;gap:14px;">' + g.rows.map((r) => this.deliverableCard(r)).join('') + '</div>';
+        return head + cards;
+      }).join('');
+    }
+
+    mount.innerHTML = this.filterBar(allRows) + body;
+    this.wire();
+  }
+
+  wire() {
+    const mount = document.getElementById('finish-mount');
+    if (!mount) return;
+    const rerender = () => this.renderAll();
+
+    const fc = document.getElementById('f-client');
+    if (fc) fc.onchange = () => {
+      const v = fc.value;
+      // If the chosen client doesn't own the current project filter, drop it.
+      const keepProj = v && this.state.fProject && (() => { const p = Store.getProject(this.state.fProject); return p && p.clientId === v; })();
+      this.setState({ fClient: v, fProject: keepProj ? this.state.fProject : '' });
+      rerender();
+    };
+    const fp = document.getElementById('f-project');
+    if (fp) fp.onchange = () => { this.setState({ fProject: fp.value }); rerender(); };
+    const fs = document.getElementById('f-status');
+    if (fs) fs.onchange = () => { this.setState({ fStatus: fs.value }); rerender(); };
+    const clr = document.getElementById('f-clear');
+    if (clr) clr.onclick = () => { this.setState({ fClient: '', fProject: '', fStatus: '' }); rerender(); };
+
+    mount.querySelectorAll('[data-chip]').forEach((el) => {
+      el.onclick = () => {
+        const key = el.getAttribute('data-chip');
+        this.setState({ fStatus: this.state.fStatus === key ? '' : key });
+        rerender();
+      };
+    });
+
+    mount.querySelectorAll('[data-dlv-status]').forEach((el) => {
+      el.onchange = () => { Store.updateDeliverable(el.getAttribute('data-dlv-status'), { status: el.value }); rerender(); };
+    });
+    mount.querySelectorAll('[data-ver-status]').forEach((el) => {
+      el.onchange = () => { Store.updateVersion(el.getAttribute('data-ver-status'), { status: el.value }); rerender(); };
+    });
+    mount.querySelectorAll('[data-del-ver]').forEach((el) => {
+      el.onclick = () => {
+        if (!window.confirm('Delete this version? This cannot be undone.')) return;
+        Store.deleteVersion(el.getAttribute('data-del-ver')); rerender();
+      };
+    });
+
+    // Palmier is the linked-out editor (like a Frame.io link, not a nav item):
+    // set the project active so Palmier opens in context, then navigate.
+    mount.querySelectorAll('[data-palmier]').forEach((el) => {
+      el.onclick = () => { Store.setActive({ projectId: el.getAttribute('data-palmier') }); window.location.href = 'palmier.html'; };
+    });
+    // Registration lives on the Project hub — deep-link straight into it.
+    mount.querySelectorAll('[data-in-project]').forEach((el) => {
+      el.onclick = () => {
+        const pid = el.getAttribute('data-in-project');
+        Store.setActive({ projectId: pid });
+        window.location.href = 'projects.html?project=' + encodeURIComponent(pid);
+      };
+    });
+  }
+}
+</script>
+<script src="./store.js"></script>
+<script src="./nav.js"></script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "afs-node",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["/private/tmp/claude-503/-Users-sofiagonzalezirigoyen/23dc6021-18a1-4170-9f8b-d3aabd51402c/scratchpad/serve.js"],
+      "port": 4173
+    },
+    {
+      "name": "afs-static",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "--directory", "src"],
+      "autoPort": true,
+      "port": 4179
+    }
+  ]
+}

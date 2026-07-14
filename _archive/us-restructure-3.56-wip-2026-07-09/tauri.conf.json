@@ -1,0 +1,46 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Studio S",
+  "version": "0.3.56",
+  "identifier": "com.supergood.studios",
+  "build": {
+    "frontendDist": "../src"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "title": "Studio S",
+        "width": 1280,
+        "height": 840,
+        "resizable": true,
+        "decorations": true,
+        "backgroundColor": "#000000"
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["app", "dmg"],
+    "createUpdaterArtifacts": true,
+    "category": "Productivity",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ]
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDJCRDMzQjFGMEREMUUxN0QKUldSOTRkRU5IenZUS3hXZ3NISTR6ODAwc2RFeTlVQ1dBQ3RpSXd0dlpKb3B3OEV3NlpvdHZGengK",
+      "endpoints": [
+        "https://github.com/sofirichof/studio-s/releases/latest/download/latest.json"
+      ]
+    }
+  }
+}

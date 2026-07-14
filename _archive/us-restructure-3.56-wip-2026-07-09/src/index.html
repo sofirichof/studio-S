@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="./vendor/fonts/host-grotesk.css" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Host Grotesk', 'Inter', system-ui, sans-serif; overflow: hidden; }
+
+  @keyframes badge-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  @keyframes speck-float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+  @keyframes slide-in { from { opacity:0; transform:translateX(24px); } to { opacity:1; transform:translateX(0); } }
+  @keyframes slide-back { from { opacity:0; transform:translateX(-24px); } to { opacity:1; transform:translateX(0); } }
+  @keyframes shimmer-move { 0% { opacity:0.18; transform:translate(-30%,-30%) scale(1); } 50% { opacity:0.28; transform:translate(-28%,-32%) scale(1.08); } 100% { opacity:0.18; transform:translate(-30%,-30%) scale(1); } }
+  @keyframes shimmer-move2 { 0% { opacity:0.12; transform:translate(60%,50%) scale(1); } 50% { opacity:0.20; transform:translate(62%,52%) scale(1.06); } 100% { opacity:0.12; transform:translate(60%,50%) scale(1); } }
+  @keyframes fade-up { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes orbit-cw { from { transform:rotate(0deg); } to { transform:rotate(360deg); } }
+  @keyframes orbit-ccw { from { transform:rotate(0deg); } to { transform:rotate(-360deg); } }
+  @keyframes orbit-fade { from { opacity:0; transform:scale(0.85); } to { opacity:1; transform:scale(1); } }
+
+  .step-anim { animation: slide-in 0.28s cubic-bezier(0.16,1,0.3,1) both; }
+  .step-anim-back { animation: slide-back 0.28s cubic-bezier(0.16,1,0.3,1) both; }
+
+  input:focus { outline: 3px solid rgba(2,23,211,0.25); outline-offset: 1px; border-color: #0217D3 !important; }
+  select:focus { outline: 3px solid rgba(2,23,211,0.25); outline-offset: 1px; border-color: #0217D3 !important; }
+  textarea:focus { outline: 3px solid rgba(2,23,211,0.25); outline-offset: 1px; border-color: #0217D3 !important; }
+
+  .pill-btn:hover { background: rgba(255,255,255,0.12) !important; }
+  .choice-card:hover { border-color: rgba(2,23,211,0.4) !important; background: #EEF0FF !important; }
+  .choice-card.selected { border-color: #0217D3 !important; background: #EEF0FF !important; }
+  .pipeline-node:hover { border-color: rgba(16,16,32,0.24) !important; }
+</style>
+</helmet>
+
+<!-- Root: full-viewport onboarding shell -->
+<div style="width:100vw; height:100vh; position:relative; overflow:hidden;">
+
+  <!-- ══ STEP 1: WELCOME ══ (video hero) -->
+  <div id="step-welcome" style="position:absolute; inset:0; background:#000; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; overflow:hidden;">
+
+    <!-- Full-bleed video -->
+    <video id="welcome-video" src="uploads/pass 2.mp4" preload="auto" autoplay muted loop playsinline style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block;"></video>
+
+    <!-- Bottom scrim for button legibility -->
+    <div style="position:absolute; inset:0; background:linear-gradient(to top, rgba(0,0,0,0.42) 0%, rgba(0,0,0,0.10) 40%, transparent 70%); pointer-events:none; opacity:0; animation:fade-up 1.2s cubic-bezier(0.16,1,0.3,1) 2.4s forwards;"></div>
+
+
+    <!-- Rotating badge -->
+    <div style="position:absolute; top:40px; right:48px; width:88px; height:88px; animation:badge-spin 14s linear infinite;">
+      <svg viewBox="0 0 88 88" width="88" height="88">
+        <defs>
+          <path id="circle" d="M 44,44 m -32,0 a 32,32 0 1,1 64,0 a 32,32 0 1,1 -64,0"></path>
+        </defs>
+        <text font-family="'Host Grotesk','Inter',system-ui,sans-serif" font-size="9.2" font-weight="500" fill="rgba(255,255,255,0.55)" letter-spacing="3.5">
+          <textPath href="#circle">SUPERGOOD · SUPERGOOD · </textPath>
+        </text>
+      </svg>
+    </div>
+
+    <!-- Bottom UI: just the button, animated in -->
+    <div style="position:relative; z-index:1; width:100%; padding:0 56px 100px; display:flex; justify-content:center; opacity:0; animation:fade-up 1s cubic-bezier(0.16,1,0.3,1) 2.8s forwards;">
+      <button onclick="{{ goStep1 }}" style="height:44px; padding:0 28px; background:#fff; color:#0217D3; border:none; border-radius:8px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:14px; font-weight:500; cursor:pointer; letter-spacing:-0.01em; white-space:nowrap; display:inline-block;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">Get started</button>
+    </div>
+  </div>
+
+  <!-- ══ LIGHT SHELL: steps 2–5 ══ -->
+  <div id="light-shell" style="position:absolute; inset:0; background:#F6F6F4; display:none; flex-direction:column;">
+
+    <!-- Top bar -->
+    <div style="background:#fff; border-bottom:1px solid rgba(16,16,32,0.08); padding:0 48px; flex-shrink:0;">
+      <div style="max-width:680px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; height:56px;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <img src="uploads/logo.png" alt="Studio S" style="width:24px; height:24px; border-radius:5px; object-fit:cover; flex-shrink:0;" />
+          <span style="font-size:13px; font-weight:500; color:#16161D;">Studio S</span>
+        </div>
+        <span style="font-size:12px; color:#9A9AA8;" id="step-counter">Step 1 of 4</span>
+      </div>
+    </div>
+
+    <!-- Wizard step header -->
+    <div style="background:#fff; border-bottom:1px solid rgba(16,16,32,0.06); padding:20px 48px 0; flex-shrink:0;">
+      <div style="max-width:680px; margin:0 auto;">
+        <div style="display:flex; align-items:center; gap:0; margin-bottom:16px;" id="wizard-steps">
+          <!-- Steps rendered by JS -->
+        </div>
+        <!-- Progress bar -->
+        <div style="height:3px; background:#ECEDF0; border-radius:999px; overflow:hidden; margin-bottom:0;">
+          <div id="progress-bar" style="height:100%; background:#FF002E; border-radius:999px; transition:width 0.4s cubic-bezier(0.4,0,0.2,1); width:25%;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Content area -->
+    <div style="flex:1; overflow-y:auto; padding:40px 48px;">
+      <div style="max-width:680px; margin:0 auto;">
+
+        <!-- Step 2: Basics -->
+        <div id="step-basics" style="display:none;">
+          <p style="font-size:12px; font-weight:500; color:#9A9AA8; margin-bottom:8px; letter-spacing:0.02em;">Setup · Basics</p>
+          <h2 style="font-size:22px; font-weight:500; color:#16161D; margin-bottom:6px; letter-spacing:-0.01em;">Tell us about your work</h2>
+          <p style="font-size:14px; color:#5A5A6B; margin-bottom:32px; line-height:1.6;">Configure the three things the studio needs to run — you won't be asked again.</p>
+
+          <div style="display:flex; flex-direction:column; gap:24px;">
+
+            <!-- Claude API key -->
+            <div>
+              <label style="font-size:12px; font-weight:500; color:#16161D; display:block; margin-bottom:6px;">Claude API key</label>
+              <div style="position:relative;">
+                <input id="claude-key-input" type="password" placeholder="sk-ant-••••••••••••" style="width:100%; height:36px; background:#fff; border:1px solid rgba(16,16,32,0.12); border-radius:10px; padding:0 80px 0 12px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:14px; color:#16161D;" />
+                <a href="https://console.anthropic.com" target="_blank" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); font-size:12px; color:#0217D3; text-decoration:none; font-weight:500; white-space:nowrap;">Get key ↗</a>
+              </div>
+              <p style="font-size:12px; color:#9A9AA8; margin-top:6px;">Used for AI planning and prompt refinement. Stored locally only.</p>
+            </div>
+
+            <!-- Output folder -->
+            <div>
+              <label style="font-size:12px; font-weight:500; color:#16161D; display:block; margin-bottom:6px;">Default output folder</label>
+              <div style="display:flex; gap:8px;">
+                <div style="flex:1; height:36px; background:#F6F6F4; border:1px solid rgba(16,16,32,0.08); border-radius:10px; padding:0 12px; display:flex; align-items:center; gap:8px;">
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#9A9AA8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 4.5C1 3.67 1.67 3 2.5 3h2.29a1 1 0 0 1 .7.29L6.71 4.5H11.5c.83 0 1.5.67 1.5 1.5v5c0 .83-.67 1.5-1.5 1.5h-9C1.67 12.5 1 11.83 1 11v-6.5z"/></svg>
+                  <span style="font-size:13px; color:#9A9AA8;" id="output-folder-display">No folder selected</span>
+                </div>
+                <button onclick="{{ pickOutputFolder }}" style="height:36px; padding:0 14px; background:#fff; border:1px solid rgba(16,16,32,0.12); border-radius:8px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:13px; font-weight:500; color:#16161D; cursor:pointer; white-space:nowrap; transition:background 0.12s;" onmouseover="this.style.background='#F0F1F4'" onmouseout="this.style.background='#fff'">Choose</button>
+              </div>
+              <p style="font-size:12px; color:#9A9AA8; margin-top:6px;">Where generated stills and video clips are saved.</p>
+            </div>
+
+            <!-- Default model -->
+            <div>
+              <label style="font-size:12px; font-weight:500; color:#16161D; display:block; margin-bottom:10px;">Default video model</label>
+              <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <span class="choice-card selected" onclick="{{ selectTool }}" data-val="kling" style="padding:8px 16px; border:1px solid #0217D3; border-radius:8px; font-size:13px; cursor:pointer; transition:all 0.12s; color:#0217D3; background:#EEF0FF;">Kling 3.0</span>
+                <span class="choice-card" onclick="{{ selectTool }}" data-val="seedance" style="padding:8px 16px; border:1px solid rgba(16,16,32,0.12); border-radius:8px; font-size:13px; cursor:pointer; transition:all 0.12s; color:#16161D; background:#fff;">Seedance 2.0</span>
+                <span class="choice-card" onclick="{{ selectTool }}" data-val="runway" style="padding:8px 16px; border:1px solid rgba(16,16,32,0.12); border-radius:8px; font-size:13px; cursor:pointer; transition:all 0.12s; color:#16161D; background:#fff;">Runway Gen-4</span>
+                <span class="choice-card" onclick="{{ selectTool }}" data-val="sora" style="padding:8px 16px; border:1px solid rgba(16,16,32,0.12); border-radius:8px; font-size:13px; cursor:pointer; transition:all 0.12s; color:#16161D; background:#fff;">Sora</span>
+                <span class="choice-card" onclick="{{ selectTool }}" data-val="higgsfield" style="padding:8px 16px; border:1px solid rgba(16,16,32,0.12); border-radius:8px; font-size:13px; cursor:pointer; transition:all 0.12s; color:#16161D; background:#fff;">Higgsfield</span>
+                <span class="choice-card" onclick="{{ selectTool }}" data-val="mixed" style="padding:8px 16px; border:1px solid rgba(16,16,32,0.12); border-radius:8px; font-size:13px; cursor:pointer; transition:all 0.12s; color:#16161D; background:#fff;">Mix of tools</span>
+              </div>
+              <p style="font-size:12px; color:#9A9AA8; margin-top:8px;">Sets prompt defaults and model-specific guidance in the builder. Changeable per project.</p>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Step 3: Plan with Claude -->
+        <div id="step-plan" style="display:none;">
+          <p style="font-size:12px; font-weight:500; color:#9A9AA8; margin-bottom:8px; letter-spacing:0.02em;">Setup · Plan</p>
+          <h2 style="font-size:22px; font-weight:500; color:#16161D; margin-bottom:6px; letter-spacing:-0.01em;">Point Claude at your assets</h2>
+          <p style="font-size:14px; color:#5A5A6B; margin-bottom:24px; line-height:1.6;">Claude reads your brief, references, and any existing materials — then writes a production plan. The studio scaffolds your concepts and shots from it automatically.</p>
+
+          <!-- Project name (BUG-10: was silently scraped from the folder basename) -->
+          <div style="background:#fff; border:1px solid rgba(16,16,32,0.10); border-radius:12px; padding:20px; margin-bottom:16px;">
+            <p style="font-size:12px; font-weight:500; color:#16161D; margin-bottom:10px;">Project name</p>
+            <input id="np-name" type="text" placeholder="e.g. US Bank — Rotation 4" oninput="{{ setProjectName }}" style="width:100%; box-sizing:border-box; height:36px; background:#F6F6F4; border:1px solid rgba(16,16,32,0.08); border-radius:10px; padding:0 12px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:13px; color:#16161D; outline:none;" />
+            <p style="font-size:12px; color:#9A9AA8; margin-top:10px; line-height:1.5;">Give this project a name. If you leave it blank we'll name it after the folder.</p>
+          </div>
+
+          <!-- Step 1: Folder picker -->
+          <div style="background:#fff; border:1px solid rgba(16,16,32,0.10); border-radius:12px; padding:20px; margin-bottom:16px;">
+            <p style="font-size:12px; font-weight:500; color:#16161D; margin-bottom:12px;"><span style="display:inline-flex; width:18px; height:18px; background:#0217D3; border-radius:50%; align-items:center; justify-content:center; margin-right:6px; font-size:10px; color:#fff; font-weight:500; vertical-align:middle;">1</span>Choose your assets folder</p>
+            <div style="display:flex; gap:10px; align-items:center;">
+              <div style="flex:1; height:36px; background:#F6F6F4; border:1px solid rgba(16,16,32,0.08); border-radius:10px; padding:0 12px; display:flex; align-items:center; gap:8px; overflow:hidden;">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#9A9AA8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M1 4.5C1 3.67 1.67 3 2.5 3h2.29a1 1 0 0 1 .7.29L6.71 4.5H11.5c.83 0 1.5.67 1.5 1.5v5c0 .83-.67 1.5-1.5 1.5h-9C1.67 12.5 1 11.83 1 11v-6.5z"/></svg>
+                <span style="font-size:13px; color:#9A9AA8; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" id="folder-path-display">No folder selected</span>
+              </div>
+              <button onclick="{{ pickFolder }}" style="height:36px; padding:0 16px; background:#fff; border:1px solid rgba(16,16,32,0.12); border-radius:8px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:13px; font-weight:500; color:#16161D; cursor:pointer; white-space:nowrap; transition:all 0.12s; flex-shrink:0;" onmouseover="this.style.background='#F0F1F4'" onmouseout="this.style.background='#fff'">Choose folder</button>
+            </div>
+            <p style="font-size:12px; color:#9A9AA8; margin-top:10px; line-height:1.5;">Drop your brief, storyboard, references, and scripts in one folder. Claude reads everything in it.</p>
+          </div>
+
+          <!-- Step 2: Copy build instructions (shown after folder picked) -->
+          <div id="plan-instructions-panel" style="display:none; background:#EEF0FF; border:1px solid rgba(2,23,211,0.15); border-radius:12px; padding:20px; margin-bottom:16px;">
+            <p style="font-size:12px; font-weight:500; color:#0217D3; margin-bottom:4px;"><span style="display:inline-flex; width:18px; height:18px; background:#0217D3; border-radius:50%; align-items:center; justify-content:center; margin-right:6px; font-size:10px; color:#fff; font-weight:500; vertical-align:middle;">2</span>Send to Claude</p>
+            <p style="font-size:12px; color:#5A5A6B; margin-bottom:14px; line-height:1.5;">Copy these instructions and paste them into Claude.ai or Claude Code. Claude will read your folder and write the production plan.</p>
+            <div style="position:relative;">
+              <textarea id="plan-instructions-text" readonly style="width:100%; box-sizing:border-box; height:110px; background:#fff; border:1px solid rgba(2,23,211,0.15); border-radius:8px; padding:12px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:11.5px; color:#5A5A6B; line-height:1.55; resize:none; outline:none; cursor:text;"></textarea>
+              <button onclick="{{ copyInstructions }}" id="copy-instructions-btn" style="position:absolute; top:8px; right:8px; height:28px; padding:0 12px; background:#0217D3; border:none; border-radius:6px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:11px; font-weight:500; color:#fff; cursor:pointer; display:flex; align-items:center; gap:5px; transition:opacity 0.12s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
+                <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="6" height="6" rx="1"/><path d="M1.5 7.5V2a1 1 0 0 1 1-1h5.5"/></svg>
+                Copy
+              </button>
+            </div>
+          </div>
+
+          <!-- Step 3: Scan for plan -->
+          <div id="plan-scan-panel" style="display:none; background:#fff; border:1px solid rgba(16,16,32,0.10); border-radius:12px; padding:20px;">
+            <p style="font-size:12px; font-weight:500; color:#16161D; margin-bottom:4px;"><span style="display:inline-flex; width:18px; height:18px; background:#0217D3; border-radius:50%; align-items:center; justify-content:center; margin-right:6px; font-size:10px; color:#fff; font-weight:500; vertical-align:middle;">3</span>Import the plan</p>
+            <p style="font-size:12px; color:#9A9AA8; margin-bottom:14px; line-height:1.5;">Once Claude has written <strong>studio-s-plan.json</strong> to your folder, click Scan to pull it in.</p>
+            <div style="display:flex; gap:10px; align-items:center;">
+              <button onclick="{{ scanForPlan }}" style="height:36px; padding:0 20px; background:#0217D3; border:none; border-radius:8px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:13px; font-weight:500; color:#fff; cursor:pointer; transition:opacity 0.12s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">Scan for plan</button>
+              <span id="plan-scan-status" style="font-size:12px; color:#9A9AA8;"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 4: Pipeline orientation -->
+        <div id="step-pipeline" style="display:none;">
+          <p style="font-size:12px; font-weight:500; color:#9A9AA8; margin-bottom:8px; letter-spacing:0.02em;">Setup · Pipeline</p>
+          <h2 style="font-size:22px; font-weight:500; color:#16161D; margin-bottom:6px; letter-spacing:-0.01em;">Your production pipeline</h2>
+          <p style="font-size:14px; color:#5A5A6B; margin-bottom:32px; line-height:1.6;">Four stages, each with a specialist tool. Studio S sits at the centre — prompts to stills to video.</p>
+
+          <div style="display:flex; flex-direction:column; gap:12px;">
+            <!-- Stage 1 -->
+            <div class="pipeline-node" style="background:#fff; border:1px solid rgba(16,16,32,0.10); border-radius:12px; padding:18px 20px; display:flex; align-items:center; gap:16px; transition:border-color 0.12s; cursor:default;">
+              <div style="width:36px; height:36px; background:#F0F1F4; border-radius:8px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="#5A5A6B" stroke-width="1.5" stroke-linecap="round"><circle cx="9" cy="9" r="7"/><path d="M9 6v3l2 2"/></svg>
+              </div>
+              <div style="flex:1;">
+                <p style="font-size:14px; font-weight:500; color:#16161D; margin-bottom:2px;">1 · Claude</p>
+                <p style="font-size:13px; color:#5A5A6B; line-height:1.5;">Ideate, plan, brief. Claude reads your assets and writes the production plan.</p>
+              </div>
+              <span style="font-size:11px; font-weight:500; background:#F0F1F4; color:#9A9AA8; padding:3px 10px; border-radius:999px; flex-shrink:0;">Ideate</span>
+            </div>
+
+            <!-- Connector -->
+            <div style="display:flex; align-items:center; justify-content:center; height:16px;">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#ECEDF0" stroke-width="1.5" stroke-linecap="round"><path d="M8 2v12M4 10l4 4 4-4"/></svg>
+            </div>
+
+            <!-- Stage 2 - active -->
+            <div class="pipeline-node" style="background:#EEF0FF; border:1px solid #0217D3; border-radius:12px; padding:18px 20px; display:flex; align-items:center; gap:16px; transition:border-color 0.12s; cursor:default;">
+              <div style="width:36px; height:36px; background:#0217D3; border-radius:8px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                <svg width="18" height="18" viewBox="0 0 22 22" fill="none"><rect x="3" y="3" width="7" height="7" rx="1.5" fill="white"/><rect x="12" y="3" width="7" height="7" rx="1.5" fill="white" opacity=".45"/><rect x="3" y="12" width="7" height="7" rx="1.5" fill="white" opacity=".45"/><rect x="12" y="12" width="7" height="7" rx="1.5" fill="white"/></svg>
+              </div>
+              <div style="flex:1;">
+                <p style="font-size:14px; font-weight:500; color:#0217D3; margin-bottom:2px;">2 · Studio S — you are here</p>
+                <p style="font-size:13px; color:#5A5A6B; line-height:1.5;">Prompt Builder → stills → image-to-video → music &amp; SFX.</p>
+              </div>
+              <span style="font-size:11px; font-weight:500; background:#0217D3; color:#fff; padding:3px 10px; border-radius:999px; flex-shrink:0;">Active</span>
+            </div>
+
+            <!-- Connector -->
+            <div style="display:flex; align-items:center; justify-content:center; height:16px;">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#ECEDF0" stroke-width="1.5" stroke-linecap="round"><path d="M8 2v12M4 10l4 4 4-4"/></svg>
+            </div>
+
+            <!-- Stage 3 -->
+            <div class="pipeline-node" style="background:#fff; border:1px solid rgba(16,16,32,0.10); border-radius:12px; padding:18px 20px; display:flex; align-items:center; gap:16px; transition:border-color 0.12s; cursor:default; opacity:0.65;">
+              <div style="width:36px; height:36px; background:#F0F1F4; border-radius:8px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="#5A5A6B" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="3" width="14" height="12" rx="2"/><path d="M2 7h14"/></svg>
+              </div>
+              <div style="flex:1;">
+                <p style="font-size:14px; font-weight:500; color:#16161D; margin-bottom:2px;">3 · Palmier (handoff)</p>
+                <p style="font-size:13px; color:#5A5A6B; line-height:1.5;">Hand off to Palmier to edit and assemble your cut. Studio S opens Palmier and tracks the versions — the editing happens there, not in this app.</p>
+              </div>
+              <span style="font-size:11px; font-weight:500; background:#F0F1F4; color:#9A9AA8; padding:3px 10px; border-radius:999px; flex-shrink:0; display:flex; align-items:center; gap:4px;">
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="#9A9AA8" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="4" width="6" height="5" rx="1"/><path d="M3.5 4V3a1.5 1.5 0 0 1 3 0v1"/></svg>
+                Up next
+              </span>
+            </div>
+
+            <!-- Connector -->
+            <div style="display:flex; align-items:center; justify-content:center; height:16px;">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#ECEDF0" stroke-width="1.5" stroke-linecap="round"><path d="M8 2v12M4 10l4 4 4-4"/></svg>
+            </div>
+
+            <!-- Stage 4 -->
+            <div class="pipeline-node" style="background:#fff; border:1px solid rgba(16,16,32,0.10); border-radius:12px; padding:18px 20px; display:flex; align-items:center; gap:16px; transition:border-color 0.12s; cursor:default; opacity:0.65;">
+              <div style="width:36px; height:36px; background:#F0F1F4; border-radius:8px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="#5A5A6B" stroke-width="1.5" stroke-linecap="round"><path d="M9 2v14M2 9h14"/></svg>
+              </div>
+              <div style="flex:1;">
+                <p style="font-size:14px; font-weight:500; color:#16161D; margin-bottom:2px;">4 · Finishing</p>
+                <p style="font-size:13px; color:#5A5A6B; line-height:1.5;">Premiere edit, DaVinci colour, After Effects motion. Human craft on top of AI foundations.</p>
+              </div>
+              <span style="font-size:11px; font-weight:500; background:#F0F1F4; color:#9A9AA8; padding:3px 10px; border-radius:999px; flex-shrink:0; display:flex; align-items:center; gap:4px;">
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="#9A9AA8" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="4" width="6" height="5" rx="1"/><path d="M3.5 4V3a1.5 1.5 0 0 1 3 0v1"/></svg>
+                Up next
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 5: Done -->
+        <div id="step-done" style="display:none; text-align:center; padding:40px 0;">
+          <div style="width:64px; height:64px; background:#E8F7F1; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 24px;">
+            <svg width="28" height="28" viewBox="0 0 28 28" fill="none" stroke="#1D9E75" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="5,14 11,20 23,8"/></svg>
+          </div>
+          <h2 style="font-size:22px; font-weight:500; color:#16161D; margin-bottom:8px; letter-spacing:-0.01em;">You're all set</h2>
+          <p style="font-size:14px; color:#5A5A6B; margin-bottom:40px; line-height:1.6; max-width:400px; margin-left:auto; margin-right:auto;">Your studio is configured. Start with the Prompt Builder to build your first shot — or head to Projects to set up a new campaign.</p>
+
+          <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+            <button onclick="{{ openProjects }}" style="height:44px; padding:0 24px; background:#fff; border:1px solid rgba(16,16,32,0.12); border-radius:8px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:14px; font-weight:500; color:#16161D; cursor:pointer; transition:all 0.12s;" onmouseover="this.style.background='#F0F1F4'" onmouseout="this.style.background='#fff'">View projects</button>
+            <button onclick="{{ openBuilder }}" style="height:44px; padding:0 24px; background:#0217D3; border:none; border-radius:8px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:14px; font-weight:500; color:#fff; cursor:pointer; transition:background 0.12s;" onmouseover="this.style.background='#0212A8'" onmouseout="this.style.background='#0217D3'">Open Prompt Builder</button>
+          </div>
+
+          <!-- Quick stats -->
+          <div style="display:flex; gap:24px; justify-content:center; margin-top:48px; padding-top:32px; border-top:1px solid rgba(16,16,32,0.08);">
+            <div>
+              <p style="font-size:20px; font-weight:500; color:#16161D; margin-bottom:2px;">6 steps</p>
+              <p style="font-size:12px; color:#9A9AA8;">Prompt Builder wizard</p>
+            </div>
+            <div style="width:1px; background:rgba(16,16,32,0.08);"></div>
+            <div>
+              <p style="font-size:20px; font-weight:500; color:#16161D; margin-bottom:2px;">4 tools</p>
+              <p style="font-size:12px; color:#9A9AA8;">Full pipeline</p>
+            </div>
+            <div style="width:1px; background:rgba(16,16,32,0.08);"></div>
+            <div>
+              <p style="font-size:20px; font-weight:500; color:#16161D; margin-bottom:2px;">2× faster</p>
+              <p style="font-size:12px; color:#9A9AA8;">vs manual workflow</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Sticky footer -->
+    <div id="step-footer" style="background:#fff; border-top:1px solid rgba(16,16,32,0.08); padding:16px 48px; flex-shrink:0; display:flex; align-items:center; justify-content:space-between;">
+      <button id="btn-back" onclick="{{ goBack }}" style="height:36px; padding:0 16px; background:transparent; border:none; font-family:'Host Grotesk',system-ui,sans-serif; font-size:14px; font-weight:500; color:#5A5A6B; cursor:pointer; display:flex; align-items:center; gap:6px; transition:color 0.12s;" onmouseover="this.style.color='#16161D'" onmouseout="this.style.color='#5A5A6B'">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2L4 7l5 5"/></svg>
+        Back
+      </button>
+      <button id="btn-next" onclick="{{ goNext }}" style="height:36px; padding:0 20px; background:#0217D3; color:#fff; border:none; border-radius:8px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:14px; font-weight:500; cursor:pointer; transition:background 0.12s;" onmouseover="this.style.background='#0212A8'" onmouseout="this.style.background='#0217D3'">Continue</button>
+    </div>
+
+  </div>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1280, &quot;height&quot;: 800}}">
+class Component extends DCLogic {
+  state = { step: 0, model: 'kling', assetsFolder: '', outputFolder: '', projectName: '' }; // 0=welcome, 1=basics, 2=plan, 3=pipeline, 4=done
+
+  // Native folder picker (Tauri). Returns a path string or '' if unavailable/cancelled.
+  async pickDir() {
+    try {
+      const t = window.__TAURI__;
+      if (t && t.dialog && t.dialog.open) {
+        const r = await t.dialog.open({ directory: true, multiple: false });
+        return typeof r === 'string' ? r : '';
+      }
+    } catch (e) {}
+    return '';
+  }
+
+  componentDidMount() {
+    // "New project" mode (?new=1): user is already set up — skip the welcome video
+    // and run the quiz directly to build a new project.
+    this.isNewProject = /[?&]new=1\b/.test(window.location.search);
+    if (this.isNewProject) { this.setState({ step: 1 }); this.renderStep(1); }
+    else { this.renderStep(0); } // normal launch always shows the welcome video first
+    // Only wire up the welcome video when the welcome step is actually shown. In
+    // ?new=1 mode the welcome step is hidden, so playing it would leak audio from
+    // an invisible element and install global unmute listeners on the wizard.
+    const v = this.isNewProject ? null : document.querySelector('#step-welcome video');
+    if (v) {
+      v.volume = 1;
+      // Try with sound first (works in the Tauri app). If a browser blocks it,
+      // fall back to muted autoplay and unmute on first interaction.
+      const playWithSound = () => {
+        v.muted = false;
+        return v.play().then(() => this.syncSoundBtn());
+      };
+      const playMuted = () => {
+        v.muted = true;
+        v.play().catch(() => {});
+        this.syncSoundBtn();
+        const unmute = () => {
+          v.muted = false;
+          v.volume = 1;
+          v.play().catch(() => {});
+          this.syncSoundBtn();
+          window.removeEventListener('pointerdown', unmute);
+          window.removeEventListener('keydown', unmute);
+        };
+        window.addEventListener('pointerdown', unmute);
+        window.addEventListener('keydown', unmute);
+      };
+      playWithSound().catch(playMuted);
+      v.addEventListener('canplay', () => { if (v.paused) playWithSound().catch(playMuted); }, { once: true });
+    }
+  }
+
+  syncSoundBtn() {
+    const v = document.querySelector('#step-welcome video');
+    const on = document.getElementById('icon-sound-on');
+    const off = document.getElementById('icon-sound-off');
+    if (!v || !on || !off) return;
+    on.style.display = v.muted ? 'none' : 'block';
+    off.style.display = v.muted ? 'block' : 'none';
+  }
+
+  renderStep(step) {
+    const welcome = document.getElementById('step-welcome');
+    const shell = document.getElementById('light-shell');
+    const stepEls = ['step-basics','step-plan','step-pipeline','step-done'];
+
+    if (step === 0) {
+      welcome.style.display = 'flex';
+      shell.style.display = 'none';
+      return;
+    }
+
+    welcome.style.display = 'none';
+    shell.style.display = 'flex';
+
+    // Show correct content step
+    stepEls.forEach((id, i) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (i === step - 1) {
+        el.style.display = 'block';
+        el.className = 'step-anim';
+      } else {
+        el.style.display = 'none';
+      }
+    });
+
+    // Keep the Claude handoff instructions in sync with the current generator:
+    // if the folder was picked earlier and the user then changed the model on
+    // Basics, the textarea would otherwise still show the old generator's guide.
+    if (step === 2 && this.state.assetsFolder) {
+      const ta = document.getElementById('plan-instructions-text');
+      if (ta) ta.value = this.buildClaudeInstructions(this.state.assetsFolder);
+    }
+
+    // Progress bar: steps 1-4
+    const pct = [25, 50, 75, 100][step - 1] || 25;
+    const bar = document.getElementById('progress-bar');
+    if (bar) bar.style.width = pct + '%';
+
+    // Counter
+    const counter = document.getElementById('step-counter');
+    if (counter) counter.textContent = `Step ${step} of 4`;
+
+    // Wizard step dots
+    this.renderWizardHeader(step);
+
+    // Footer visibility
+    const footer = document.getElementById('step-footer');
+    const btnBack = document.getElementById('btn-back');
+    const btnNext = document.getElementById('btn-next');
+    if (footer) footer.style.display = step === 5 ? 'none' : 'flex';
+    if (btnBack) btnBack.style.visibility = step <= 1 ? 'hidden' : 'visible';
+    if (btnNext) btnNext.textContent = step === 4 ? 'Finish setup' : 'Continue';
+  }
+
+  renderWizardHeader(current) {
+    const container = document.getElementById('wizard-steps');
+    if (!container) return;
+    const steps = ['Basics', 'Plan', 'Pipeline', 'Done'];
+    container.innerHTML = steps.map((label, i) => {
+      const num = i + 1;
+      const done = current > num;
+      const active = current === num;
+      const upcoming = current < num;
+      const isLast = i === steps.length - 1;
+
+      const circleBg = done || active ? '#0217D3' : '#ECEDF0';
+      const circleContent = done
+        ? `<svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,5 4.5,7.5 8.5,2.5"/></svg>`
+        : `<span style="font-size:10px;font-weight:500;color:${active ? '#fff' : '#9A9AA8'};">${num}</span>`;
+      const labelColor = active ? '#16161D' : upcoming ? '#9A9AA8' : '#0217D3';
+      const labelWeight = active ? '500' : '400';
+      const connectorBg = done ? '#0217D3' : '#ECEDF0';
+
+      return `<div style="display:flex;align-items:center;gap:8px;${!isLast ? 'flex:1;' : ''}">
+        <div style="width:24px;height:24px;border-radius:50%;background:${circleBg};display:flex;align-items:center;justify-content:center;flex-shrink:0;">${circleContent}</div>
+        <span style="font-size:13px;font-weight:${labelWeight};color:${labelColor};white-space:nowrap;">${label}</span>
+        ${!isLast ? `<div style="flex:1;height:1px;background:${connectorBg};margin:0 6px;"></div>` : ''}
+      </div>`;
+    }).join('');
+  }
+
+  renderVals() {
+    return {
+      toggleSound: () => {
+        const v = document.querySelector('#step-welcome video');
+        if (!v) return;
+        v.muted = !v.muted;
+        v.volume = 1;
+        v.play().catch(() => {});
+        this.syncSoundBtn();
+      },
+      goStep1: () => {
+        // Returning, configured users skip setup and go straight to the app.
+        if (window.Store && Store.isConfigured()) { window.location.href = 'work.html'; return; }
+        this.setState({ step: 1 });
+        this.renderStep(1);
+      },
+      goNext: () => {
+        // Persist Basics fields before advancing past step 1.
+        if (this.state.step === 1) this.saveBasics();
+        const next = Math.min(this.state.step + 1, 4);
+        if (this.state.step === 4) { this.finishSetup(); return; }
+        this.setState({ step: next });
+        this.renderStep(next);
+      },
+      goBack: () => {
+        const prev = Math.max(this.state.step - 1, 0);
+        this.setState({ step: prev });
+        this.renderStep(prev);
+      },
+      selectTool: (e) => {
+        const cards = document.querySelectorAll('.choice-card');
+        cards.forEach(c => {
+          c.style.borderColor = 'rgba(16,16,32,0.12)';
+          c.style.background = '#fff';
+          c.style.color = '#16161D';
+        });
+        e.currentTarget.style.borderColor = '#0217D3';
+        e.currentTarget.style.background = '#EEF0FF';
+        e.currentTarget.style.color = '#0217D3';
+        this.setState({ model: e.currentTarget.getAttribute('data-val') || 'kling' });
+      },
+      setProjectName: (e) => { this.state.projectName = (e && e.currentTarget ? e.currentTarget.value : ''); },
+      pickFolder: async () => {
+        const display = document.getElementById('folder-path-display');
+        if (!(window.__TAURI__ && window.__TAURI__.dialog && window.__TAURI__.dialog.open)) {
+          if (display) { display.textContent = 'Folder picking works in the Studio S desktop app only — open the app to choose a folder.'; display.style.color = '#9A5B00'; }
+          return;
+        }
+        const dir = await this.pickDir();
+        if (!dir) return;
+        this.setState({ assetsFolder: dir });
+        if (display) { display.textContent = dir; display.style.color = '#16161D'; }
+
+        // Show the handoff panels
+        const instrPanel = document.getElementById('plan-instructions-panel');
+        const scanPanel = document.getElementById('plan-scan-panel');
+        if (instrPanel) instrPanel.style.display = 'block';
+        if (scanPanel) scanPanel.style.display = 'block';
+
+        // Populate the instructions textarea
+        const textarea = document.getElementById('plan-instructions-text');
+        if (textarea) textarea.value = this.buildClaudeInstructions(dir);
+      },
+      copyInstructions: () => {
+        const textarea = document.getElementById('plan-instructions-text');
+        if (!textarea) return;
+        navigator.clipboard.writeText(textarea.value).catch(() => {
+          textarea.select();
+          document.execCommand('copy');
+        });
+        const btn = document.getElementById('copy-instructions-btn');
+        if (btn) {
+          btn.innerHTML = '<svg width="11" height="11" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg> Copied!';
+          setTimeout(() => {
+            btn.innerHTML = '<svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="6" height="6" rx="1"/><path d="M1.5 7.5V2a1 1 0 0 1 1-1h5.5"/></svg> Copy';
+          }, 2000);
+        }
+      },
+      scanForPlan: async () => {
+        const dir = this.state.assetsFolder;
+        const status = document.getElementById('plan-scan-status');
+        if (!dir) { if (status) status.textContent = 'Pick a folder first.'; return; }
+        if (status) status.textContent = 'Scanning…';
+        try {
+          const t = window.__TAURI__;
+          if (t && t.core && t.core.invoke) {
+            const plan = await t.core.invoke('scan_plan_folder', { dir });
+            if (plan && plan.content) {
+              const name = (this.state.projectName || '').trim() || dir.split('/').filter(Boolean).pop() || 'New project';
+              // Reuse the project already created for this folder so re-scanning
+              // (e.g. while waiting for Claude to write the file) doesn't spawn
+              // duplicate projects — it just refreshes the same one.
+              let p = (Store.listProjects() || []).filter((x) => x.assetsFolder === dir)[0];
+              if (!p) p = Store.createProject({ name, assetsFolder: dir, outputFolder: this.state.outputFolder });
+              Store.scaffoldFromPlan(p.id, plan.content);
+              this.createdProjectId = p.id; // so finishSetup opens this project
+              if (status) { status.textContent = '✓ Plan imported — concepts and shots ready.'; status.style.color = '#0217D3'; }
+            } else {
+              if (status) { status.textContent = 'No plan file found yet. Paste the instructions into Claude and try again.'; status.style.color = '#9A9AA8'; }
+            }
+          } else {
+            if (status) { status.textContent = 'Available in the desktop app only.'; status.style.color = '#9A9AA8'; }
+          }
+        } catch (e) {
+          if (status) { status.textContent = 'Scan failed — check the folder path.'; status.style.color = '#FF002E'; }
+        }
+      },
+      pickOutputFolder: async () => {
+        const display = document.getElementById('output-folder-display');
+        if (!(window.__TAURI__ && window.__TAURI__.dialog && window.__TAURI__.dialog.open)) {
+          if (display) { display.textContent = 'Folder picking works in the Studio S desktop app only.'; display.style.color = '#9A5B00'; }
+          return;
+        }
+        const dir = await this.pickDir();
+        if (!dir) return;
+        this.setState({ outputFolder: dir });
+        if (window.Store) Store.setSettings({ defaultOutputFolder: dir });
+        if (display) { display.textContent = dir; display.style.color = '#16161D'; }
+      },
+      openProjects: () => { this.finishSetup('projects.html'); },
+      openBuilder: () => { this.finishSetup('promptbuilder.html'); },
+    };
+  }
+
+  generatorGuide(model) {
+    // Per-generator prompt-engineering craft so each shot "name" is written in the
+    // native prompt language of the tool the user actually generates in.
+    var guides = {
+      seedance: `GENERATOR: Seedance 2.0 — write each shot as a Seedance prompt (English only).
+Structure each shot's text in this order:
+  Characters: short, specific, vivid anchors — only the characters in this shot; carry their state forward (wet hair, bloodied knuckle, same wardrobe).
+  Scene: 1–2 sentences, geo-spatial — where each person is relative to the location and each other.
+  CUT 1 — [shot type, lens feel, movement]: acting beat, eye-line, breath, what the camera does, what the light does.
+  CUT 2 / CUT 3 as needed.
+Each shot targets ~15s; a held single shot or a 3-cut sequence are both valid — design it to fill the 15s. Photoreal, natural light, 24fps, environmental sound only, no on-screen text.`,
+      higgsfield: `GENERATOR: Higgsfield — write each shot as a Higgsfield image-to-video prompt (English).
+Higgsfield leads with a CAMERA-MOTION preset, so name the move first, then describe subject motion concisely:
+  • Open with the camera motion (e.g. "Crash Zoom in", "Bullet Time orbit", "Robo-arm push", "FPV drone", "Dolly-in", "Whip-pan").
+  • Then the subject's motion/action in one or two clear clauses.
+  • Keep it tight — Higgsfield rewards a strong single move + clear subject action over dense paragraphs.
+  • Note the start-frame intent (what the first still shows) since these are image-to-video.`,
+      kling: `GENERATOR: Kling 3.0 — camera instruction FIRST, the still is the anchor. "Slow push-in. Subject: … Scene: … Camera: smooth dolly-in, eye level. Preserve source framing." Keep environmental events minimal; Kling spends its budget on subject + camera motion.`,
+      runway: `GENERATOR: Runway Gen-4 — concise motion brief. State the camera move + subject action, and emphasise "stable / consistent / no distortion" to avoid drift. Short clip (~4s).`,
+      sora: `GENERATOR: Sora — describe each shot as a short filmed scene in natural narrative prose ("A four-second shot: … as the camera eases slowly inward. Continuous take."), not parameters.`,
+      mixed: `GENERATOR: Mixed tools — write cinematic, tool-agnostic shot descriptions (shot type, lens, blocking, acting beat, light, camera move) that translate cleanly into Seedance, Kling, Runway, Higgsfield, or Sora.`
+    };
+    return guides[model] || guides.mixed;
+  }
+
+  buildClaudeInstructions(folderPath) {
+    const model = this.state.model || 'kling';
+    return `You are a top-tier film director and cinematographer building a production plan for the Studio S app (Supergood). You turn briefs and scripts into a shot-by-shot plan the studio scaffolds into concepts and shots.
+
+Assets folder: ${folderPath}
+
+${this.generatorGuide(model)}
+
+STEP 1 — Read everything in the folder: brief, storyboard, references, mood boards, and especially any SCRIPT, treatment, or scene breakdown.
+
+STEP 2 — Build the shot list, writing every shot's prompt in the GENERATOR convention above.
+
+▸ IF THERE IS A SCRIPT (or treatment / scene breakdown):
+Act as a shotlist director — this is cinema, not a clip. Don't transcribe the script into beats; block, light, and pace it. For each scene:
+  • Block the mise-en-scène — where each character stands/moves, geo-spatial position, what hands are doing.
+  • Pace dramatically — give heavy moments their own shots; compress action into short ones.
+  • Direct the acting specifically — not "she looks sad" but "eyes drop, jaw tightens, swallows once before answering."
+  • Specify the camera — lens, height, movement, and its motivation ("low-angle 35mm slow dolly-in as she realizes").
+  • Hold continuity in your head — character state, wardrobe, props, emotional carry across shots.
+Split a long scene into multiple shots. Each shot "name" is the full prompt-ready text in the generator's convention (English).
+
+▸ IF THERE IS NO SCRIPT (brief only):
+Derive 2–5 concepts from the brief (e.g. "Hero product reveal", "Lifestyle sequence", "Testimonial cut"), each with 3–8 specific shots, each written in the generator convention.
+
+STEP 3 — Write the plan as JSON to: ${folderPath}/studio-s-plan.json
+
+Exact format:
+{
+  "concepts": [
+    {
+      "name": "Concept / scene name — one-line description of what happens",
+      "shots": [
+        { "name": "Full prompt-ready shot text in the generator's convention" },
+        { "name": "Next shot — same craft and convention" }
+      ]
+    }
+  ],
+  "todos": [
+    "Production step, e.g. Generate stills for all shots",
+    "Next step, e.g. Test hero shots in motion",
+    "Next step, e.g. Review selects with client"
+  ]
+}
+
+One scene = one concept; split long scenes into multiple shots under it. "todos" is this project's ordered production checklist — the concrete steps from here to delivery (generation, motion tests, review, handoff); 4–8 items.`;
+  }
+
+  saveBasics() {
+    if (!window.Store) return;
+    const key = (document.getElementById('claude-key-input') || {}).value || '';
+    const patch = { defaultVideoModel: this.state.model };
+    if (key) patch.claudeApiKey = key;
+    if (this.state.outputFolder) patch.defaultOutputFolder = this.state.outputFolder;
+    Store.setSettings(patch);
+  }
+
+  finishSetup(dest) {
+    if (window.Store) { this.saveBasics(); Store.markConfigured(); }
+    // New-project quiz: make sure a project exists, then open it in the builder.
+    if (this.isNewProject && window.Store) {
+      let id = this.createdProjectId;
+      if (!id) {
+        const name = (this.state.projectName || '').trim() || (this.state.assetsFolder || '').split('/').filter(Boolean).pop() || 'Untitled project';
+        const p = Store.createProject({ name: name, assetsFolder: this.state.assetsFolder || '', outputFolder: this.state.outputFolder || '' });
+        id = p.id;
+      }
+      Store.setActive({ projectId: id });
+      window.location.href = 'work.html';
+      return;
+    }
+    window.location.href = dest || 'work.html';
+  }
+}
+
+</script>
+<script src="./store.js"></script>
+<script src="./nav.js"></script>
+<script src="./updater.js"></script>
+</body>
+</html>

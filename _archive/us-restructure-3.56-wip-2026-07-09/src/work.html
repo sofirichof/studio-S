@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="./vendor/fonts/host-grotesk.css" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Host Grotesk', 'Inter', system-ui, sans-serif; background: #F6F6F4; overflow: hidden; }
+
+  .nav-item { transition: background 0.12s, color 0.12s; cursor: pointer; }
+  .nav-item:hover { background: #F0F1F4 !important; color: #16161D !important; }
+  .nav-item:hover svg { color: #16161D !important; }
+
+  .work-card { transition: box-shadow 0.12s, border-color 0.12s, transform 0.12s; cursor: pointer; }
+  .work-card:hover { box-shadow: 0 4px 16px rgba(16,16,32,0.10) !important; border-color: rgba(16,16,32,0.20) !important; transform: translateY(-1px); }
+
+  .primary-btn:hover { background: #0212A8 !important; }
+  .chip:hover { background: #EEF0FF !important; border-color: rgba(2,23,211,0.25) !important; }
+
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(16,16,32,0.12); border-radius: 2px; }
+</style>
+</helmet>
+
+<div style="display:flex; height:100vh; width:100vw; overflow:hidden;">
+
+  <!-- ── Left rail ── -->
+  <div style="width:248px; background:#fff; border-right:1px solid rgba(16,16,32,0.08); display:flex; flex-direction:column; flex-shrink:0;">
+
+    <!-- Brand mark -->
+    <div style="padding:16px 16px 12px; border-bottom:1px solid rgba(16,16,32,0.06);">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <img src="uploads/logo.png" alt="Studio S" style="width:28px; height:28px; border-radius:7px; flex-shrink:0;" />
+        <div>
+          <p style="font-size:13px; font-weight:500; color:#16161D; line-height:1.2;">Studio S</p>
+          <p style="font-size:11px; color:#9A9AA8; line-height:1.2;">Supergood</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Nav -->
+    <div style="flex:1; overflow-y:auto; padding:12px 8px;">
+
+      <!-- Home group -->
+      <p style="font-size:12px; font-weight:500; color:#9A9AA8; padding:0 12px 4px; margin-bottom:0;">Home</p>
+      <!-- Active: Work -->
+      <div style="display:flex; align-items:center; gap:10px; padding:0 12px; height:36px; border-radius:8px; margin-bottom:2px; background:#EEF0FF; position:relative; cursor:pointer;">
+        <div style="position:absolute; left:0; top:8px; bottom:8px; width:2px; background:#0217D3; border-radius:0 2px 2px 0;"></div>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#0217D3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>
+        <span style="font-size:14px; color:#0217D3;">Work</span>
+      </div>
+
+      <!-- Manage group -->
+      <p style="font-size:12px; font-weight:500; color:#9A9AA8; padding:8px 12px 4px; margin-top:8px;">Manage</p>
+      <div class="nav-item" style="display:flex; align-items:center; gap:10px; padding:0 12px; height:36px; border-radius:8px; margin-bottom:2px; color:#5A5A6B;">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="12" height="10" rx="2"/><path d="M2 7h12"/></svg>
+        <span style="font-size:14px;">Projects</span>
+      </div>
+      <div class="nav-item" style="display:flex; align-items:center; gap:10px; padding:0 12px; height:36px; border-radius:8px; margin-bottom:2px; color:#5A5A6B;">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="1" y="3" width="6" height="10" rx="1"/><rect x="9" y="3" width="6" height="6" rx="1"/><rect x="9" y="11" width="6" height="2" rx="1"/></svg>
+        <span style="font-size:14px;">References</span>
+      </div>
+
+      <!-- Create group -->
+      <p style="font-size:12px; font-weight:500; color:#9A9AA8; padding:8px 12px 4px; margin-top:8px;">Create</p>
+      <div class="nav-item" style="display:flex; align-items:center; gap:10px; padding:0 12px; height:36px; border-radius:8px; margin-bottom:2px; color:#5A5A6B;">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>
+        <span style="font-size:14px;">Prompt builder</span>
+      </div>
+      <div class="nav-item" style="display:flex; align-items:center; gap:10px; padding:0 12px; height:36px; border-radius:8px; margin-bottom:2px; color:#5A5A6B;">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="2" width="5" height="12" rx="1"/><rect x="9" y="2" width="5" height="7" rx="1"/><rect x="9" y="11" width="5" height="3" rx="1"/></svg>
+        <span style="font-size:14px;">Multi-Shot</span>
+      </div>
+
+      <!-- Finish group -->
+      <p style="font-size:12px; font-weight:500; color:#9A9AA8; padding:8px 12px 4px; margin-top:8px;">Finish</p>
+      <div class="nav-item" style="display:flex; align-items:center; gap:10px; padding:0 12px; height:36px; border-radius:8px; margin-bottom:2px; color:#5A5A6B;">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 8h10M3 4h10M3 12h6"/></svg>
+        <span style="font-size:14px;">Palmier</span>
+      </div>
+
+      <!-- Help group -->
+      <p style="font-size:12px; font-weight:500; color:#9A9AA8; padding:8px 12px 4px; margin-top:8px;">Help</p>
+      <div class="nav-item" style="display:flex; align-items:center; gap:10px; padding:0 12px; height:36px; border-radius:8px; margin-bottom:2px; color:#5A5A6B;">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 4h12M2 8h8M2 12h5"/></svg>
+        <span style="font-size:14px;">Workflow guide</span>
+      </div>
+      <div class="nav-item" style="display:flex; align-items:center; gap:10px; padding:0 12px; height:36px; border-radius:8px; margin-bottom:2px; color:#5A5A6B;">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><path d="M8 7.5V11M8 5.5v.5"/></svg>
+        <span style="font-size:14px;">AI setup</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Main content ── -->
+  <div style="flex:1; display:flex; flex-direction:column; overflow:hidden; min-width:0;">
+
+    <!-- Toolbar -->
+    <div style="background:#fff; border-bottom:1px solid rgba(16,16,32,0.08); padding:0 28px; flex-shrink:0;">
+      <div style="display:flex; align-items:center; justify-content:space-between; height:52px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size:14px; font-weight:500; color:#16161D;">Work</span>
+        </div>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <button class="primary-btn" onclick="{{ newProject }}" style="height:32px; padding:0 14px; background:#0217D3; border:none; border-radius:8px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:13px; font-weight:500; color:#fff; cursor:pointer; display:flex; align-items:center; gap:6px; transition:background 0.12s;">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round"><line x1="7" y1="2" x2="7" y2="12"/><line x1="2" y1="7" x2="12" y2="7"/></svg>
+            New project
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scrollable content -->
+    <div style="flex:1; overflow-y:auto; padding:28px;">
+      <div id="work-mount"></div>
+    </div>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1280, &quot;height&quot;: 800}}">
+class Component extends DCLogic {
+  componentDidMount() {
+    this.renderWork();
+  }
+
+  newProject() {
+    // Project creation lives on the Projects hub; open it ready to create.
+    window.location.href = 'projects.html?new=1';
+  }
+
+  openProject(id) {
+    if (window.Store) Store.setActive({ projectId: id });
+    window.location.href = 'projects.html';
+  }
+
+  statusChip(status) {
+    const map = {
+      'active':      ['#0217D3', '#EEF0FF', 'Active'],
+      'in-review':   ['#B45309', '#FEF3C7', 'In review'],
+      'blocked':     ['#FF002E', '#FFE4E9', 'Blocked'],
+      'approved':    ['#047857', '#D1FAE5', 'Approved'],
+      'in-progress': ['#5A5A6B', '#F0F1F4', 'In progress'],
+      'not-started': ['#9A9AA8', '#F0F1F4', 'Not started']
+    };
+    const [fg, bg, label] = map[status] || ['#5A5A6B', '#F0F1F4', status || '—'];
+    return '<span style="display:inline-block;padding:2px 9px;border-radius:999px;background:' + bg + ';color:' + fg + ';font-size:11px;font-weight:500;">' + label + '</span>';
+  }
+
+  kpi(label, value, accent) {
+    return '<div style="flex:1;min-width:120px;background:#fff;border:1px solid rgba(16,16,32,0.08);border-radius:12px;padding:16px 18px;box-shadow:0 1px 2px rgba(16,16,32,0.04);">' +
+      '<p style="font-size:28px;font-weight:600;color:' + (accent || '#16161D') + ';line-height:1;margin-bottom:6px;">' + value + '</p>' +
+      '<p style="font-size:12px;color:#9A9AA8;">' + label + '</p>' +
+    '</div>';
+  }
+
+  renderWork() {
+    const mount = document.getElementById('work-mount');
+    if (!mount || !window.Store) return;
+    const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const w = Store.getWork();
+    const clients = Store.listClients();
+
+    // Empty state — no projects yet.
+    if (!w.activeProjects.length && !clients.length) {
+      mount.innerHTML =
+        '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:80px 24px;">' +
+          '<div style="width:56px;height:56px;border-radius:14px;background:#EEF0FF;display:flex;align-items:center;justify-content:center;margin-bottom:18px;">' +
+            '<svg width="26" height="26" viewBox="0 0 16 16" fill="none" stroke="#0217D3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>' +
+          '</div>' +
+          '<p style="font-size:18px;font-weight:500;color:#16161D;margin-bottom:6px;">Nothing in flight yet</p>' +
+          '<p style="font-size:14px;color:#5A5A6B;max-width:380px;line-height:1.6;margin-bottom:22px;">This is your source of truth across clients and projects — status, assets, versions, and brand. Create a project to get started.</p>' +
+          '<div style="display:flex;gap:10px;align-items:center;">' +
+            '<button id="empty-create" class="primary-btn" style="height:40px;padding:0 22px;background:#0217D3;border:none;border-radius:8px;font-family:inherit;font-size:14px;font-weight:500;color:#fff;cursor:pointer;">Create your first project</button>' +
+            '<button id="empty-demo" style="height:40px;padding:0 20px;background:transparent;border:1px solid #D5D7E0;border-radius:8px;font-family:inherit;font-size:14px;font-weight:500;color:#5A5A6B;cursor:pointer;">Load demo data</button>' +
+          '</div>' +
+        '</div>';
+      const b = document.getElementById('empty-create');
+      if (b) b.onclick = () => this.newProject();
+      const d = document.getElementById('empty-demo');
+      if (d) d.onclick = () => {
+        if (!window.Seed) return;
+        d.disabled = true; d.textContent = 'Loading…';
+        try { Seed.loadDemo(); } catch (e) { console.error(e); }
+        location.reload();
+      };
+      return;
+    }
+
+    let html = '';
+
+    // Greeting.
+    html += '<div style="margin-bottom:20px;">' +
+      '<p style="font-size:22px;font-weight:600;color:#16161D;letter-spacing:-0.01em;margin-bottom:4px;">Your work</p>' +
+      '<p style="font-size:14px;color:#5A5A6B;">' + w.counts.clients + ' client' + (w.counts.clients === 1 ? '' : 's') + ' · ' + w.counts.projects + ' active project' + (w.counts.projects === 1 ? '' : 's') + '</p>' +
+    '</div>';
+
+    // KPI row.
+    html += '<div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:26px;">' +
+      this.kpi('Active projects', w.counts.projects, '#16161D') +
+      this.kpi('In review', w.counts.inReview, '#B45309') +
+      this.kpi('Blocked', w.counts.blocked, '#FF002E') +
+      this.kpi('Needs me', w.counts.needsMe, '#0217D3') +
+    '</div>';
+
+    // Needs attention — blocked + in-review deliverables.
+    const attention = w.blocked.concat(w.inReview);
+    if (attention.length) {
+      html += '<p style="font-size:12px;font-weight:600;color:#9A9AA8;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:10px;">Needs attention</p>';
+      html += '<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:28px;">' +
+        attention.map((d) => {
+          const v = d.currentVersion;
+          const meta = [d.projectName, d.specs && d.specs.platform, v ? ('R' + v.round) : null].filter(Boolean).map(esc).join(' · ');
+          const link = v && v.frameioUrl
+            ? '<a href="' + esc(v.frameioUrl) + '" target="_blank" rel="noopener" style="font-size:12px;color:#0217D3;text-decoration:none;flex-shrink:0;">Frame.io ↗</a>'
+            : '';
+          return '<div data-open="' + d.projectId + '" class="work-card" style="display:flex;align-items:center;gap:12px;background:#fff;border:1px solid rgba(16,16,32,0.08);border-left:3px solid ' + (d.status === 'blocked' ? '#FF002E' : '#F59E0B') + ';border-radius:10px;padding:12px 14px;box-shadow:0 1px 2px rgba(16,16,32,0.04);">' +
+            '<div style="flex:1;min-width:0;">' +
+              '<p style="font-size:14px;font-weight:500;color:#16161D;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + esc(d.name) + '</p>' +
+              '<p style="font-size:12px;color:#9A9AA8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + meta + '</p>' +
+            '</div>' +
+            this.statusChip(d.status) +
+            link +
+          '</div>';
+        }).join('') +
+      '</div>';
+    }
+
+    // Active projects grid.
+    html += '<p style="font-size:12px;font-weight:600;color:#9A9AA8;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:10px;">Active projects</p>';
+    if (w.activeProjects.length) {
+      html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-bottom:28px;">' +
+        w.activeProjects.map((p) => {
+          const flags = [];
+          if (p.blockedCount) flags.push('<span style="color:#FF002E;font-weight:500;">' + p.blockedCount + ' blocked</span>');
+          if (p.inReviewCount) flags.push('<span style="color:#B45309;font-weight:500;">' + p.inReviewCount + ' in review</span>');
+          const flagLine = flags.length ? flags.join(' · ') : '<span style="color:#9A9AA8;">On track</span>';
+          return '<div data-open="' + p.id + '" class="work-card" style="background:#fff;border:1px solid rgba(16,16,32,0.08);border-radius:12px;overflow:hidden;box-shadow:0 1px 2px rgba(16,16,32,0.04);">' +
+            '<div style="height:8px;background:linear-gradient(90deg,#0217D3,#4b5cf0);"></div>' +
+            '<div style="padding:14px 16px 16px;">' +
+              '<p style="font-size:11px;color:#9A9AA8;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.04em;">' + esc(p.clientName) + '</p>' +
+              '<p style="font-size:15px;font-weight:500;color:#16161D;margin-bottom:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + esc(p.name) + '</p>' +
+              '<div style="display:flex;align-items:center;justify-content:space-between;">' +
+                '<span style="font-size:12px;color:#5A5A6B;">' + p.deliverableCount + ' deliverable' + (p.deliverableCount === 1 ? '' : 's') + '</span>' +
+                this.statusChip(p.status) +
+              '</div>' +
+              '<p style="font-size:12px;margin-top:8px;">' + flagLine + '</p>' +
+            '</div>' +
+          '</div>';
+        }).join('') +
+      '</div>';
+    } else {
+      html += '<p style="font-size:13px;color:#9A9AA8;margin-bottom:28px;">No active projects.</p>';
+    }
+
+    // Brands & assets quick access.
+    if (clients.length) {
+      html += '<p style="font-size:12px;font-weight:600;color:#9A9AA8;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:10px;">Brands</p>';
+      html += '<div style="display:flex;flex-wrap:wrap;gap:10px;">' +
+        clients.map((c) => {
+          const projCount = Store.listProjects(c.id).length;
+          const refCount = Store.listAssets({ type: 'reference', clientId: c.id }).length;
+          return '<div class="chip" style="display:flex;align-items:center;gap:10px;background:#fff;border:1px solid rgba(16,16,32,0.10);border-radius:10px;padding:10px 14px;transition:background 0.12s,border-color 0.12s;">' +
+            '<div style="width:30px;height:30px;border-radius:8px;background:#EEF0FF;display:flex;align-items:center;justify-content:center;color:#0217D3;font-size:13px;font-weight:600;flex-shrink:0;">' + esc((c.name || '?').slice(0,1).toUpperCase()) + '</div>' +
+            '<div>' +
+              '<p style="font-size:13px;font-weight:500;color:#16161D;line-height:1.2;">' + esc(c.name) + '</p>' +
+              '<p style="font-size:11px;color:#9A9AA8;line-height:1.3;">' + projCount + ' project' + (projCount === 1 ? '' : 's') + ' · ' + refCount + ' ref' + (refCount === 1 ? '' : 's') + '</p>' +
+            '</div>' +
+          '</div>';
+        }).join('') +
+      '</div>';
+    }
+
+    mount.innerHTML = html;
+
+    mount.querySelectorAll('[data-open]').forEach((el) => {
+      el.onclick = (e) => {
+        // Don't hijack the Frame.io external link inside an attention row.
+        if (e.target.closest && e.target.closest('a')) return;
+        this.openProject(el.getAttribute('data-open'));
+      };
+    });
+  }
+
+  renderVals() { return this; }
+}
+</script>
+<script src="./store.js"></script>
+<script src="./seed.js"></script>
+<script src="./nav.js"></script>
+<script src="./updater.js"></script>
+</body>
+</html>

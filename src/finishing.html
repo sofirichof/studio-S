@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="./vendor/fonts/host-grotesk.css" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Host Grotesk', system-ui, sans-serif; background: #F7F5EF; overflow: hidden; }
+  .nav-item { transition: background 0.12s, color 0.12s; cursor: pointer; }
+  .nav-item:hover { background: #F0F1F4 !important; color: #16161D !important; }
+  .check-row { transition: background 0.1s; cursor: pointer; border-radius: 8px; }
+  .check-row:hover { background: #F7F5EF; }
+  .tool-card { transition: box-shadow 0.12s, border-color 0.12s; }
+  .tool-card:hover { box-shadow: 0 4px 14px rgba(16,16,32,0.08) !important; border-color: rgba(16,16,32,0.16) !important; }
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-thumb { background: rgba(16,16,32,0.12); border-radius: 2px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</helmet>
+
+<div style="display:flex; height:100vh; width:100vw; overflow:hidden;">
+
+  <!-- Left nav -->
+  <div style="width:248px; background:#fff; border-right:1px solid rgba(16,16,32,0.08); display:flex; flex-direction:column; flex-shrink:0;">
+    <div style="padding:16px 16px 12px; border-bottom:1px solid rgba(16,16,32,0.06);">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <img src="uploads/logo.png" alt="Studio S" style="width:28px; height:28px; border-radius:7px; flex-shrink:0;" />
+        <div>
+          <p style="font-size:13px; font-weight:500; color:#16161D; line-height:1.2;">Studio S</p>
+          <p style="font-size:11px; color:#9A9AA8; line-height:1.2;">Supergood</p>
+        </div>
+      </div>
+    </div>
+    <div style="flex:1; overflow-y:auto; padding:12px 8px;">
+      <div style="padding:0 8px; margin-bottom:16px;">
+        <div style="position:relative;">
+          <select style="width:100%; height:32px; background:#F7F5EF; border:1px solid rgba(16,16,32,0.08); border-radius:8px; padding:0 28px 0 10px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:12px; color:#16161D; appearance:none; cursor:pointer; font-weight:500; visibility:hidden;">
+            <option>No project yet</option>
+          </select>
+          <svg style="position:absolute; right:8px; top:50%; transform:translateY(-50%); pointer-events:none;" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#9A9AA8" stroke-width="1.5" stroke-linecap="round"><path d="M3 5l3 3 3-3"></path></svg>
+        </div>
+      </div>
+      <p style="font-size:12px; font-weight:500; color:#9A9AA8; padding:0 12px; margin-bottom:4px;">Create</p>
+      <div class="nav-item" style="display:flex; align-items:center; gap:10px; padding:0 12px; height:36px; border-radius:8px; margin-bottom:2px; color:#5A5A6B;">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="5" height="5" rx="1"></rect><rect x="9" y="2" width="5" height="5" rx="1"></rect><rect x="2" y="9" width="5" height="5" rx="1"></rect><rect x="9" y="9" width="5" height="5" rx="1"></rect></svg>
+        <span style="font-size:14px;">Prompt builder</span>
+      </div>
+      <div class="nav-item" style="display:flex; align-items:center; gap:10px; padding:0 12px; height:36px; border-radius:8px; margin-bottom:2px; color:#5A5A6B;">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="6" height="10" rx="1"></rect><rect x="9" y="3" width="6" height="6" rx="1"></rect><rect x="9" y="11" width="6" height="2" rx="1"></rect></svg>
+        <span style="font-size:14px;">References</span>
+      </div>
+      <div class="nav-item" style="display:flex; align-items:center; gap:10px; padding:0 12px; height:36px; border-radius:8px; margin-bottom:2px; color:#5A5A6B;">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="2" width="5" height="12" rx="1"></rect><rect x="9" y="2" width="5" height="7" rx="1"></rect><rect x="9" y="11" width="5" height="3" rx="1"></rect></svg>
+        <span style="font-size:14px;">Multi-Shot</span>
+      </div>
+      <p style="font-size:12px; font-weight:500; color:#9A9AA8; padding:8px 12px 4px; margin-top:8px;">Manage</p>
+      <div class="nav-item" style="display:flex; align-items:center; gap:10px; padding:0 12px; height:36px; border-radius:8px; margin-bottom:2px; color:#5A5A6B;">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="12" height="10" rx="2"></rect><path d="M2 7h12"></path></svg>
+        <span style="font-size:14px;">Projects</span>
+      </div>
+      <p style="font-size:12px; font-weight:500; color:#9A9AA8; padding:8px 12px 4px; margin-top:8px;">Edit &amp; handoff</p>
+      <div class="nav-item" style="display:flex; align-items:center; gap:10px; padding:0 12px; height:36px; border-radius:8px; margin-bottom:2px; color:#5A5A6B;">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 8h10M3 4h10M3 12h6"></path></svg>
+        <span style="font-size:14px;">Palmier</span>
+      </div>
+      <!-- Active: Finishing -->
+      <div style="display:flex; align-items:center; gap:10px; padding:0 12px; height:36px; border-radius:8px; margin-bottom:2px; background:#EEF0FF; position:relative; cursor:pointer;">
+        <div style="position:absolute; left:0; top:8px; bottom:8px; width:2px; background:#0217D3; border-radius:0 2px 2px 0;"></div>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#0217D3" stroke-width="1.5" stroke-linecap="round"><rect x="4" y="7" width="8" height="7" rx="1.5"></rect><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"></path></svg>
+        <span style="font-size:14px; color:#0217D3; font-weight:500;">Finishing</span>
+      </div>
+      <p style="font-size:12px; font-weight:500; color:#9A9AA8; padding:8px 12px 4px; margin-top:8px;">Help</p>
+      <div class="nav-item" style="display:flex; align-items:center; gap:10px; padding:0 12px; height:36px; border-radius:8px; margin-bottom:2px; color:#5A5A6B;">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 4h12M2 8h8M2 12h5"></path></svg>
+        <span style="font-size:14px;">Workflow guide</span>
+      </div>
+      <div class="nav-item" style="display:flex; align-items:center; gap:10px; padding:0 12px; height:36px; border-radius:8px; margin-bottom:2px; color:#5A5A6B;">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="6"></circle><path d="M8 7.5V11M8 5.5v.5"></path></svg>
+        <span style="font-size:14px;">AI setup</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div style="flex:1; display:flex; flex-direction:column; overflow:hidden; min-width:0;">
+
+    <!-- Toolbar -->
+    <div style="background:#fff; border-bottom:1px solid rgba(16,16,32,0.08); padding:0 28px; flex-shrink:0;">
+      <div style="display:flex; align-items:center; justify-content:space-between; height:52px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size:12px; color:#9A9AA8;">US Bank</span>
+          <span style="font-size:12px; color:rgba(16,16,32,0.2);">›</span>
+          <span style="font-size:14px; font-weight:500; color:#16161D;">Finishing</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:6px;">
+          <span style="font-size:12px; color:#9A9AA8;">Reference workflow</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Body -->
+    <div style="flex:1; overflow-y:auto; padding:28px;">
+      <div style="display:grid; grid-template-columns:1fr 296px; gap:20px; align-items:start; max-width:1100px;">
+
+        <!-- Left -->
+        <div style="display:flex; flex-direction:column; gap:20px;">
+
+          <!-- Tool roles -->
+          <div>
+            <p style="font-size:12px; font-weight:500; color:#9A9AA8; margin-bottom:14px; letter-spacing:0.02em;">Finishing tools — each has a role</p>
+            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px;">
+
+              <!-- Premiere -->
+              <div class="tool-card" style="background:#fff; border:1px solid rgba(16,16,32,0.08); border-radius:12px; padding:18px; box-shadow:0 1px 2px rgba(16,16,32,0.04);">
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+                  <div style="width:34px; height:34px; border-radius:8px; background:#2C2C4A; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                    <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><rect x="3" y="3" width="6" height="14" rx="1.5" fill="#9999FF"></rect><rect x="11" y="7" width="6" height="10" rx="1.5" fill="#9999FF" opacity=".55"></rect></svg>
+                  </div>
+                  <div>
+                    <p style="font-size:13px; font-weight:500; color:#16161D;">Premiere Pro</p>
+                    <p style="font-size:11px; color:#9A9AA8;">Edit</p>
+                  </div>
+                </div>
+                <p style="font-size:12px; color:#5A5A6B; line-height:1.6; margin-bottom:12px;">Narrative cut, pacing and structure. Import the Palmier XML, refine timing, add titles and SFX.</p>
+                <div style="display:flex; flex-direction:column; gap:6px; font-size:12px; color:#16161D;">
+                  <div style="display:flex; align-items:center; gap:7px;">
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round"><polyline points="2,6 4.5,8.5 10,3.5"></polyline></svg>
+                    Import Palmier XML
+                  </div>
+                  <div style="display:flex; align-items:center; gap:7px;">
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round"><polyline points="2,6 4.5,8.5 10,3.5"></polyline></svg>
+                    Titles &amp; supers
+                  </div>
+                  <div style="display:flex; align-items:center; gap:7px;">
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#9A9AA8" stroke-width="1.5" stroke-linecap="round"><circle cx="6" cy="6" r="5"></circle><path d="M6 3.5V6.5M6 8v.2"></path></svg>
+                    <span style="color:#9A9AA8;">SFX / music mix</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- DaVinci -->
+              <div class="tool-card" style="background:#fff; border:1px solid rgba(16,16,32,0.08); border-radius:12px; padding:18px; box-shadow:0 1px 2px rgba(16,16,32,0.04);">
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+                  <div style="width:34px; height:34px; border-radius:8px; background:#1A2832; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                    <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" fill="none" stroke="#4DBFB8" stroke-width="2"></circle><circle cx="10" cy="10" r="3" fill="#4DBFB8"></circle></svg>
+                  </div>
+                  <div>
+                    <p style="font-size:13px; font-weight:500; color:#16161D;">DaVinci Resolve</p>
+                    <p style="font-size:11px; color:#9A9AA8;">Colour</p>
+                  </div>
+                </div>
+                <p style="font-size:12px; color:#5A5A6B; line-height:1.6; margin-bottom:12px;">Grade to the cinematographer look — translate the prompt's colour intent into real nodes. Noise reduction on AI-generated footage.</p>
+                <div style="display:flex; flex-direction:column; gap:6px; font-size:12px; color:#16161D;">
+                  <div style="display:flex; align-items:center; gap:7px;">
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round"><polyline points="2,6 4.5,8.5 10,3.5"></polyline></svg>
+                    Primary grade
+                  </div>
+                  <div style="display:flex; align-items:center; gap:7px;">
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#9A9AA8" stroke-width="1.5" stroke-linecap="round"><circle cx="6" cy="6" r="5"></circle><path d="M6 3.5V6.5M6 8v.2"></path></svg>
+                    <span style="color:#9A9AA8;">Noise reduction</span>
+                  </div>
+                  <div style="display:flex; align-items:center; gap:7px;">
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#9A9AA8" stroke-width="1.5" stroke-linecap="round"><circle cx="6" cy="6" r="5"></circle><path d="M6 3.5V6.5M6 8v.2"></path></svg>
+                    <span style="color:#9A9AA8;">LUT delivery</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- After Effects -->
+              <div class="tool-card" style="background:#fff; border:1px solid rgba(16,16,32,0.08); border-radius:12px; padding:18px; box-shadow:0 1px 2px rgba(16,16,32,0.04);">
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+                  <div style="width:34px; height:34px; border-radius:8px; background:#1E1A32; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                    <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M4 14 L10 4 L16 14" stroke="#9B8FFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"></path><path d="M6.5 11h7" stroke="#9B8FFF" stroke-width="1.8" stroke-linecap="round"></path></svg>
+                  </div>
+                  <div>
+                    <p style="font-size:13px; font-weight:500; color:#16161D;">After Effects</p>
+                    <p style="font-size:11px; color:#9A9AA8;">Motion</p>
+                  </div>
+                </div>
+                <p style="font-size:12px; color:#5A5A6B; line-height:1.6; margin-bottom:12px;">Motion graphics, title animation and any compositing the cut needs. The human craft layer on top.</p>
+                <div style="display:flex; flex-direction:column; gap:6px; font-size:12px; color:#16161D;">
+                  <div style="display:flex; align-items:center; gap:7px;">
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#9A9AA8" stroke-width="1.5" stroke-linecap="round"><circle cx="6" cy="6" r="5"></circle><path d="M6 3.5V6.5M6 8v.2"></path></svg>
+                    <span style="color:#9A9AA8;">Title animation</span>
+                  </div>
+                  <div style="display:flex; align-items:center; gap:7px;">
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#9A9AA8" stroke-width="1.5" stroke-linecap="round"><circle cx="6" cy="6" r="5"></circle><path d="M6 3.5V6.5M6 8v.2"></path></svg>
+                    <span style="color:#9A9AA8;">Composite / VFX</span>
+                  </div>
+                  <div style="display:flex; align-items:center; gap:7px;">
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#9A9AA8" stroke-width="1.5" stroke-linecap="round"><circle cx="6" cy="6" r="5"></circle><path d="M6 3.5V6.5M6 8v.2"></path></svg>
+                    <span style="color:#9A9AA8;">Brand supers</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Handoff checklist -->
+          <div style="background:#fff; border:1px solid rgba(16,16,32,0.08); border-radius:12px; padding:20px;">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+              <p style="font-size:14px; font-weight:500; color:#16161D;">Handoff checklist</p>
+              <span style="font-size:11px; color:#9A9AA8;">Reference — not tracked</span>
+            </div>
+            <p style="font-size:12px; color:#5A5A6B; line-height:1.5; margin-bottom:14px;">The standard path from brief to delivery. Studio S doesn't track completion — use this as the shared checklist for the handoff.</p>
+            <div style="display:flex; flex-direction:column; gap:2px;">
+              <div class="check-row" style="display:flex; align-items:center; gap:12px; padding:8px;"><div style="width:18px; height:18px; border-radius:5px; border:1.5px solid rgba(16,16,32,0.12); flex-shrink:0;"></div><span style="font-size:13px; color:#5A5A6B;">Brief uploaded to assets folder</span></div>
+              <div class="check-row" style="display:flex; align-items:center; gap:12px; padding:8px;"><div style="width:18px; height:18px; border-radius:5px; border:1.5px solid rgba(16,16,32,0.12); flex-shrink:0;"></div><span style="font-size:13px; color:#5A5A6B;">Production plan written by Claude</span></div>
+              <div class="check-row" style="display:flex; align-items:center; gap:12px; padding:8px;"><div style="width:18px; height:18px; border-radius:5px; border:1.5px solid rgba(16,16,32,0.12); flex-shrink:0;"></div><span style="font-size:13px; color:#5A5A6B;">Prompts built in Studio S</span></div>
+              <div class="check-row" style="display:flex; align-items:center; gap:12px; padding:8px;"><div style="width:18px; height:18px; border-radius:5px; border:1.5px solid rgba(16,16,32,0.12); flex-shrink:0;"></div><span style="font-size:13px; color:#5A5A6B;">Stills generated (downstream)</span></div>
+              <div class="check-row" style="display:flex; align-items:center; gap:12px; padding:8px;"><div style="width:18px; height:18px; border-radius:5px; border:1.5px solid rgba(16,16,32,0.12); flex-shrink:0;"></div><span style="font-size:13px; color:#5A5A6B;">Selects locked</span></div>
+              <div class="check-row" style="display:flex; align-items:center; gap:12px; padding:8px;"><div style="width:18px; height:18px; border-radius:5px; border:1.5px solid rgba(16,16,32,0.12); flex-shrink:0;"></div><span style="font-size:13px; color:#5A5A6B;">Video generated from selects (downstream)</span></div>
+              <div class="check-row" style="display:flex; align-items:center; gap:12px; padding:8px;"><div style="width:18px; height:18px; border-radius:5px; border:1.5px solid rgba(16,16,32,0.12); flex-shrink:0;"></div><span style="font-size:13px; color:#5A5A6B;">Sent to Palmier</span></div>
+              <div class="check-row" style="display:flex; align-items:center; gap:12px; padding:8px;"><div style="width:18px; height:18px; border-radius:5px; border:1.5px solid rgba(16,16,32,0.12); flex-shrink:0;"></div><span style="font-size:13px; color:#5A5A6B;">Rough cut assembled in Palmier</span></div>
+              <div class="check-row" style="display:flex; align-items:center; gap:12px; padding:8px;"><div style="width:18px; height:18px; border-radius:5px; border:1.5px solid rgba(16,16,32,0.12); flex-shrink:0;"></div><span style="font-size:13px; color:#5A5A6B;">NLE XML exported from Palmier</span></div>
+              <div class="check-row" style="display:flex; align-items:center; gap:12px; padding:8px;"><div style="width:18px; height:18px; border-radius:5px; border:1.5px solid rgba(16,16,32,0.12); flex-shrink:0;"></div><span style="font-size:13px; color:#5A5A6B;">Import XML into Premiere Pro</span></div>
+              <div class="check-row" style="display:flex; align-items:center; gap:12px; padding:8px;"><div style="width:18px; height:18px; border-radius:5px; border:1.5px solid rgba(16,16,32,0.12); flex-shrink:0;"></div><span style="font-size:13px; color:#5A5A6B;">Refine cut — pace, titles, SFX</span></div>
+              <div class="check-row" style="display:flex; align-items:center; gap:12px; padding:8px;"><div style="width:18px; height:18px; border-radius:5px; border:1.5px solid rgba(16,16,32,0.12); flex-shrink:0;"></div><span style="font-size:13px; color:#5A5A6B;">Grade in DaVinci — apply the look</span></div>
+              <div class="check-row" style="display:flex; align-items:center; gap:12px; padding:8px;"><div style="width:18px; height:18px; border-radius:5px; border:1.5px solid rgba(16,16,32,0.12); flex-shrink:0;"></div><span style="font-size:13px; color:#5A5A6B;">Motion graphics in After Effects</span></div>
+              <div class="check-row" style="display:flex; align-items:center; gap:12px; padding:8px;"><div style="width:18px; height:18px; border-radius:5px; border:1.5px solid rgba(16,16,32,0.12); flex-shrink:0;"></div><span style="font-size:13px; color:#5A5A6B;">Client review &amp; final delivery</span></div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Right rail -->
+        <div style="display:flex; flex-direction:column; gap:16px;">
+
+          <!-- Pipeline progress -->
+          <div style="background:#fff; border:1px solid rgba(16,16,32,0.08); border-radius:12px; padding:18px;">
+            <p style="font-size:12px; font-weight:500; color:#16161D; margin-bottom:16px;">Pipeline progress</p>
+            <div style="display:flex; flex-direction:column; gap:10px;">
+              <div style="display:flex; align-items:center; gap:10px;">
+                <div style="width:28px; height:28px; border-radius:6px; background:#EEF0FF; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#0217D3" stroke-width="1.5" stroke-linecap="round"><polyline points="2,7 5,10 12,3.5"></polyline></svg>
+                </div>
+                <div style="flex:1;">
+                  <p style="font-size:12px; font-weight:500; color:#16161D;">Studio S</p>
+                  <p style="font-size:11px; color:#9A9AA8;">Prompts → stills → video</p>
+                </div>
+                <span style="font-size:11px; font-weight:500; background:#F0F1F4; color:#9A9AA8; padding:2px 8px; border-radius:999px;">Upstream</span>
+              </div>
+              <div style="width:1px; height:12px; background:rgba(16,16,32,0.06); margin-left:14px;"></div>
+              <div style="display:flex; align-items:center; gap:10px;">
+                <div style="width:28px; height:28px; border-radius:6px; background:#EEF0FF; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#0217D3" stroke-width="1.5" stroke-linecap="round"><polyline points="2,7 5,10 12,3.5"></polyline></svg>
+                </div>
+                <div style="flex:1;">
+                  <p style="font-size:12px; font-weight:500; color:#16161D;">Palmier</p>
+                  <p style="font-size:11px; color:#9A9AA8;">Claude assembly + rough cut</p>
+                </div>
+                <span style="font-size:11px; font-weight:500; background:#F0F1F4; color:#9A9AA8; padding:2px 8px; border-radius:999px;">Upstream</span>
+              </div>
+              <div style="width:1px; height:12px; background:rgba(16,16,32,0.06); margin-left:14px;"></div>
+              <div style="display:flex; align-items:center; gap:10px;">
+                <div style="width:28px; height:28px; border-radius:6px; background:#0217D3; display:flex; align-items:center; justify-content:center; flex-shrink:0; position:relative;">
+                  <div style="position:absolute; left:0; top:4px; bottom:4px; width:2px; background:#fff; border-radius:0 2px 2px 0; opacity:0.7;"></div>
+                  <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round"><rect x="4" y="7" width="8" height="7" rx="1.5"></rect><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"></path></svg>
+                </div>
+                <div style="flex:1;">
+                  <p style="font-size:12px; font-weight:500; color:#0217D3;">Finishing</p>
+                  <p style="font-size:11px; color:#9A9AA8;">Edit, grade, motion, delivery</p>
+                </div>
+                <span style="font-size:11px; font-weight:500; background:#EEF0FF; color:#0217D3; padding:2px 8px; border-radius:999px;">Here</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Delivery specs -->
+          <div style="background:#fff; border:1px solid rgba(16,16,32,0.08); border-radius:12px; padding:18px;">
+            <p style="font-size:12px; font-weight:500; color:#16161D; margin-bottom:12px;">Delivery specs</p>
+            <div style="display:flex; flex-direction:column; gap:10px;">
+              <div>
+                <p style="font-size:11px; font-weight:500; color:#9A9AA8; margin-bottom:3px;">Format</p>
+                <p style="font-size:13px; color:#16161D;">ProRes 422 HQ · 16:9 · 4K</p>
+              </div>
+              <div>
+                <p style="font-size:11px; font-weight:500; color:#9A9AA8; margin-bottom:3px;">Lengths</p>
+                <p style="font-size:13px; color:#16161D;">:30 hero · :15 cut-down · :06 social</p>
+              </div>
+              <div>
+                <p style="font-size:11px; font-weight:500; color:#9A9AA8; margin-bottom:3px;">Audio</p>
+                <p style="font-size:13px; color:#16161D;">48kHz / 24-bit · -23 LUFS</p>
+              </div>
+            </div>
+            <p style="font-size:11px; color:#9A9AA8; margin-top:10px; line-height:1.5;">Default delivery template — adjust per client brief.</p>
+          </div>
+
+          <!-- Grading note -->
+          <div style="background:#EEF0FF; border:1px solid rgba(2,23,211,0.12); border-radius:12px; padding:16px;">
+            <div style="display:flex; gap:10px; align-items:flex-start;">
+              <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#0217D3" stroke-width="1.5" stroke-linecap="round" style="flex-shrink:0; margin-top:1px;"><circle cx="8" cy="8" r="6.5"></circle><path d="M8 7v3.5M8 5v.2"></path></svg>
+              <div>
+                <p style="font-size:12px; font-weight:500; color:#16161D; margin-bottom:4px;">Grading note</p>
+                <p style="font-size:12px; color:#5A5A6B; line-height:1.6;">Naturalistic classic look set in Studio S — single soft key, restrained shadows, muted earth tones. Translate that into your node tree; don't push the grade beyond what the prompt specified.</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1440, &quot;height&quot;: 900}}">
+class Component extends DCLogic {}
+</script>
+<script src="./store.js"></script>
+<script src="./nav.js"></script>
+</body>
+</html>

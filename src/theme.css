@@ -1,0 +1,43 @@
+/* Studio S theme — derived from the intro video: print-white field, solid
+   Studio blue, red/white striped-S DNA, camera REC vernacular.
+   Injected on every page by nav.js so per-page markup stays untouched. */
+
+:root {
+  --sg-paper: #F7F5EF;
+  --sg-ink: #16161D;
+  --sg-blue: #0217D3;
+  --sg-red: #FF002E;
+  --sg-soft: #EEF0FF;
+}
+
+/* (film-leader ribbon removed — read as candy stripe at page scale) */
+.sg-ribbon { display: none; }
+
+/* REC dot: the active page is "recording". */
+@keyframes sg-rec-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+.sg-recdot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--sg-red);
+  margin-left: auto;
+  flex-shrink: 0;
+  animation: sg-rec-pulse 1.6s ease-in-out infinite;
+}
+
+/* Active nav row: solid blue pill, white type. !important beats the page's
+   inline styles; nav.js adds the class and the dot. */
+.sg-nav-active {
+  background: var(--sg-blue) !important;
+}
+.sg-nav-active span { color: #fff !important; }
+.sg-nav-active svg { stroke: #fff !important; color: #fff !important; }
+/* the old 2px left accent bar becomes invisible inside the pill */
+.sg-nav-active > div[style*="width:2px"],
+.sg-nav-active > div[style*="width: 2px"] { background: transparent !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  .sg-recdot { animation: none; }
+}

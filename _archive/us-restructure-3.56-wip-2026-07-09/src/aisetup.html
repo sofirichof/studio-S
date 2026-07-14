@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="./vendor/fonts/host-grotesk.css" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Host Grotesk',system-ui,sans-serif;background:#F6F6F4;overflow:hidden;}
+  .nav-item{transition:background .12s,color .12s;cursor:pointer;}
+  .nav-item:hover{background:#F0F1F4!important;color:#16161D!important;}
+  input:focus,select:focus{outline:3px solid rgba(2,23,211,.2);outline-offset:1px;border-color:#0217D3!important;}
+  .save-btn:hover{background:#0212A8!important;}
+  ::-webkit-scrollbar{width:4px;}
+  ::-webkit-scrollbar-thumb{background:rgba(16,16,32,.12);border-radius:2px;}
+</style>
+</helmet>
+<div style="display:flex;height:100vh;width:100vw;overflow:hidden;">
+  <!-- Nav -->
+  <div style="width:248px;background:#fff;border-right:1px solid rgba(16,16,32,.08);display:flex;flex-direction:column;flex-shrink:0;">
+    <div style="padding:16px 16px 12px;border-bottom:1px solid rgba(16,16,32,.06);"><div style="display:flex;align-items:center;gap:10px;"><img src="uploads/logo.png" style="width:28px;height:28px;border-radius:7px;flex-shrink:0;"/><div><p style="font-size:13px;font-weight:500;color:#16161D;">Studio S</p><p style="font-size:11px;color:#9A9AA8;">Supergood</p></div></div></div>
+    <div style="flex:1;overflow-y:auto;padding:12px 8px;">
+      <p style="font-size:12px;font-weight:500;color:#9A9AA8;padding:0 12px;margin-bottom:4px;">Create</p>
+      <div class="nav-item" style="display:flex;align-items:center;gap:10px;padding:0 12px;height:36px;border-radius:8px;margin-bottom:2px;color:#5A5A6B;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="5" height="5" rx="1"></rect><rect x="9" y="2" width="5" height="5" rx="1"></rect><rect x="2" y="9" width="5" height="5" rx="1"></rect><rect x="9" y="9" width="5" height="5" rx="1"></rect></svg><span style="font-size:14px;">Prompt builder</span></div>
+      <div class="nav-item" style="display:flex;align-items:center;gap:10px;padding:0 12px;height:36px;border-radius:8px;margin-bottom:2px;color:#5A5A6B;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="6" height="10" rx="1"></rect><rect x="9" y="3" width="6" height="6" rx="1"></rect><rect x="9" y="11" width="6" height="2" rx="1"></rect></svg><span style="font-size:14px;">References</span></div>
+      <div class="nav-item" style="display:flex;align-items:center;gap:10px;padding:0 12px;height:36px;border-radius:8px;margin-bottom:2px;color:#5A5A6B;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="2" width="5" height="12" rx="1"></rect><rect x="9" y="2" width="5" height="7" rx="1"></rect><rect x="9" y="11" width="5" height="3" rx="1"></rect></svg><span style="font-size:14px;">Multi-Shot</span></div>
+      <p style="font-size:12px;font-weight:500;color:#9A9AA8;padding:8px 12px 4px;margin-top:8px;">Manage</p>
+      <div class="nav-item" style="display:flex;align-items:center;gap:10px;padding:0 12px;height:36px;border-radius:8px;margin-bottom:2px;color:#5A5A6B;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="12" height="10" rx="2"></rect><path d="M2 7h12"></path></svg><span style="font-size:14px;">Projects</span></div>
+      <p style="font-size:12px;font-weight:500;color:#9A9AA8;padding:8px 12px 4px;margin-top:8px;">Edit &amp; handoff</p>
+      <div class="nav-item" style="display:flex;align-items:center;gap:10px;padding:0 12px;height:36px;border-radius:8px;margin-bottom:2px;color:#5A5A6B;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 8h10M3 4h10M3 12h6"></path></svg><span style="font-size:14px;">Palmier</span></div>
+      <div style="display:flex;align-items:center;gap:10px;padding:0 12px;height:36px;border-radius:8px;margin-bottom:2px;opacity:.4;cursor:default;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#9A9AA8" stroke-width="1.5" stroke-linecap="round"><rect x="4" y="7" width="8" height="7" rx="1.5"></rect><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"></path></svg><span style="font-size:14px;color:#9A9AA8;">Finishing</span></div>
+      <p style="font-size:12px;font-weight:500;color:#9A9AA8;padding:8px 12px 4px;margin-top:8px;">Help</p>
+      <div class="nav-item" style="display:flex;align-items:center;gap:10px;padding:0 12px;height:36px;border-radius:8px;margin-bottom:2px;color:#5A5A6B;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 4h12M2 8h8M2 12h5"></path></svg><span style="font-size:14px;">Workflow guide</span></div>
+      <!-- Active: AI Setup -->
+      <div style="display:flex;align-items:center;gap:10px;padding:0 12px;height:36px;border-radius:8px;background:#EEF0FF;position:relative;cursor:pointer;"><div style="position:absolute;left:0;top:8px;bottom:8px;width:2px;background:#0217D3;border-radius:0 2px 2px 0;"></div><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#0217D3" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="6"></circle><path d="M8 7.5V11M8 5.5v.5"></path></svg><span style="font-size:14px;color:#0217D3;font-weight:500;">AI setup</span></div>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;">
+    <div style="background:#fff;border-bottom:1px solid rgba(16,16,32,.08);padding:0 28px;height:52px;display:flex;align-items:center;flex-shrink:0;">
+      <span style="font-size:14px;font-weight:500;color:#16161D;">AI setup</span>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:32px 48px;">
+      <div style="max-width:640px;display:flex;flex-direction:column;gap:24px;">
+
+        <!-- Claude API -->
+        <div style="background:#fff;border:1px solid rgba(16,16,32,.08);border-radius:12px;padding:24px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+            <p style="font-size:14px;font-weight:500;color:#16161D;">Claude API</p>
+            <span id="claude-status" style="font-size:11px;font-weight:500;background:#F0F1F4;color:#9A9AA8;padding:2px 8px;border-radius:999px;">Not connected</span>
+          </div>
+          <p style="font-size:13px;color:#5A5A6B;margin-bottom:20px;line-height:1.5;">The only key you need. Claude runs production planning, prompt refinement, and Palmier timeline editing — image and video generation are handled downstream, no separate keys required here.</p>
+          <div style="display:flex;flex-direction:column;gap:16px;">
+            <div>
+              <label style="font-size:12px;font-weight:500;color:#16161D;display:block;margin-bottom:6px;">API key</label>
+              <div style="position:relative;">
+                <input id="claude-key-input" type="password" placeholder="sk-ant-••••••••••••" style="width:100%;height:36px;background:#fff;border:1px solid rgba(16,16,32,.12);border-radius:10px;padding:0 72px 0 12px;font-family:'Host Grotesk',system-ui;font-size:13px;color:#16161D;outline:none;"/>
+                <a href="https://console.anthropic.com" target="_blank" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:12px;color:#0217D3;text-decoration:none;font-weight:500;">Get key ↗</a>
+              </div>
+              <p style="font-size:12px;color:#9A9AA8;margin-top:6px;">Stored locally on your Mac only. Never sent to Supergood servers.</p>
+            </div>
+            <div>
+              <label style="font-size:12px;font-weight:500;color:#16161D;display:block;margin-bottom:6px;">Default model</label>
+              <div style="position:relative;"><select id="default-model" style="width:100%;height:36px;background:#fff;border:1px solid rgba(16,16,32,.12);border-radius:10px;padding:0 28px 0 12px;font-family:'Host Grotesk',system-ui;font-size:13px;color:#16161D;appearance:none;"><option value="sonnet">Claude 4 Sonnet (recommended)</option><option value="opus">Claude 4 Opus</option><option value="haiku">Claude 3.5 Haiku</option></select><svg style="position:absolute;right:10px;top:50%;transform:translateY(-50%);pointer-events:none;" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#9A9AA8" stroke-width="1.5" stroke-linecap="round"><path d="M3 5l3 3 3-3"></path></svg></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Preferences -->
+        <div style="background:#fff;border:1px solid rgba(16,16,32,.08);border-radius:12px;padding:24px;">
+          <p style="font-size:14px;font-weight:500;color:#16161D;margin-bottom:20px;">Preferences</p>
+          <div style="display:flex;flex-direction:column;gap:16px;">
+            <div>
+              <label style="font-size:12px;font-weight:500;color:#16161D;display:block;margin-bottom:6px;">Default output folder</label>
+              <div style="display:flex;gap:8px;">
+                <div style="flex:1;height:36px;background:#F6F6F4;border:1px solid rgba(16,16,32,.08);border-radius:10px;padding:0 12px;display:flex;align-items:center;gap:8px;"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#9A9AA8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 4.5C1 3.67 1.67 3 2.5 3h2.29a1 1 0 0 1 .7.29L6.71 4.5H11.5c.83 0 1.5.67 1.5 1.5v5c0 .83-.67 1.5-1.5 1.5h-9C1.67 12.5 1 11.83 1 11v-6.5z"></path></svg><span id="output-folder-display" style="font-size:13px;color:#9A9AA8;">No folder selected</span></div>
+                <button onclick="{{ pickOutputFolder }}" style="height:36px;padding:0 14px;background:#fff;border:1px solid rgba(16,16,32,.12);border-radius:8px;font-family:'Host Grotesk',system-ui;font-size:13px;font-weight:500;color:#16161D;cursor:pointer;white-space:nowrap;">Change</button>
+              </div>
+            </div>
+            <div>
+              <label style="font-size:12px;font-weight:500;color:#16161D;display:block;margin-bottom:6px;">Default stills model</label>
+              <div style="position:relative;"><select id="stills-model" style="width:100%;height:36px;background:#fff;border:1px solid rgba(16,16,32,.12);border-radius:10px;padding:0 28px 0 12px;font-family:'Host Grotesk',system-ui;font-size:13px;color:#16161D;appearance:none;"><option value="gpt">GPT Image</option><option value="nano">Nano Banana Pro</option><option value="seedream">Seedream 4.5</option></select><svg style="position:absolute;right:10px;top:50%;transform:translateY(-50%);pointer-events:none;" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#9A9AA8" stroke-width="1.5" stroke-linecap="round"><path d="M3 5l3 3 3-3"></path></svg></div>
+            </div>
+            <div>
+              <label style="font-size:12px;font-weight:500;color:#16161D;display:block;margin-bottom:6px;">Default video model</label>
+              <div style="position:relative;"><select id="video-model" style="width:100%;height:36px;background:#fff;border:1px solid rgba(16,16,32,.12);border-radius:10px;padding:0 28px 0 12px;font-family:'Host Grotesk',system-ui;font-size:13px;color:#16161D;appearance:none;"><option value="kling">Kling 3.0</option><option value="seedance">Seedance</option><option value="runway">Runway Gen-4</option><option value="sora">Sora</option></select><svg style="position:absolute;right:10px;top:50%;transform:translateY(-50%);pointer-events:none;" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#9A9AA8" stroke-width="1.5" stroke-linecap="round"><path d="M3 5l3 3 3-3"></path></svg></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Save -->
+        <div style="display:flex;justify-content:flex-end;padding-bottom:32px;">
+          <span id="save-confirm" style="font-size:12px;color:#1D9E75;align-self:center;margin-right:12px;opacity:0;transition:opacity .2s;">Saved</span>
+          <button class="save-btn" onclick="{{ saveSettings }}" style="height:38px;padding:0 24px;background:#0217D3;border:none;border-radius:8px;font-family:'Host Grotesk',system-ui;font-size:14px;font-weight:500;color:#fff;cursor:pointer;transition:background .12s;display:flex;align-items:center;gap:7px;">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round"><polyline points="2,7 5.5,10.5 12,4"></polyline></svg>
+            Save settings
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900}}">
+class Component extends DCLogic {
+  state = { outputFolder: '' };
+
+  componentDidMount() {
+    if (!window.Store) return;
+    const s = Store.getSettings();
+    this.setState({ outputFolder: s.defaultOutputFolder || '' });
+    const dm = document.getElementById('default-model'); if (dm && s.defaultModel) dm.value = s.defaultModel;
+    const sm = document.getElementById('stills-model'); if (sm && s.defaultStillsModel) sm.value = s.defaultStillsModel;
+    const vm = document.getElementById('video-model'); if (vm && s.defaultVideoModel) vm.value = s.defaultVideoModel;
+    // Show a masked placeholder if a key is already saved (never echo the real key).
+    const key = document.getElementById('claude-key-input');
+    if (key && s.claudeApiKey) key.placeholder = 'sk-ant-•••••••••• (saved)';
+    const out = document.getElementById('output-folder-display');
+    if (out && s.defaultOutputFolder) { out.textContent = s.defaultOutputFolder; out.style.color = '#16161D'; }
+    this.refreshStatus(!!s.claudeApiKey);
+  }
+
+  refreshStatus(connected) {
+    const el = document.getElementById('claude-status');
+    if (!el) return;
+    if (connected) {
+      el.textContent = 'Connected';
+      el.style.background = '#E8F7F1'; el.style.color = '#1D9E75';
+    } else {
+      el.textContent = 'Not connected';
+      el.style.background = '#F0F1F4'; el.style.color = '#9A9AA8';
+    }
+  }
+
+  async pickDir() {
+    try {
+      const t = window.__TAURI__;
+      if (t && t.dialog && t.dialog.open) {
+        const r = await t.dialog.open({ directory: true, multiple: false });
+        return typeof r === 'string' ? r : '';
+      }
+    } catch (e) {}
+    return '';
+  }
+
+  renderVals() {
+    return {
+      pickOutputFolder: async () => {
+        const dir = await this.pickDir();
+        if (!dir) return;
+        this.setState({ outputFolder: dir });
+        const out = document.getElementById('output-folder-display');
+        if (out) { out.textContent = dir; out.style.color = '#16161D'; }
+      },
+      saveSettings: () => {
+        if (!window.Store) return;
+        const key = ((document.getElementById('claude-key-input') || {}).value || '').trim();
+        const patch = {};
+        if (key) patch.claudeApiKey = key;
+        if (this.state.outputFolder) patch.defaultOutputFolder = this.state.outputFolder;
+        const dm = document.getElementById('default-model'); if (dm) patch.defaultModel = dm.value;
+        const sm = document.getElementById('stills-model'); if (sm) patch.defaultStillsModel = sm.value;
+        const vm = document.getElementById('video-model'); if (vm) patch.defaultVideoModel = vm.value;
+        Store.setSettings(patch);
+        const saved = Store.getSettings();
+        this.refreshStatus(!!saved.claudeApiKey);
+        const c = document.getElementById('save-confirm');
+        if (c) { c.style.opacity = '1'; setTimeout(() => { c.style.opacity = '0'; }, 1800); }
+        const kin = document.getElementById('claude-key-input');
+        if (kin && key) { kin.value = ''; kin.placeholder = 'sk-ant-•••••••••• (saved)'; }
+      }
+    };
+  }
+}
+</script>
+<script src="./store.js"></script>
+<script src="./nav.js"></script>
+</body>
+</html>
