@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="./vendor/fonts/host-grotesk.css" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Host Grotesk', 'Inter', system-ui, sans-serif; background: #F7F5EF; overflow: hidden; }
+  .nav-item { transition: background 0.12s, color 0.12s; cursor: pointer; }
+  .nav-item:hover { background: #F0F1F4 !important; color: #16161D !important; }
+  .nav-item:hover svg { color: #16161D !important; }
+  .chip { transition: all 0.12s; cursor: pointer; }
+  .chip:hover { border-color: rgba(16,16,32,0.24) !important; }
+  .opt-card { transition: all 0.12s; cursor: pointer; }
+  .opt-card:hover { border-color: rgba(2,23,211,0.4) !important; }
+  .action-btn { transition: all 0.12s; }
+  .action-btn:hover { background: #F0F1F4 !important; border-color: rgba(16,16,32,0.20) !important; }
+  .primary-btn { transition: background 0.12s; }
+  .primary-btn:hover { background: #0212A8 !important; }
+  input:focus, textarea:focus, select:focus { outline: 3px solid rgba(2,23,211,0.2); outline-offset: 1px; border-color: #0217D3 !important; }
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(16,16,32,0.12); border-radius: 2px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes step-in { from { opacity:0.4; } to { opacity:1; } }
+</style>
+</helmet>
+
+<div style="display:flex; height:100vh; width:100vw; overflow:hidden;">
+
+  <!-- ── Left rail ── -->
+  <div style="width:248px; background:#fff; border-right:1px solid rgba(16,16,32,0.08); display:flex; flex-direction:column; flex-shrink:0;">
+    <div style="padding:16px 16px 12px; border-bottom:1px solid rgba(16,16,32,0.06);">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <img src="uploads/logo.png" alt="Studio S" style="width:28px; height:28px; border-radius:7px; flex-shrink:0;" />
+        <div>
+          <p style="font-size:13px; font-weight:500; color:#16161D; line-height:1.2;">Studio S</p>
+          <p style="font-size:11px; color:#9A9AA8; line-height:1.2;">Supergood</p>
+        </div>
+      </div>
+    </div>
+
+    <div style="flex:1; overflow-y:auto; padding:12px 8px;">
+      <div style="padding:0 8px; margin-bottom:16px;">
+        <div style="position:relative;">
+          <select style="width:100%; height:32px; background:#F7F5EF; border:1px solid rgba(16,16,32,0.08); border-radius:8px; padding:0 28px 0 10px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:12px; color:#16161D; appearance:none; cursor:pointer; font-weight:500; visibility:hidden;">
+            <option>No project yet</option>
+          </select>
+          <svg style="position:absolute; right:8px; top:50%; transform:translateY(-50%); pointer-events:none;" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#9A9AA8" stroke-width="1.5" stroke-linecap="round"><path d="M3 5l3 3 3-3"></path></svg>
+        </div>
+      </div>
+
+      <p style="font-size:12px; font-weight:500; color:#9A9AA8; padding:0 12px; margin-bottom:4px;">Create</p>
+      <div style="display:flex; align-items:center; gap:10px; padding:0 12px; height:36px; border-radius:8px; margin-bottom:2px; background:#EEF0FF; position:relative; cursor:pointer;">
+        <div style="position:absolute; left:0; top:8px; bottom:8px; width:2px; background:#0217D3; border-radius:0 2px 2px 0;"></div>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#0217D3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="5" height="5" rx="1"></rect><rect x="9" y="2" width="5" height="5" rx="1"></rect><rect x="2" y="9" width="5" height="5" rx="1"></rect><rect x="9" y="9" width="5" height="5" rx="1"></rect></svg>
+        <span style="font-size:14px; color:#0217D3;">Prompt builder</span>
+      </div>
+      <div class="nav-item" style="display:flex; align-items:center; gap:10px; padding:0 12px; height:36px; border-radius:8px; margin-bottom:2px; color:#5A5A6B;">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="6" height="10" rx="1"></rect><rect x="9" y="3" width="6" height="6" rx="1"></rect><rect x="9" y="11" width="6" height="2" rx="1"></rect></svg>
+        <span style="font-size:14px;">References</span>
+      </div>
+      <div class="nav-item" style="display:flex; align-items:center; gap:10px; padding:0 12px; height:36px; border-radius:8px; margin-bottom:2px; color:#5A5A6B;">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="2" width="5" height="12" rx="1"></rect><rect x="9" y="2" width="5" height="7" rx="1"></rect><rect x="9" y="11" width="5" height="3" rx="1"></rect></svg>
+        <span style="font-size:14px;">Multi-Shot</span>
+      </div>
+
+      <p style="font-size:12px; font-weight:500; color:#9A9AA8; padding:8px 12px 4px; margin-top:8px;">Manage</p>
+      <div class="nav-item" style="display:flex; align-items:center; gap:10px; padding:0 12px; height:36px; border-radius:8px; margin-bottom:2px; color:#5A5A6B;">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="12" height="10" rx="2"></rect><path d="M2 7h12"></path></svg>
+        <span style="font-size:14px;">Projects</span>
+      </div>
+
+      <p style="font-size:12px; font-weight:500; color:#9A9AA8; padding:8px 12px 4px; margin-top:8px;">Edit &amp; handoff</p>
+      <div class="nav-item" style="display:flex; align-items:center; gap:10px; padding:0 12px; height:36px; border-radius:8px; margin-bottom:2px; color:#5A5A6B;">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 8h10M3 4h10M3 12h6"></path></svg>
+        <span style="font-size:14px;">Palmier</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px; padding:0 12px; height:36px; border-radius:8px; margin-bottom:2px; opacity:0.4; cursor:default;">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#9A9AA8" stroke-width="1.5" stroke-linecap="round"><rect x="4" y="7" width="8" height="7" rx="1.5"></rect><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"></path></svg>
+        <span style="font-size:14px; color:#9A9AA8;">Finishing</span>
+      </div>
+
+      <p style="font-size:12px; font-weight:500; color:#9A9AA8; padding:8px 12px 4px; margin-top:8px;">Help</p>
+      <div class="nav-item" style="display:flex; align-items:center; gap:10px; padding:0 12px; height:36px; border-radius:8px; margin-bottom:2px; color:#5A5A6B;">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 4h12M2 8h8M2 12h5"></path></svg>
+        <span style="font-size:14px;">Workflow guide</span>
+      </div>
+      <div class="nav-item" style="display:flex; align-items:center; gap:10px; padding:0 12px; height:36px; border-radius:8px; margin-bottom:2px; color:#5A5A6B;">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="6"></circle><path d="M8 7.5V11M8 5.5v.5"></path></svg>
+        <span style="font-size:14px;">AI setup</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Main ── -->
+  <div style="flex:1; display:flex; flex-direction:column; overflow:hidden; min-width:0;">
+
+    <!-- Toolbar -->
+    <div style="background:#fff; border-bottom:1px solid rgba(16,16,32,0.08); padding:0 28px; flex-shrink:0;">
+      <div style="display:flex; align-items:center; justify-content:space-between; height:52px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span id="pb-concept" style="font-size:12px; color:#9A9AA8;">No concept</span>
+          <span style="font-size:12px; color:rgba(16,16,32,0.2);">›</span>
+          <div style="position:relative;">
+            <select id="shot-select" onchange="{{ switchShot }}" style="height:30px; background:#fff; border:1px solid rgba(16,16,32,0.12); border-radius:8px; padding:0 28px 0 10px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:14px; font-weight:500; color:#16161D; appearance:none; cursor:pointer; outline:none;"></select>
+            <svg style="position:absolute; right:9px; top:50%; transform:translateY(-50%); pointer-events:none;" width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="#9A9AA8" stroke-width="1.5" stroke-linecap="round"><path d="M3 5l3 3 3-3"/></svg>
+          </div>
+          <button onclick="{{ addShot }}" title="Add shot" style="width:28px; height:28px; background:#fff; border:1px solid rgba(16,16,32,0.12); border-radius:7px; cursor:pointer; display:flex; align-items:center; justify-content:center; color:#5A5A6B;">
+            <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="7" y1="2" x2="7" y2="12"/><line x1="2" y1="7" x2="12" y2="7"/></svg>
+          </button>
+          <button onclick="{{ renameShot }}" title="Rename shot" style="width:28px; height:28px; background:#fff; border:1px solid rgba(16,16,32,0.12); border-radius:7px; cursor:pointer; display:flex; align-items:center; justify-content:center; color:#5A5A6B;">
+            <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2l3 3-7 7H2v-3z"/></svg>
+          </button>
+        </div>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <button class="action-btn" style="height:32px; padding:0 14px; background:#fff; border:1px solid rgba(16,16,32,0.12); border-radius:8px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:13px; font-weight:500; color:#16161D; cursor:pointer; display:flex; align-items:center; gap:6px;">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M7 1v9M3.5 6.5L7 10l3.5-3.5M2 12.5h10"></path></svg>
+            Save draft
+          </button>
+          <span style="font-size:11px; color:#9A9AA8; display:flex; align-items:center; gap:5px;">
+            <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round"><polyline points="2,5.5 4.5,8 9,3"></polyline></svg>
+            Saved
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Wizard header -->
+    <div style="background:#fff; border-bottom:1px solid rgba(16,16,32,0.06); padding:18px 28px 0; flex-shrink:0;">
+      <div style="display:flex; align-items:center; gap:0; margin-bottom:14px;" id="wizard-steps"></div>
+      <div style="height:3px; background:#ECEDF0; border-radius:999px; overflow:hidden;">
+        <div id="progress-bar" style="height:100%; background:#FF002E; border-radius:999px; transition:width 0.4s cubic-bezier(0.4,0,0.2,1); width:50%;"></div>
+      </div>
+    </div>
+
+    <!-- Body: content + right rail -->
+    <div style="flex:1; display:flex; overflow:hidden; min-width:0;">
+
+      <!-- Step content -->
+      <div style="flex:1; overflow-y:auto; padding:32px 28px; min-width:0;">
+        <div style="max-width:680px;">
+          <div id="step-mount"></div>
+        </div>
+      </div>
+
+      <!-- Right rail (rendered from state) -->
+      <div style="width:300px; flex-shrink:0; border-left:1px solid rgba(16,16,32,0.08); background:#fff; overflow-y:auto; padding:24px 20px;">
+        <div id="pb-rail"></div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div style="background:#fff; border-top:1px solid rgba(16,16,32,0.08); padding:14px 28px; flex-shrink:0; display:flex; align-items:center; justify-content:space-between;">
+      <button id="btn-back" onclick="{{ goBack }}" style="height:36px; padding:0 16px; background:transparent; border:none; font-family:'Host Grotesk',system-ui,sans-serif; font-size:14px; font-weight:500; color:#5A5A6B; cursor:pointer; display:flex; align-items:center; gap:6px;">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2L4 7l5 5"></path></svg>
+        Back
+      </button>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span id="step-counter" style="font-size:12px; color:#9A9AA8;">Step 3 of 6</span>
+        <button id="btn-next" class="primary-btn" onclick="{{ goNext }}" style="height:36px; padding:0 20px; background:#0217D3; color:#fff; border:none; border-radius:8px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:14px; font-weight:500; cursor:pointer; display:flex; align-items:center; gap:6px;">
+          Continue
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 2l5 5-5 5"></path></svg>
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Rename shot modal -->
+<div id="rename-modal" style="display:none;position:fixed;inset:0;background:rgba(16,16,32,0.32);z-index:100;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:14px;width:380px;max-width:90vw;padding:24px;box-shadow:0 12px 40px rgba(16,16,32,0.2);">
+    <p style="font-size:16px;font-weight:500;color:#16161D;margin-bottom:16px;">Rename shot</p>
+    <input id="rename-input" type="text" style="width:100%;height:36px;background:#fff;border:1px solid rgba(16,16,32,0.12);border-radius:10px;padding:0 12px;font-family:'Host Grotesk',system-ui,sans-serif;font-size:14px;color:#16161D;outline:none;" />
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;">
+      <button onclick="{{ closeRename }}" style="height:36px;padding:0 16px;background:#fff;border:1px solid rgba(16,16,32,0.12);border-radius:8px;font-family:'Host Grotesk',system-ui,sans-serif;font-size:14px;font-weight:500;color:#16161D;cursor:pointer;">Cancel</button>
+      <button onclick="{{ saveRename }}" style="height:36px;padding:0 18px;background:#0217D3;border:none;border-radius:8px;font-family:'Host Grotesk',system-ui,sans-serif;font-size:14px;font-weight:500;color:#fff;cursor:pointer;">Save</button>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1440, &quot;height&quot;: 900}}">
+class Component extends DCLogic {
+  state = { step: 1, reviewStage: 'stills', stillModel: 'gpt', videoModel: 'kling', density: 'few', lookMode: 'dp', camMode: 'specific', dp: 'deakins', comp: 'mc', shot: 'wide', angle: 'eye', lens: '24', move: 'push', depth: 'shallow', framing: [], previewView: 'front', pinned: true, charRefIds: [], propRefIds: [], locRefId: null, styleRefId: null };
+
+  compLabel(id) {
+    return { tl:'Top left', tc:'Top centre', tr:'Top right', ml:'Left third', mc:'Centre', mr:'Right third', bl:'Bottom left', bc:'Bottom centre', br:'Bottom right' }[id] || 'Centre';
+  }
+  compGrid() {
+    const ids = ['tl','tc','tr','ml','mc','mr','bl','bc','br'];
+    const sel = this.state.comp;
+    const cells = ids.map(id => {
+      const on = id === sel;
+      return '<button data-comp="' + id + '" style="aspect-ratio:16/9;border:none;border-right:1px solid rgba(16,16,32,0.08);border-bottom:1px solid rgba(16,16,32,0.08);background:' + (on ? '#EEF0FF' : '#fff') + ';cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;">' +
+        '<span style="width:10px;height:10px;border-radius:50%;background:' + (on ? '#0217D3' : 'rgba(16,16,32,0.12)') + ';"></span></button>';
+    }).join('');
+    return '<div style="display:flex;gap:14px;align-items:center;">' +
+      '<div style="width:172px;display:grid;grid-template-columns:repeat(3,1fr);border:1px solid rgba(16,16,32,0.12);border-radius:8px;overflow:hidden;background:#fff;">' + cells + '</div>' +
+      '<div><p style="font-size:13px;font-weight:500;color:#16161D;margin-bottom:2px;">' + this.compLabel(sel) + '</p>' +
+      '<p style="font-size:12px;color:#9A9AA8;line-height:1.5;">Where the subject sits in frame. Off-centre placements leave lead room on the opposite side.</p></div>' +
+      '</div>';
+  }
+  schips(name, opts) {
+    const sel = this.state[name];
+    return '<div style="display:flex;gap:8px;flex-wrap:wrap;">' +
+      opts.map(o => {
+        const on = o.val === sel;
+        return '<button data-sc="' + name + '" data-val="' + o.val + '" style="padding:8px 14px;border:1px solid ' + (on ? '#0217D3' : 'rgba(16,16,32,0.12)') + ';border-radius:8px;background:' + (on ? '#EEF0FF' : '#fff') + ';color:' + (on ? '#0217D3' : '#5A5A6B') + ';font-family:inherit;font-size:13px;font-weight:500;cursor:pointer;">' + o.label + '</button>';
+      }).join('') + '</div>';
+  }
+  overrideToggle() {
+    const on = !!this.state.prefixOverride;
+    return '<div data-toggle="prefixOverride" style="display:flex;align-items:center;justify-content:space-between;border:1px solid ' + (on ? '#0217D3' : 'rgba(16,16,32,0.12)') + ';border-radius:10px;padding:12px 14px;cursor:pointer;background:' + (on ? '#EEF0FF' : '#fff') + ';">' +
+      '<p style="font-size:13px;font-weight:500;color:' + (on ? '#0217D3' : '#16161D') + ';">Override global style prefix for this shot</p>' +
+      '<div style="width:38px;height:22px;border-radius:999px;background:' + (on ? '#0217D3' : '#ECEDF0') + ';position:relative;flex-shrink:0;"><div style="width:18px;height:18px;border-radius:50%;background:#fff;position:absolute;top:2px;left:' + (on ? '18px' : '2px') + ';transition:left .12s;box-shadow:0 1px 2px rgba(16,16,32,0.2);"></div></div>' +
+    '</div>';
+  }
+  sframing(opts) {
+    const set = this.state.framing || [];
+    return '<div style="display:flex;gap:8px;flex-wrap:wrap;">' +
+      opts.map(o => {
+        const on = set.indexOf(o.val) !== -1;
+        return '<button data-frm="' + o.val + '" style="padding:8px 14px;border:1px solid ' + (on ? '#0217D3' : 'rgba(16,16,32,0.12)') + ';border-radius:8px;background:' + (on ? '#EEF0FF' : '#fff') + ';color:' + (on ? '#0217D3' : '#5A5A6B') + ';font-family:inherit;font-size:13px;font-weight:500;cursor:pointer;">' + o.label + '</button>';
+      }).join('') + '</div>';
+  }
+  shotPreview() {
+    const s = this.state;
+    const W = 632, H = 356; // true 16:9 frame
+
+    // ── shot-size ladder: which vertical band of the body the frame spans ──
+    // world-Y landmarks: 0 head-top · .07 eyes · .13 chin · .22 shoulders · .50 waist · .62 hips · .78 knees · 1.0 soles
+    const bands = {
+      extreme: [-0.02, 0.11], close: [-0.06, 0.20], mcu: [-0.10, 0.34],
+      medium: [-0.14, 0.55], mfull: [-0.18, 0.82], wide: [-0.22, 1.12], aerial: [-0.22, 1.12]
+    };
+    let band = bands[s.shot] || bands.wide;
+    let vTop = band[0], vBot = band[1];
+
+    // ── placement (3×3): nudge the VIEWPORT, not the figure ──
+    const cmap = { tl:['l','t'],tc:['c','t'],tr:['r','t'],ml:['l','m'],mc:['c','m'],mr:['r','m'],bl:['l','b'],bc:['c','b'],br:['r','b'] };
+    const cc = cmap[s.comp] || ['c','m'];
+    const dx = ({ l:-0.20, c:0, r:0.20 })[cc[0]] || 0;
+    const dvy = ({ t:0.06, m:0, b:-0.06 })[cc[1]] || 0;
+    vTop += dvy; vBot += dvy;
+    const cx = W/2 + dx * W;
+
+    const pxPerUnit = H / (vBot - vTop);
+    const originY = -vTop * pxPerUnit;          // world-Y vTop → frame-Y 0
+    const fy = (wy) => originY + wy * pxPerUnit; // world-Y → frame-Y
+
+    // ── angle: move the horizon (and ground share) ──
+    const tilt = s.angle === 'dutch' ? 8 : 0;
+    let horizonWY;
+    if (s.angle === 'low') horizonWY = 1.05;        // looking up: horizon low, near feet
+    else if (s.angle === 'high') horizonWY = -0.20; // looking down: horizon high, above head
+    else horizonWY = 0.07;                           // eye level: at the eye line
+    let hy = fy(horizonWY);
+    hy = Math.max(-60, Math.min(H + 60, hy));
+
+    // ── depth → progressive blur on background / midground / foreground ──
+    const blurMap = { shallow:[6,3,5], layered:[3,1.2,2.5], deep:[0,0,0] };
+    const bl = blurMap[s.depth] || blurMap.layered;
+    const bgOp = ({ shallow:0.5, layered:0.8, deep:0.95 })[s.depth] || 0.8;
+
+    // ── human silhouette (filled, world coords) — cropped by the frame ──
+    const headR = 0.062, headCY = 0.062;
+    const body = 'M -0.035 0.125 L -0.17 0.225 L -0.135 0.40 L -0.105 0.50 L -0.135 0.62 ' +
+      'L -0.105 0.80 L -0.09 1.0 L -0.02 1.0 L -0.015 0.66 L 0.015 0.66 L 0.02 1.0 ' +
+      'L 0.09 1.0 L 0.105 0.80 L 0.135 0.62 L 0.105 0.50 L 0.135 0.40 L 0.17 0.225 L 0.035 0.125 Z';
+    const subjT = 'translate(' + cx + ' ' + originY + ') scale(' + pxPerUnit + ')';
+    const lwWorld = 1.4 / pxPerUnit; // ~1.4px outline in world units
+    const subject =
+      '<g transform="' + subjT + '">' +
+        '<path d="' + body + '" fill="#cfd8f0" stroke="#1b2440" stroke-width="' + lwWorld + '" stroke-linejoin="round"></path>' +
+        '<circle cx="0" cy="' + headCY + '" r="' + headR + '" fill="#cfd8f0" stroke="#1b2440" stroke-width="' + lwWorld + '"></circle>' +
+      '</g>';
+
+    // ── background plane: sky, horizon, mountains (always drawn; blurred when shallow) ──
+    const mtn =
+      '<path d="M-40 ' + hy + ' L' + (W*0.24) + ' ' + (hy - H*0.16) + ' L' + (W*0.46) + ' ' + hy + ' Z" fill="#9fb0d8"></path>' +
+      '<path d="M' + (W*0.30) + ' ' + hy + ' L' + (W*0.60) + ' ' + (hy - H*0.24) + ' L' + (W*0.90) + ' ' + hy + ' Z" fill="#7e93c8"></path>' +
+      '<path d="M' + (W*0.62) + ' ' + hy + ' L' + (W*0.86) + ' ' + (hy - H*0.14) + ' L' + (W+40) + ' ' + hy + ' Z" fill="#9fb0d8"></path>';
+    const bokeh = s.depth === 'shallow'
+      ? '<g fill="#aab8e6" opacity="0.5"><circle cx="' + (W*0.2) + '" cy="' + (hy-30) + '" r="14"></circle><circle cx="' + (W*0.7) + '" cy="' + (hy-46) + '" r="20"></circle><circle cx="' + (W*0.85) + '" cy="' + (hy-18) + '" r="11"></circle></g>'
+      : '';
+    const bgPlane =
+      '<g filter="url(#bbg)" opacity="' + bgOp + '">' +
+        '<rect x="-40" y="-40" width="' + (W+80) + '" height="' + (H+80) + '" fill="url(#sky)"></rect>' +
+        '<rect x="-40" y="' + hy + '" width="' + (W+80) + '" height="' + (H+80) + '" fill="#1b2440"></rect>' +
+        mtn + bokeh +
+      '</g>';
+
+    // ── midground plane: a soft band/rise behind the subject ──
+    const midY = fy(0.74);
+    const midPlane =
+      '<g filter="url(#bmid)">' +
+        '<path d="M-40 ' + (H+40) + ' L-40 ' + midY + ' Q' + (W*0.5) + ' ' + (midY - H*0.10) + ' ' + (W+40) + ' ' + midY + ' L' + (W+40) + ' ' + (H+40) + ' Z" fill="#33406b" opacity="0.85"></path>' +
+      '</g>';
+
+    // ── foreground plane: ground edge + optional over-the-shoulder ──
+    let fgInner = '<path d="M-40 ' + (H+40) + ' L-40 ' + (H-18) + ' Q' + (W*0.5) + ' ' + (H-30) + ' ' + (W+40) + ' ' + (H-20) + ' L' + (W+40) + ' ' + (H+40) + ' Z" fill="#222c4d"></path>';
+    if ((s.framing || []).indexOf('ots') !== -1) {
+      // shoulder opposes the subject's horizontal placement
+      const leftSide = dx >= 0;
+      const shoulder = leftSide
+        ? 'M-10 ' + (H+10) + ' L-10 ' + (H*0.52) + ' Q' + (W*0.12) + ' ' + (H*0.40) + ' ' + (W*0.22) + ' ' + (H*0.50) + ' Q' + (W*0.30) + ' ' + (H*0.30) + ' ' + (W*0.34) + ' ' + (H*0.42) + ' L' + (W*0.40) + ' ' + (H+10) + ' Z'
+        : 'M' + (W+10) + ' ' + (H+10) + ' L' + (W+10) + ' ' + (H*0.52) + ' Q' + (W*0.88) + ' ' + (H*0.40) + ' ' + (W*0.78) + ' ' + (H*0.50) + ' Q' + (W*0.70) + ' ' + (H*0.30) + ' ' + (W*0.66) + ' ' + (H*0.42) + ' L' + (W*0.60) + ' ' + (H+10) + ' Z';
+      fgInner += '<path d="' + shoulder + '" fill="#10121d"></path>';
+    }
+    const fgPlane = '<g filter="url(#bfg)">' + fgInner + '</g>';
+
+    // ── framing overlays (no blur) ──
+    let frm = '';
+    if ((s.framing||[]).indexOf('frame') !== -1)
+      frm = '<rect x="20" y="16" width="' + (W-40) + '" height="' + (H-32) + '" rx="4" fill="none" stroke="#0b0e18" stroke-width="14" opacity="0.5"></rect>';
+    let sym = '';
+    if ((s.framing||[]).indexOf('Symmetrical') !== -1)
+      sym = '<line x1="' + (W/2) + '" y1="0" x2="' + (W/2) + '" y2="' + H + '" stroke="#fff" stroke-width="1" opacity="0.25" stroke-dasharray="5 5"></line>';
+    let lead = '';
+    if ((s.framing||[]).indexOf('lead') !== -1) {
+      const ty = fy(0.4);
+      lead = '<g stroke="#fff" stroke-width="1.5" opacity="0.45"><line x1="0" y1="' + H + '" x2="' + cx + '" y2="' + ty + '"></line><line x1="' + W + '" y1="' + H + '" x2="' + cx + '" y2="' + ty + '"></line></g>';
+    }
+    const guides = '<g stroke="#fff" stroke-width="1" opacity="0.16" stroke-dasharray="4 4">' +
+      '<line x1="' + (W/3) + '" y1="0" x2="' + (W/3) + '" y2="' + H + '"></line>' +
+      '<line x1="' + (2*W/3) + '" y1="0" x2="' + (2*W/3) + '" y2="' + H + '"></line>' +
+      '<line x1="0" y1="' + (H/3) + '" x2="' + W + '" y2="' + (H/3) + '"></line>' +
+      '<line x1="0" y1="' + (2*H/3) + '" x2="' + W + '" y2="' + (2*H/3) + '"></line></g>';
+
+    // movement cue + lens label
+    const moveLabel = { static:'', push:'Push in', pan:'Pan', tracking:'Track', handheld:'Handheld' }[s.move] || '';
+    let moveEl = '';
+    if (s.move === 'push') moveEl = '<g opacity="0.9"><circle cx="' + (W/2) + '" cy="' + (H*0.5) + '" r="24" fill="none" stroke="#FF002E" stroke-width="2"></circle><path d="M' + (W/2-8) + ' ' + (H*0.5-8) + ' L' + (W/2) + ' ' + (H*0.5) + ' L' + (W/2-8) + ' ' + (H*0.5+8) + '" fill="none" stroke="#FF002E" stroke-width="2"></path></g>';
+    else if (s.move === 'pan' || s.move === 'tracking') moveEl = '<g opacity="0.9"><line x1="' + (W*0.4) + '" y1="' + (H*0.5) + '" x2="' + (W*0.6) + '" y2="' + (H*0.5) + '" stroke="#FF002E" stroke-width="2"></line><path d="M' + (W*0.6-7) + ' ' + (H*0.5-6) + ' L' + (W*0.6) + ' ' + (H*0.5) + ' L' + (W*0.6-7) + ' ' + (H*0.5+6) + '" fill="none" stroke="#FF002E" stroke-width="2"></path></g>';
+    const lensTxt = s.lens + 'mm';
+    const haDeg = { '16':46,'24':38,'35':30,'50':23,'85':15 }[s.lens] || 30;
+
+    // ── FRONT view ──
+    const aerialNote = s.shot === 'aerial' ? '<text x="' + (W/2) + '" y="24" fill="rgba(255,255,255,0.6)" font-size="11" text-anchor="middle" font-family="ui-monospace,monospace">high / bird’s-eye</text>' : '';
+    const frontSvg = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="display:block;width:100%;height:auto;">' +
+        '<defs>' +
+          '<linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#27407a"></stop><stop offset="1" stop-color="#16213f"></stop></linearGradient>' +
+          '<filter id="bbg" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="' + bl[0] + '"></feGaussianBlur></filter>' +
+          '<filter id="bmid" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="' + bl[1] + '"></feGaussianBlur></filter>' +
+          '<filter id="bfg" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="' + bl[2] + '"></feGaussianBlur></filter>' +
+          '<clipPath id="fclip"><rect x="0" y="0" width="' + W + '" height="' + H + '"></rect></clipPath>' +
+        '</defs>' +
+        '<g clip-path="url(#fclip)">' +
+          '<g transform="rotate(' + tilt + ' ' + (W/2) + ' ' + (H/2) + ')">' +
+            bgPlane + midPlane + subject + fgPlane + lead + sym + frm +
+          '</g>' + guides + moveEl + aerialNote +
+        '</g>' +
+      '</svg>';
+
+    // ── TOP-DOWN depth view (three zones, exaggerated by depth) ──
+    const camX = W/2, camY = H - 24, topY = 18;
+    const ha = haDeg * Math.PI / 180;
+    const distF = { wide:0.86, mfull:0.72, medium:0.6, mcu:0.46, close:0.36, extreme:0.22, aerial:0.86 }[s.shot] || 0.6;
+    const total = camY - topY;
+    const subjY = camY - distF * total;
+    const coneTopHalf = Math.tan(ha) * total;
+    const hwAt = (y) => Math.tan(ha) * (camY - y);
+    const depthFrac = { shallow:0.10, layered:0.35, deep:0.95 }[s.depth] || 0.35;
+    let dof = total * depthFrac;
+    dof = Math.max(16, Math.min(dof, total * 0.95));
+    const yNear = Math.min(camY - 8, subjY + dof/2);
+    const yFar = Math.max(topY, subjY - dof/2);
+    const trap = (yA, yB, fill, op) => {
+      const a = hwAt(yA), b = hwAt(yB);
+      return '<path d="M' + (camX-a) + ' ' + yA + ' L' + (camX+a) + ' ' + yA + ' L' + (camX+b) + ' ' + yB + ' L' + (camX-b) + ' ' + yB + ' Z" fill="' + fill + '" opacity="' + op + '"></path>';
+    };
+    const planeDot = (y, label, col) => {
+      const inFocus = y <= yNear && y >= yFar;
+      return '<circle cx="' + camX + '" cy="' + y + '" r="5" fill="' + (inFocus ? col : 'rgba(255,255,255,0.35)') + '"></circle>' +
+        '<text x="' + (camX + hwAt(y) + 6) + '" y="' + (y+3) + '" fill="' + (inFocus ? '#fff' : 'rgba(255,255,255,0.4)') + '" font-size="10" font-family="ui-monospace,monospace">' + label + '</text>';
+    };
+    const fgPlaneY = subjY + (camY - subjY) * 0.5;
+    const bgPlaneY = subjY - (subjY - topY) * 0.5;
+    const topSvg = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="display:block;width:100%;height:auto;">' +
+        '<rect x="0" y="0" width="' + W + '" height="' + H + '" fill="#0e1430"></rect>' +
+        '<path d="M' + camX + ' ' + camY + ' L' + (camX-coneTopHalf) + ' ' + topY + ' L' + (camX+coneTopHalf) + ' ' + topY + ' Z" fill="#27407a" opacity="0.30"></path>' +
+        trap(camY, yNear, '#FF002E', 0.16) +
+        trap(yNear, yFar, '#1D9E75', 0.34) +
+        trap(yFar, topY, '#4f7ad6', 0.16) +
+        '<line x1="' + (camX-hwAt(subjY)) + '" y1="' + subjY + '" x2="' + (camX+hwAt(subjY)) + '" y2="' + subjY + '" stroke="#1D9E75" stroke-width="2"></line>' +
+        planeDot(bgPlaneY, 'background', '#9fb0d8') +
+        planeDot(subjY, 'subject', '#fff') +
+        planeDot(fgPlaneY, 'foreground', '#9fb0d8') +
+        '<path d="M' + (camX-9) + ' ' + (camY+5) + ' L' + (camX+9) + ' ' + (camY+5) + ' L' + camX + ' ' + (camY-9) + ' Z" fill="#FF002E"></path>' +
+        '<text x="' + camX + '" y="' + (camY+18) + '" fill="rgba(255,255,255,0.7)" font-size="10" text-anchor="middle" font-family="ui-monospace,monospace">camera</text>' +
+        '<text x="14" y="' + ((yNear+yFar)/2) + '" fill="#5fe0ab" font-size="10" font-family="ui-monospace,monospace">in focus</text>' +
+        '<text x="14" y="' + (camY-14) + '" fill="rgba(255,140,140,0.8)" font-size="10" font-family="ui-monospace,monospace">soft</text>' +
+        '<text x="14" y="' + (topY+14) + '" fill="rgba(150,180,240,0.8)" font-size="10" font-family="ui-monospace,monospace">soft</text>' +
+      '</svg>';
+
+    const isTop = s.previewView === 'top';
+    const pvBtn = (id, label) => { const on=(s.previewView||'front')===id; return '<button data-pv="' + id + '" style="height:26px;padding:0 10px;border:none;border-radius:6px;background:' + (on?'#fff':'transparent') + ';color:' + (on?'#16161D':'rgba(255,255,255,0.75)') + ';font-family:inherit;font-size:12px;font-weight:500;cursor:pointer;">' + label + '</button>'; };
+    const pinned = s.pinned;
+    return '<div style="' + (pinned?'position:sticky;top:0;z-index:5;':'position:relative;') + 'margin-bottom:24px;">' +
+      '<div style="position:relative;width:100%;background:#0e1430;border:1px solid rgba(16,16,32,0.12);border-radius:12px;overflow:hidden;' + (pinned?'box-shadow:0 8px 22px rgba(14,20,48,0.22);':'') + '">' +
+        (isTop ? topSvg : frontSvg) +
+        '<div style="position:absolute;top:8px;left:8px;right:8px;display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">' +
+          '<div style="display:flex;gap:6px;flex-wrap:wrap;">' +
+            '<span style="font-size:11px;font-weight:500;color:#fff;background:rgba(0,0,0,0.4);backdrop-filter:blur(6px);padding:3px 8px;border-radius:5px;">' + lensTxt + '</span>' +
+            (moveLabel && !isTop ? '<span style="font-size:11px;font-weight:500;color:#fff;background:rgba(255,0,46,0.85);padding:3px 8px;border-radius:5px;">' + moveLabel + '</span>' : '') +
+            (isTop ? '<span style="font-size:11px;font-weight:500;color:#fff;background:rgba(0,0,0,0.4);backdrop-filter:blur(6px);padding:3px 8px;border-radius:5px;">' + (haDeg*2) + '° FOV</span>' : '') +
+          '</div>' +
+          '<div style="display:flex;align-items:center;gap:6px;">' +
+            '<div style="display:inline-flex;gap:2px;background:rgba(0,0,0,0.4);backdrop-filter:blur(6px);border-radius:7px;padding:2px;">' + pvBtn('front','Front') + pvBtn('top','Depth') + '</div>' +
+            '<button data-pin="1" title="Pin preview while scrolling" style="width:30px;height:30px;border:none;border-radius:7px;background:' + (pinned?'#0217D3':'rgba(0,0,0,0.4)') + ';backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;">' +
+              '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 2h6l-1 5 3 3H3l3-3z"></path><line x1="8" y1="10" x2="8" y2="14"></line></svg>' +
+            '</button>' +
+          '</div>' +
+        '</div>' +
+        '<div style="position:absolute;bottom:8px;right:12px;"><span style="font-size:10px;color:rgba(255,255,255,0.5);">' + (isTop?'depth of field — top-down':'live shot preview — 16:9 frame') + '</span></div>' +
+      '</div>' +
+    '</div>';
+  }
+
+  dpTraits() {
+    return [
+      { id:'deakins', label:'Naturalistic classic', note:'motivated naturalistic light, single soft key, deep restrained shadows, muted earthy palette, classical balanced composition.' },
+      { id:'lubezki', label:'Available-light immersive', note:'natural and available light only, wide lenses, roaming long takes, magic-hour glow, immersive close framing.' },
+      { id:'hoytema', label:'Large-format cool', note:'large-format clarity, cool blue-grey palette, hard practical sources, atmospheric haze, IMAX-scale negative space.' },
+      { id:'fraser', label:'Soft epic', note:'soft directional key, desaturated warmth, gentle halation, in-camera realism, intimate yet epic framing.' },
+      { id:'young', label:'Low-key painterly', note:'low-key underexposed shadows, rich skin tones on darker complexions, amber practicals, painterly negative fill.' },
+      { id:'khondji', label:'Noir chiaroscuro', note:'high-contrast chiaroscuro, sodium-vapour ambers and sickly greens, deep blacks, textured grain, noir framing.' },
+      { id:'morrison', label:'Warm documentary', note:'warm naturalism, honest soft daylight, lived-in colour, handheld intimacy, documentary-true skin tones.' },
+      { id:'pfister', label:'Crisp anamorphic', note:'crisp anamorphic contrast, cool steel highlights, hard key light, clean architectural symmetry.' },
+      { id:'anderson', label:'Storybook symmetry', note:'flat frontal symmetry, centred subjects, pastel storybook palette, even soft light, planimetric staging.' },
+      { id:'villeneuve', label:'Monolithic minimal', note:'monolithic scale, monochrome tonal fields, fog and silhouette, minimal palette, brutalist symmetry.' },
+    ];
+  }
+
+  builderKeys() {
+    return ['stillModel','videoModel','density','lookMode','camMode','dp','comp','shot','angle','lens','move','depth','framing','prefixOverride','subject','environment','negative','charRefIds','propRefIds','locRefId','styleRefId'];
+  }
+
+  seedFromActive() {
+    if (!window.Store) return;
+    const a = Store.getActive();
+    this._ids = { projectId: a.projectId, conceptId: a.conceptId, shotId: a.shotId };
+    const b = (a.shot && a.shot.builder) || null;
+    if (b) {
+      this.builderKeys().forEach((k) => {
+        if (b[k] !== undefined) this.state[k] = Array.isArray(b[k]) ? b[k].slice() : b[k];
+      });
+    }
+    // BUG-05: honor the onboarding "Default video model" when nothing else set it.
+    const settings = Store.getSettings ? Store.getSettings() : null;
+    if (settings && settings.defaultVideoModel && (!b || b.videoModel === undefined)
+        && this.videoProfiles().some((p) => p.id === settings.defaultVideoModel)) {
+      this.state.videoModel = settings.defaultVideoModel;
+    }
+  }
+
+  persistBuilder() {
+    if (!window.Store || !this._ids || !this._ids.shotId) return;
+    const patch = {};
+    this.builderKeys().forEach((k) => { patch[k] = this.state[k]; });
+    Store.updateShotBuilder(this._ids, patch);
+  }
+
+  shotLabelShort(v) {
+    return ({ extreme:'extreme close-up', close:'close-up', mcu:'medium close-up', medium:'medium shot', mfull:'medium-full shot', wide:'wide establishing shot', aerial:'aerial shot' })[v] || 'shot';
+  }
+
+  // HTML-escape helper (shared by the rail and the Review card).
+  escHtml(v) {
+    return String(v == null ? '' : v).replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+  }
+
+  // Single source of truth for the compiled prompt, built from real builder state.
+  // Used by the sidebar rail, the Review card, and Generate — so all three agree.
+  compilePrompt() {
+    const s = this.state;
+    const has = (v) => !!(v && String(v).trim());
+    let stills = '', video = '';
+    if (has(s.subject) || has(s.environment)) {
+      const parts = [];
+      parts.push('A ' + this.shotLabelShort(s.shot));
+      if (has(s.subject)) parts.push('of ' + s.subject.trim().replace(/\.$/, '').replace(/^(A|An|The)\s+/, (m) => m.toLowerCase()));
+      if (has(s.environment)) parts.push('— ' + s.environment.trim().replace(/\.$/, ''));
+      if (s.lookMode === 'dp' && has(s.dp)) { const t = this.dpTraits().find((x) => x.id === s.dp); if (t) parts.push(', ' + t.note.replace(/\.$/, '')); }
+      if (has(s.lens)) parts.push(', ' + s.lens + 'mm');
+      stills = parts.join(' ').replace(/ ,/g, ',') + '.';
+      const moveTxt = { static:'locked-off, no camera move', push:'slow push-in', pan:'gentle pan', tracking:'tracking move', handheld:'subtle handheld' }[s.move] || 'subtle motion';
+      video = 'Animate the still: ' + moveTxt + ', natural ambient motion, hold the framing.';
+    }
+    let compiled = { stills: stills, video: video };
+    // Weave attached references (characters, props/products, location, style look).
+    if (window.PromptCompile && window.Store) {
+      const ids = (s.charRefIds || []).concat(s.propRefIds || [], [s.locRefId, s.styleRefId]);
+      const refs = ids.filter(Boolean).map((id) => Store.getReference(id)).filter(Boolean);
+      compiled = PromptCompile.weaveReferences(compiled, refs);
+    }
+    return compiled;
+  }
+
+  renderRail() {
+    const el = document.getElementById('pb-rail');
+    if (!el) return;
+    const s = this.state;
+    const has = (v) => !!(v && String(v).trim());
+    // Strength reflects what the user actually authors — fields that start empty.
+    // Technical dropdowns (lens, model, DP) come pre-set with sensible defaults, so
+    // counting them would make an untouched builder read 50%. They're excluded here
+    // so an empty builder reads 0% and fills as real content is added.
+    const esc = (v) => String(v == null ? '' : v).replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+    const checks = [
+      { ok: has(s.subject), label: 'Subject described' },
+      { ok: has(s.subject) && s.subject.trim().length > 24, label: 'Subject detailed' },
+      { ok: has(s.environment), label: 'Environment set' },
+      { ok: !!(s.framing && s.framing.length), label: 'Framing chosen' },
+      { ok: has(s.prefixOverride), label: 'Style / look set' },
+      { ok: has(s.negative), label: 'Negative prompt' }
+    ];
+    const done = checks.filter((c) => c.ok).length;
+    const pct = Math.round((done / checks.length) * 100);
+    const label = pct >= 80 ? 'Strong' : pct >= 50 ? 'Good — add detail' : pct >= 20 ? 'Getting there' : 'Just starting';
+    const labelCol = pct >= 80 ? '#1D9E75' : pct >= 50 ? '#B8761A' : '#9A9AA8';
+
+    const checkRow = (c) => '<div style="display:flex;align-items:center;gap:8px;">' +
+      (c.ok
+        ? '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round"><circle cx="7" cy="7" r="6"></circle><polyline points="4.3,7 6.2,9 9.7,4.8"></polyline></svg>'
+        : '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#9A9AA8" stroke-width="1.5" stroke-linecap="round"><circle cx="7" cy="7" r="6"></circle><path d="M7 4.2v3.4M7 9.6v.3"></path></svg>') +
+      '<span style="font-size:12px;color:' + (c.ok ? '#5A5A6B' : '#9A9AA8') + ';">' + c.label + '</span></div>';
+
+    // live prompt built from real state (single source of truth: compilePrompt)
+    const compiled = this.compilePrompt();
+    const stills = compiled.stills, video = compiled.video;
+    const livePrompt = stills
+      ? '<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;"><span style="font-size:11px;font-weight:500;color:#0217D3;">Stills</span><span style="font-size:10px;color:#9A9AA8;">text-to-image</span></div>' +
+        '<p style="font-size:12px;color:#16161D;line-height:1.6;margin-bottom:12px;">' + esc(stills) + '</p>' +
+        '<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;"><span style="font-size:11px;font-weight:500;color:#0217D3;">Video</span><span style="font-size:10px;color:#9A9AA8;">image-to-video</span></div>' +
+        '<p style="font-size:12px;color:#16161D;line-height:1.6;">' + esc(video) + '</p>'
+      : '<p style="font-size:12px;color:#9A9AA8;line-height:1.6;">Fill in the steps and your prompt builds here.</p>';
+
+    const a = window.Store ? Store.getActive() : null;
+    const shotStatus = a && a.shot ? ('<div style="border-top:1px solid rgba(16,16,32,0.08);padding-top:18px;">' +
+        '<p style="font-size:12px;font-weight:500;color:#16161D;margin-bottom:8px;">This shot</p>' +
+        '<p style="font-size:12px;color:#5A5A6B;line-height:1.6;">' + esc(a.shot.name) + ' · ' + (a.concept ? esc(a.concept.name) : '') + '<br>Status: ' + esc(a.shot.status || 'draft') + '</p>' +
+      '</div>') : '';
+
+    el.innerHTML =
+      '<p style="font-size:12px;font-weight:500;color:#16161D;margin-bottom:14px;">Prompt strength</p>' +
+      '<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:10px;"><span style="font-size:28px;font-weight:500;color:#16161D;letter-spacing:-0.02em;">' + pct + '%</span><span style="font-size:12px;font-weight:500;color:' + labelCol + ';">' + label + '</span></div>' +
+      '<div style="height:6px;background:#ECEDF0;border-radius:999px;overflow:hidden;margin-bottom:16px;"><div style="height:100%;width:' + pct + '%;background:#FF002E;border-radius:999px;transition:width 0.4s;"></div></div>' +
+      '<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:24px;">' + checks.map(checkRow).join('') + '</div>' +
+      '<div style="background:#F7F5EF;border:1px solid rgba(16,16,32,0.08);border-radius:10px;padding:14px;margin-bottom:24px;">' + livePrompt + '</div>' +
+      shotStatus;
+  }
+
+  renderToolbar() {
+    if (!window.Store) return;
+    const esc = (v) => String(v == null ? '' : v).replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+    const a = Store.getActive();
+    const conceptEl = document.getElementById('pb-concept');
+    if (conceptEl) conceptEl.textContent = a.concept ? a.concept.name : 'No concept';
+    const sel = document.getElementById('shot-select');
+    if (sel && a.concept) {
+      const shots = a.concept.shots || [];
+      sel.innerHTML = shots.map((sh) => {
+        const on = sh.id === a.shotId ? ' selected' : '';
+        return '<option value="' + sh.id + '"' + on + '>' + esc(sh.name) + '</option>';
+      }).join('') || '<option value="">No shots</option>';
+    }
+  }
+
+  componentDidMount() {
+    this.seedFromActive();
+    this.render();
+    this.renderToolbar();
+  }
+
+  stillProfiles() {
+    return [
+      { id:'gpt', label:'GPT Image', tag:'text-to-image',
+        prompt:'A photorealistic wide establishing shot of commuters and pedestrians crossing a modern downtown intersection at golden hour. Warm natural side-light, long shadows, glass storefronts. 24mm wide lens, eye level. Optimistic, lived-in city energy. Output 3:2.',
+        rule:'Conversational full sentences; \u201cphotorealistic\u201d stated plainly. Generates 3:2 \u2014 Studio S queues an upscale to 16:9 automatically.' },
+      { id:'nano', label:'Nano Banana Pro', tag:'text-to-image',
+        prompt:'Image: photograph. Content: a wide establishing shot of commuters crossing a downtown intersection, glass storefronts, painted crosswalk. Style: warm golden-hour cinematography, 24mm, eye level, natural side-light, optimistic mood. 16:9, 4K.',
+        rule:'Reasoning model \u2014 written as an Image / Content / Style brief, not keywords. Native 16:9 at 4K; reference frames attached for character consistency.' },
+      { id:'seedream', label:'Seedream 4.5', tag:'text-to-image',
+        prompt:'Wide establishing shot, downtown intersection at golden hour, commuters crossing, warm natural light, 24mm, eye level. Ultra-sharp 4K, accurate materials \u2014 glass, asphalt, fabric. References: brand look-frames 1\u20133.',
+        rule:'Leans on 4K material fidelity and multi-reference composition (up to ~10 frames) to lock the brand look.' },
+      { id:'flux', label:'FLUX.2', tag:'text-to-image',
+        prompt:'wide establishing photograph, downtown intersection, golden hour, commuters crossing, warm natural light, 24mm lens, eye level, photorealistic, natural skin and texture',
+        rule:'Concise photoreal phrasing; sharpness keywords held back on purpose \u2014 FLUX tends to over-crisp.' },
+      { id:'mj', label:'Midjourney v7', tag:'text-to-image',
+        prompt:'wide establishing shot, downtown intersection at golden hour, commuters crossing, warm natural light, Kodak Portra 400 --ar 16:9 --style raw --stylize 250 --v 7',
+        rule:'Film-stock color science (Portra) plus --ar / --style raw / --stylize flags. Expect aesthetic interpretation over literal accuracy.' },
+    ];
+  }
+
+  videoProfiles() {
+    return [
+      { id:'kling', label:'Kling 3.0', tag:'image-to-video',
+        prompt:'Slow push-in. Subject: commuters crossing the intersection at a natural pace. Scene: downtown at golden hour, warm light holds. Subtle foreground parallax, gentle background traffic. Camera: smooth dolly-in, eye level. Preserve the source framing and signage.',
+        rule:'Camera instruction first; the still is an anchor. Kling spends its budget on subject + camera motion, so environmental events are kept minimal.' },
+      { id:'seedance', label:'Seedance', tag:'image-to-video',
+        prompt:'Commuters cross the intersection at an easy pace. Camera: slow, smooth push-in, then a subtle rise. Warm golden-hour grade, ultra-sharp 4K detail. Gentle, calm rhythm throughout.',
+        rule:'Rhythmic language (\u201cslow, smooth, gentle\u201d) instead of lens specs; one primary camera move, secondary move described after.' },
+      { id:'runway', label:'Runway Gen-4', tag:'image-to-video',
+        prompt:'Slow push-in on commuters crossing at golden hour. Subtle parallax, consistent warm lighting, stable camera motion, no distortion. 4-second clip.',
+        rule:'Concise motion brief; \u201cstable / consistent / no distortion\u201d emphasised to avoid drift.' },
+      { id:'sora', label:'Sora', tag:'image-to-video',
+        prompt:'A four-second shot: commuters cross a downtown intersection in warm golden-hour light as the camera eases slowly inward. Natural movement, cinematic, continuous take.',
+        rule:'Described as a short filmed scene \u2014 narrative phrasing over parameters.' },
+    ];
+  }
+
+  steps() {
+    return ['Subject', 'Environment', 'Look', 'Camera', 'Output', 'Review'];
+  }
+
+  dpPresets() {
+    return {
+      deakins:    { comp:'mc', body:'ARRI Alexa 35', framing:[],                              depth:'shallow' },
+      lubezki:    { comp:'mc', body:'ARRI Alexa 35', framing:['Leading lines'],               depth:'deep' },
+      hoytema:    { comp:'mc', body:'Sony Venice 2',    framing:['Negative space'],              depth:'deep' },
+      fraser:     { comp:'mc', body:'Sony Venice 2', framing:[],                              depth:'shallow' },
+      young:      { comp:'ml', body:'ARRI Alexa 35', framing:['Negative space'],              depth:'shallow' },
+      khondji:    { comp:'mc', body:'35mm film',     framing:[],                              depth:'shallow' },
+      morrison:   { comp:'mc', body:'35mm film',     framing:[],                              depth:'shallow' },
+      pfister:    { comp:'mc', body:'Sony Venice 2',    framing:['Symmetrical'],                 depth:'deep' },
+      anderson:   { comp:'mc', body:'35mm film',     framing:['Symmetrical'],                 depth:'deep' },
+      villeneuve: { comp:'mc', body:'Sony Venice 2',    framing:['Symmetrical','Negative space'],depth:'deep' },
+    };
+  }
+  activePreset() {
+    return this.state.lookMode === 'dp' ? this.dpPresets()[this.state.dp] : null;
+  }
+
+  render() {
+    const cur = this.state.step;
+    const labels = this.steps();
+    // header
+    const hdr = document.getElementById('wizard-steps');
+    if (hdr) {
+      hdr.innerHTML = labels.map((label, i) => {
+        const num = i + 1;
+        const done = cur > num, active = cur === num;
+        const isLast = i === labels.length - 1;
+        const bg = done || active ? '#0217D3' : '#ECEDF0';
+        const inner = done
+          ? '<svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,6 5,9 10,3"></polyline></svg>'
+          : '<span style="font-size:10px;font-weight:500;color:' + (active ? '#fff' : '#9A9AA8') + ';">' + num + '</span>';
+        const col = active ? '#16161D' : done ? '#0217D3' : '#9A9AA8';
+        const conn = done ? '#0217D3' : '#ECEDF0';
+        return '<div style="display:flex;align-items:center;gap:8px;' + (isLast ? '' : 'flex:1;') + '">' +
+          '<div style="width:22px;height:22px;border-radius:50%;background:' + bg + ';display:flex;align-items:center;justify-content:center;flex-shrink:0;">' + inner + '</div>' +
+          '<span style="font-size:13px;font-weight:' + (active ? '500' : '400') + ';color:' + col + ';white-space:nowrap;">' + label + '</span>' +
+          (isLast ? '' : '<div style="flex:1;height:1px;background:' + conn + ';margin:0 8px;"></div>') +
+          '</div>';
+      }).join('');
+    }
+    // progress + counter
+    const bar = document.getElementById('progress-bar');
+    if (bar) bar.style.width = Math.round((cur / 6) * 100) + '%';
+    const counter = document.getElementById('step-counter');
+    if (counter) counter.textContent = 'Step ' + cur + ' of 6';
+    const back = document.getElementById('btn-back');
+    if (back) back.style.visibility = cur <= 1 ? 'hidden' : 'visible';
+    const next = document.getElementById('btn-next');
+    if (next) next.firstChild.textContent = cur === 6 ? 'Generate stills' : 'Continue';
+    // content
+    const mount = document.getElementById('step-mount');
+    if (mount) {
+      mount.innerHTML = this.content(cur);
+      mount.style.opacity = '1';
+      this.bindChips();
+      this.bindReviewTabs();
+      this.bindControls();
+    }
+    this.persistBuilder();
+    this.renderRail();
+  }
+
+  bindControls() {
+    document.querySelectorAll('[data-refpick]').forEach(b => {
+      b.onclick = () => {
+        const key = b.getAttribute('data-refpick');
+        const val = b.getAttribute('data-val') || null;
+        if (b.getAttribute('data-multi') === '1') {
+          const cur = Array.isArray(this.state[key]) ? this.state[key].slice() : [];
+          const at = cur.indexOf(val);
+          if (at >= 0) cur.splice(at, 1); else cur.push(val);
+          this.setState({ [key]: cur });
+        } else {
+          this.setState({ [key]: val });
+        }
+        this.render();
+      };
+    });
+    document.querySelectorAll('[data-density]').forEach(b => {
+      b.onclick = () => { this.setState({ density: b.getAttribute('data-density') }); this.render(); };
+    });
+    document.querySelectorAll('[data-dp]').forEach(b => {
+      b.onclick = () => {
+        const id = b.getAttribute('data-dp');
+        const p = this.dpPresets()[id];
+        const patch = { dp: id };
+        if (p) { patch.comp = p.comp; patch.camMode = 'specific'; patch.framing = p.framing.slice(); patch.depth = p.depth; }
+        this.setState(patch); this.render();
+      };
+    });
+    document.querySelectorAll('[data-comp]').forEach(b => {
+      b.onclick = () => { this.setState({ comp: b.getAttribute('data-comp') }); this.render(); };
+    });
+    document.querySelectorAll('[data-sc]').forEach(b => {
+      b.onclick = () => { const p = {}; p[b.getAttribute('data-sc')] = b.getAttribute('data-val'); this.setState(p); this.render(); };
+    });
+    document.querySelectorAll('[data-frm]').forEach(b => {
+      b.onclick = () => {
+        const v = b.getAttribute('data-frm');
+        const set = (this.state.framing || []).slice();
+        const i = set.indexOf(v);
+        if (i === -1) set.push(v); else set.splice(i, 1);
+        this.setState({ framing: set }); this.render();
+      };
+    });
+    document.querySelectorAll('[data-pv]').forEach(b => {
+      b.onclick = () => { this.setState({ previewView: b.getAttribute('data-pv') }); this.render(); };
+    });
+    document.querySelectorAll('[data-toggle]').forEach(b => {
+      b.onclick = () => { const k = b.getAttribute('data-toggle'); const p = {}; p[k] = !this.state[k]; this.setState(p); this.render(); };
+    });
+    document.querySelectorAll('[data-text]').forEach(t => {
+      t.oninput = () => { const p = {}; p[t.getAttribute('data-text')] = t.value; this.setState(p); this.persistBuilder(); this.renderRail(); };
+    });
+    document.querySelectorAll('[data-pin]').forEach(b => {
+      b.onclick = () => { this.setState({ pinned: !this.state.pinned }); this.render(); };
+    });
+    document.querySelectorAll('[data-seg]').forEach(b => {
+      b.onclick = () => {
+        const name = b.getAttribute('data-seg'), val = b.getAttribute('data-val');
+        const patch = {}; patch[name] = val;
+        if (name === 'lookMode' && val === 'feel') patch.camMode = 'auto';
+        if (name === 'lookMode' && val === 'dp') { const p = this.dpPresets()[this.state.dp]; if (p) { patch.comp = p.comp; patch.camMode = 'specific'; patch.framing = p.framing.slice(); patch.depth = p.depth; } }
+        this.setState(patch); this.render();
+      };
+    });
+  }
+
+  bindReviewTabs() {
+    document.querySelectorAll('[data-stage]').forEach(b => {
+      b.onclick = () => { this.setState({ reviewStage: b.getAttribute('data-stage') }); this.render(); };
+    });
+    document.querySelectorAll('[data-model]').forEach(b => {
+      b.onclick = () => {
+        const id = b.getAttribute('data-model');
+        if (this.state.reviewStage === 'stills') this.setState({ stillModel: id });
+        else this.setState({ videoModel: id });
+        this.render();
+      };
+    });
+  }
+
+  bindChips() {
+    document.querySelectorAll('.chip-group').forEach(group => {
+      const name = group.getAttribute('data-name');
+      const multi = group.getAttribute('data-multi') === '1';
+      const all = Array.from(group.querySelectorAll('.chip'));
+      all.forEach(chip => {
+        chip.onclick = () => {
+          const idx = all.indexOf(chip);
+          const chips = Object.assign({}, this.state.chips || {});
+          if (multi) {
+            // Seed from the currently-shown selection (defaults on first touch),
+            // then toggle the clicked chip.
+            const cur = all.map((c, i) => i).filter(i => all[i].getAttribute('data-on') === '1');
+            const at = cur.indexOf(idx);
+            if (at >= 0) cur.splice(at, 1); else cur.push(idx);
+            chips[name] = cur;
+          } else {
+            chips[name] = idx;
+          }
+          this.setState({ chips });
+          this.render();
+        };
+      });
+    });
+  }
+
+  eyebrow(t) {
+    return '<p style="font-size:12px;font-weight:500;color:#9A9AA8;margin-bottom:8px;letter-spacing:0.02em;">' + t + '</p>';
+  }
+  head(t, s) {
+    return '<h2 style="font-size:22px;font-weight:500;color:#16161D;margin-bottom:6px;letter-spacing:-0.01em;">' + t + '</h2>' +
+      '<p style="font-size:14px;color:#5A5A6B;margin-bottom:28px;line-height:1.6;">' + s + '</p>';
+  }
+  field(label, control, hint) {
+    return '<div style="margin-bottom:24px;">' +
+      '<label style="font-size:12px;font-weight:500;color:#16161D;display:block;margin-bottom:8px;">' + label + '</label>' +
+      control +
+      (hint ? '<p style="font-size:12px;color:#9A9AA8;margin-top:8px;">' + hint + '</p>' : '') +
+      '</div>';
+  }
+  chips(name, opts, multi) {
+    // Selections live in this.state.chips[name] (single: index; multi: array of
+    // indices) so they survive re-render / step navigation. Fall back to each
+    // option's default `on` until the user has touched this group.
+    const sel = (this.state.chips || {})[name];
+    const isOn = (o, i) => (sel !== undefined)
+      ? (multi ? (Array.isArray(sel) && sel.indexOf(i) >= 0) : (sel === i))
+      : !!o.on;
+    return '<div class="chip-group" data-name="' + name + '" data-multi="' + (multi ? 1 : 0) + '" style="display:flex;gap:8px;flex-wrap:wrap;">' +
+      opts.map((o, i) => {
+        const on = isOn(o, i);
+        return '<span class="chip" data-on="' + (on ? 1 : 0) + '" style="padding:8px 14px;border:1px solid ' + (on ? '#0217D3' : 'rgba(16,16,32,0.12)') + ';border-radius:8px;font-size:13px;background:' + (on ? '#EEF0FF' : '#fff') + ';color:' + (on ? '#0217D3' : '#5A5A6B') + ';">' + o.label + '</span>';
+      }).join('') + '</div>';
+  }
+  textarea(name, val, ph) {
+    return '<textarea data-text="' + name + '" placeholder="' + (ph || '') + '" style="width:100%;height:88px;background:#fff;border:1px solid rgba(16,16,32,0.12);border-radius:10px;padding:10px 12px;font-family:\'Host Grotesk\',system-ui,sans-serif;font-size:14px;color:#16161D;resize:vertical;line-height:1.6;outline:none;">' + (val || '') + '</textarea>';
+  }
+  seg(name, opts, active) {
+    return '<div style="display:inline-flex;gap:3px;background:#F0F1F4;border-radius:8px;padding:3px;">' +
+      opts.map(o => {
+        const on = o.val === active;
+        return '<button data-seg="' + name + '" data-val="' + o.val + '" style="height:30px;padding:0 14px;border:none;border-radius:6px;background:' + (on ? '#fff' : 'transparent') + ';box-shadow:' + (on ? '0 1px 2px rgba(16,16,32,0.08)' : 'none') + ';font-family:inherit;font-size:13px;font-weight:500;color:' + (on ? '#16161D' : '#9A9AA8') + ';cursor:pointer;">' + o.label + '</button>';
+      }).join('') + '</div>';
+  }
+  // Reference picker: chips of the project's references matching `kinds`.
+  // Single mode stores an id (locRefId / styleRefId); multi mode stores an
+  // array of ids (charRefIds / propRefIds). All woven into compilePrompt.
+  attachRef(text, key, kinds, multi) {
+    const a = window.Store ? Store.getActive() : null;
+    const refs = (a && a.projectId && Store.listReferences) ? Store.listReferences(a.projectId).filter((r) => kinds.indexOf(r.kind) >= 0) : [];
+    if (!refs.length) {
+      return '<div class="opt-card" style="display:flex;align-items:center;gap:12px;border:1px dashed rgba(16,16,32,0.16);border-radius:10px;padding:12px 14px;background:#F7F5EF;"><div style="width:30px;height:30px;border-radius:7px;background:#fff;border:1px solid rgba(16,16,32,0.08);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#9A9AA8" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="3" width="12" height="10" rx="2"></rect><circle cx="6" cy="7" r="1.3"></circle><path d="M3 12l3.5-3 2.5 2 2-1.5 2 2"></path></svg></div><div><p style="font-size:13px;font-weight:500;color:#5A5A6B;">' + text + '</p><p style="font-size:12px;color:#9A9AA8;">No matching references yet — build one on the References page.</p></div></div>';
+    }
+    const sel = this.state[key];
+    const isOn = (val) => multi ? (Array.isArray(sel) && sel.indexOf(val) >= 0) : val === (sel || null);
+    const chip = (val, label) => {
+      const on = isOn(val);
+      return '<span class="chip" data-refpick="' + key + '" data-multi="' + (multi ? 1 : 0) + '" data-val="' + (val || '') + '" style="padding:8px 14px;border:1px solid ' + (on ? '#0217D3' : 'rgba(16,16,32,0.12)') + ';border-radius:8px;font-size:13px;background:' + (on ? '#EEF0FF' : '#fff') + ';color:' + (on ? '#0217D3' : '#5A5A6B') + ';cursor:pointer;">' + this.escHtml(label) + '</span>';
+    };
+    return '<div style="display:flex;gap:8px;flex-wrap:wrap;">' + (multi ? '' : chip(null, 'None')) + refs.map((r) => chip(r.id, r.name)).join('') + '</div>';
+  }
+
+  content(step) {
+    if (step === 1) {
+      const d = this.state.density;
+      const dBtn = (val, label) => {
+        const on = d === val;
+        return '<button data-density="' + val + '" style="padding:8px 14px;border:1px solid ' + (on ? '#0217D3' : 'rgba(16,16,32,0.12)') + ';border-radius:8px;background:' + (on ? '#EEF0FF' : '#fff') + ';color:' + (on ? '#0217D3' : '#5A5A6B') + ';font-family:inherit;font-size:13px;font-weight:500;cursor:pointer;">' + label + '</button>';
+      };
+      const densityRow = '<div style="display:flex;gap:8px;flex-wrap:wrap;">' + dBtn('single','Single subject') + dBtn('few','A few') + dBtn('crowd','Crowd') + '</div>';
+      let crowdPanel = '';
+      if (d === 'crowd') {
+        crowdPanel =
+          '<div style="background:#fff;border:1px solid rgba(2,23,211,0.16);border-radius:12px;padding:18px;margin-top:8px;">' +
+            '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">' +
+              '<svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#0217D3" stroke-width="1.5" stroke-linecap="round"><circle cx="5.5" cy="6" r="2"></circle><circle cx="10.5" cy="6" r="2"></circle><path d="M2 13c0-2 1.5-3 3.5-3s3.5 1 3.5 3M9 13c0-2 1.5-3 3.5-3"></path></svg>' +
+              '<p style="font-size:13px;font-weight:500;color:#16161D;">Crowd makeup</p>' +
+            '</div>' +
+            '<p style="font-size:12px;color:#9A9AA8;margin-bottom:16px;line-height:1.5;">Casting guidance for representation. These steer the generation toward your brief\u2019s diversity goals \u2014 leave on \u201cRepresentative mix\u201d to mirror real local demographics.</p>' +
+            this.field('Ethnicity mix', this.chips('ethnicity', [{label:'Representative mix', on:true},{label:'Reflect local demographics'},{label:'South Asian'},{label:'East Asian'},{label:'Black'},{label:'Latino / Hispanic'},{label:'White'},{label:'Middle Eastern'},{label:'Multiracial'}], true), '') +
+            this.field('Gender mix', this.chips('gendermix', [{label:'Balanced', on:true},{label:'More women'},{label:'More men'},{label:'Non-binary inclusive'}], true), '') +
+            this.field('Age range', this.chips('agerange', [{label:'Children'},{label:'Teens'},{label:'20s\u201330s', on:true},{label:'40s\u201350s', on:true},{label:'60s+'}], true), '') +
+            this.field('Socioeconomic', this.chips('socio', [{label:'Mixed', on:true},{label:'Affluent'},{label:'Working professional'},{label:'Students'},{label:'Blue-collar'}], true), '').replace(';margin-bottom:24px;', ';margin-bottom:0;') +
+          '</div>';
+      }
+      return this.eyebrow('Prompt · Subject') +
+        this.head('What\u2019s in the shot?', 'Describe the main subject. Be specific \u2014 who or what, how many, and what they\u2019re doing.') +
+        this.field('Subject description', this.textarea('subject', this.state.subject, 'Who or what is in the shot — be specific. e.g. A lone commuter crossing a downtown intersection at dawn.'), 'The clearer the subject, the more consistent your stills.') +
+        this.field('Subject type', this.chips('type', [{label:'People'},{label:'Product'},{label:'Architecture'},{label:'Landscape'},{label:'Vehicle'},{label:'Abstract'}]), '') +
+        this.field('Density', densityRow + crowdPanel, '') +
+        this.field('Character reference &nbsp;<span style="font-weight:400;color:#9A9AA8;">optional</span>', this.attachRef('Lock a recurring face or wardrobe', 'charRefIds', ['character'], true), 'Attached refs are sent to models that support identity consistency \u2014 Nano Banana Pro, Seedream, Kling.') +
+        this.field('Prop / product references &nbsp;<span style="font-weight:400;color:#9A9AA8;">optional</span>', this.attachRef('Lock a recurring prop or product', 'propRefIds', ['prop', 'product'], true), '');
+    }
+    if (step === 2) {
+      return this.eyebrow('Prompt · Environment') +
+        this.head('Set the scene', 'Where and when does this take place? Environment and light shape the whole frame.') +
+        this.field('Location', this.textarea('environment', this.state.environment, 'Where and when — e.g. A modern downtown intersection, glass storefronts, wide sidewalks.'), '') +
+        this.field('Time of day', this.chips('tod', [{label:'Dawn'},{label:'Golden hour'},{label:'Midday'},{label:'Dusk'},{label:'Night'}]), '') +
+        this.field('Lighting', this.chips('light', [{label:'Natural'},{label:'Soft / diffused'},{label:'Hard / direct'},{label:'Practical'},{label:'Studio'}], true), 'Pick all that apply.') +
+        this.field('Location reference &nbsp;<span style="font-weight:400;color:#9A9AA8;">optional</span>', this.attachRef('Lock a recurring location', 'locRefId', ['location'], false), 'Keeps the same space consistent across shots.');
+    }
+    if (step === 4) {
+      const cm = this.state.camMode;
+      const preset = this.activePreset();
+      const dpLabel = preset ? (this.dpTraits().find(t => t.id === this.state.dp) || {}).label : null;
+      const bodyOpts = ['ARRI Alexa 35','RED V-Raptor','Sony Venice 2','35mm film','16mm film'];
+      const presetBody = preset ? preset.body : 'ARRI Alexa 35';
+      let cameraField;
+      if (cm === 'auto') {
+        cameraField = this.chips('campick', [{label:'Filmic', on:true},{label:'Crisp digital'},{label:'Vintage'},{label:'Documentary'},{label:'Anamorphic widescreen'}]) +
+          '<p style="font-size:12px;color:#9A9AA8;margin-top:8px;">Pick a feel \u2014 Studio S maps it to the right camera, stock and lens characteristics for you.</p>';
+      } else {
+        cameraField = this.chips('cambody', bodyOpts.map(b => ({label:b, on: b === presetBody}))) +
+          '<p style="font-size:12px;color:#9A9AA8;margin-top:8px;">Body &amp; format drive sensor look, grain and depth rendering in the prompt.</p>';
+      }
+      const banner = preset ?
+        '<div style="display:flex;gap:9px;align-items:flex-start;background:#EEF0FF;border:1px solid rgba(2,23,211,0.12);border-radius:10px;padding:12px 14px;margin-bottom:20px;">' +
+          '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#0217D3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px;"><path d="M8 1.6l1.7 4 4.3.3-3.3 2.7 1.1 4.2L8 10.6 4.2 12.8l1.1-4.2L2 5.9l4.3-.3z"></path></svg>' +
+          '<p style="font-size:12px;color:#5A5A6B;line-height:1.55;"><strong style="color:#16161D;">Preset from the ' + dpLabel + ' look</strong> \u2014 ' + presetBody + ', ' + this.compLabel(this.state.comp).toLowerCase() + ' placement' + (preset.framing.length ? ', ' + preset.framing.map(f => f==='lead'?'leading lines':f==='frame'?'frame within frame':f).join(' + ') : '') + '. Baked in already \u2014 only change what you want to differ.</p>' +
+        '</div>' : '';
+      return this.eyebrow('Prompt · Camera') +
+        this.head('Frame it like a camera', 'Adjust below and watch the shot update. Anything your look already implies is preset \u2014 no need to repeat it.') +
+        this.shotPreview() +
+        banner +
+        this.field('Shot size', this.schips('shot', [{val:'extreme',label:'Extreme CU'},{val:'close',label:'Close-up'},{val:'mcu',label:'Medium CU'},{val:'medium',label:'Medium'},{val:'mfull',label:'Medium full'},{val:'wide',label:'Wide / full'},{val:'aerial',label:'Aerial'}]), '') +
+        this.field('Angle', this.schips('angle', [{val:'eye',label:'Eye level'},{val:'low',label:'Low'},{val:'high',label:'High'},{val:'dutch',label:'Dutch'}]), '') +
+        this.field('Subject placement', this.compGrid(), '') +
+        this.field('Depth', this.schips('depth', [{val:'shallow',label:'Shallow \u2014 subject pops'},{val:'layered',label:'Layered fore/mid/back'},{val:'deep',label:'Deep focus \u2014 all sharp'}]), '') +
+        this.field('Framing', this.sframing([{val:'Symmetrical',label:'Symmetrical'},{val:'lead',label:'Leading lines'},{val:'frame',label:'Frame within a frame'},{val:'Negative space',label:'Negative space'},{val:'ots',label:'Over-the-shoulder'}]), '') +
+        this.field('Lens', this.schips('lens', [{val:'16',label:'16mm'},{val:'24',label:'24mm'},{val:'35',label:'35mm'},{val:'50',label:'50mm'},{val:'85',label:'85mm'}]), '') +
+        '<div style="margin-bottom:24px;"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;"><label style="font-size:12px;font-weight:500;color:#16161D;">Camera &amp; format</label>' +
+          this.seg('camMode', [{val:'auto',label:'For me'},{val:'specific',label:'Specific camera'}], cm) +
+          '</div>' + cameraField + '</div>' +
+        this.field('Lens format', this.chips('lensformat', [{label:'Spherical', on:true},{label:'Anamorphic'}]), 'Anamorphic is a lens, not a camera body — it adds the wide squeeze, oval bokeh and horizontal flares on top of whichever body you pick.') +
+        this.field('Movement', this.schips('move', [{val:'static',label:'Static'},{val:'push',label:'Slow push'},{val:'pan',label:'Pan'},{val:'tracking',label:'Tracking'},{val:'handheld',label:'Handheld'}]), 'Movement is interpreted at the image-to-video step.');
+    }
+    if (step === 3) {
+      const lm = this.state.lookMode;
+      let lookField;
+      if (lm === 'dp') {
+        const traits = this.dpTraits();
+        const activeDp = traits.find(t => t.id === this.state.dp) || traits[0];
+        const dpChips = '<div class="chip-group" data-multi="0" style="display:flex;gap:8px;flex-wrap:wrap;">' +
+          traits.map(t => {
+            const on = t.id === activeDp.id;
+            return '<span data-dp="' + t.id + '" style="padding:8px 14px;border:1px solid ' + (on ? '#0217D3' : 'rgba(16,16,32,0.12)') + ';border-radius:8px;font-size:13px;cursor:pointer;background:' + (on ? '#EEF0FF' : '#fff') + ';color:' + (on ? '#0217D3' : '#5A5A6B') + ';">' + t.label + '</span>';
+          }).join('') + '</div>';
+        const last = activeDp.label;
+        lookField = dpChips +
+          '<div style="display:flex;gap:9px;align-items:flex-start;background:#EEF0FF;border:1px solid rgba(2,23,211,0.12);border-radius:10px;padding:12px 14px;margin-top:12px;">' +
+            '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#0217D3" stroke-width="1.5" stroke-linecap="round" style="flex-shrink:0;margin-top:1px;"><circle cx="8" cy="8" r="6.5"></circle><path d="M8 7v3.5M8 5v.2"></path></svg>' +
+            '<p style="font-size:12px;color:#5A5A6B;line-height:1.55;"><strong style="color:#16161D;">' + last + ' look \u2014</strong> ' + activeDp.note + ' These traits are written into the lighting &amp; colour part of every model\u2019s prompt.</p>' +
+          '</div>';
+      } else {
+        lookField =
+          this.chips('feel', [{label:'Warm &amp; natural'},{label:'Moody &amp; contrasty'},{label:'Soft &amp; dreamy'},{label:'Bold &amp; saturated'},{label:'Naturalistic doc'},{label:'Clean &amp; commercial'},{label:'Nostalgic film'}]) +
+          '<p style="font-size:12px;color:#9A9AA8;margin-top:8px;">Plain-language looks \u2014 no film-school required. Studio S translates each into concrete lighting, colour and composition cues.</p>';
+      }
+      const realism = ['Motion blur','Film grain + CA','Lens flare','Visible breath','Dust particles','Bokeh + parallax','Wet ground','Cloth physics','Micro-texture','Natural imperfections','Candid / unposed'];
+      return this.eyebrow('Prompt · Style') +
+        this.head('Look &amp; cinematography', 'Pick a signature cinematography look, or describe a feel. This drives the lighting, colour and composition language in your prompts.') +
+        '<div style="margin-bottom:24px;"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;"><label style="font-size:12px;font-weight:500;color:#16161D;">Cinematography look</label>' +
+          this.seg('lookMode', [{val:'dp',label:'By look'},{val:'feel',label:'By feel'}], lm) +
+          '</div>' + lookField + '</div>' +
+        this.field('Style prefix', this.overrideToggle(), 'In Multi-Shot every shot inherits the project’s global style prefix. Turn this on to let this shot depart from it.') +
+        this.field('Colour grade', this.chips('grade', [{label:'Warm'},{label:'Cool'},{label:'Muted'},{label:'High contrast'},{label:'Teal &amp; orange'},{label:'Pastel'}]), '') +
+        this.field('Realism extras', this.chips('realism', realism.map((r) => ({label:r})), true), 'Optional texture &amp; physics cues for a less \u201cAI\u201d look. Applied where each model supports them.') +
+        this.field('Style reference &nbsp;<span style="font-weight:400;color:#9A9AA8;">optional</span>', this.attachRef('Match a look-frame or grade', 'styleRefId', ['look'], false), '');
+    }
+    if (step === 5) {
+      return this.eyebrow('Prompt · Output') +
+        this.head('Models &amp; output', 'Studio S writes a stills prompt and an image-to-video prompt from the same brief. Pick one or more models for each stage \u2014 prompts are tailored to each.') +
+        this.field('Stills model \u2014 text-to-image', this.chips('smodel', [{label:'GPT Image', on:true},{label:'Nano Banana Pro', on:true},{label:'Seedream 4.5'},{label:'FLUX.2'},{label:'Midjourney v7'}], true), 'GPT Image (ChatGPT) for prompt accuracy &amp; world knowledge, Nano Banana Pro for character consistency, Seedream for text &amp; product, FLUX.2 for photoreal, Midjourney for art direction.') +
+        this.field('Video model \u2014 image-to-video', this.chips('vmodel', [{label:'Kling 3.0', on:true},{label:'Seedance'},{label:'Runway Gen-4'},{label:'Sora'}], true), 'The stills you pick are animated with these. Kling, Seedance and Nano Banana Pro run natively in Palmier too.') +
+        this.field('Aspect ratio', this.chips('ar', [{label:'16:9', on:true},{label:'9:16'},{label:'1:1'},{label:'2.39:1'}]), '') +
+        this.field('Stills per model', this.chips('count', [{label:'2'},{label:'4', on:true},{label:'6'},{label:'8'}]), '') +
+        this.field('Negative prompt', this.textarea('negative', this.state.negative, 'Optional \u2014 what to avoid. e.g. blurry, distorted hands, text artifacts, oversaturated'), 'Optional \u2014 applies to both stages.');
+    }
+    // step 6 — review (per-model tailored prompts)
+    const camIcon = '<svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#0217D3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="12" height="9" rx="2"></rect><circle cx="8" cy="8.5" r="2.2"></circle></svg>';
+    const vidIcon = '<svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#0217D3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3.5" width="9" height="9" rx="2"></rect><path d="M11 7l3-1.8v5.6L11 9"></path></svg>';
+    const stage = this.state.reviewStage;
+    const isStills = stage === 'stills';
+    // BUG-01 fix: show the REAL compiled prompt (per active stage), not a demo string.
+    const compiled = this.compilePrompt();
+    const shownPrompt = isStills ? compiled.stills : compiled.video;
+    const profiles = isStills ? this.stillProfiles() : this.videoProfiles();
+    const activeId = isStills ? this.state.stillModel : this.state.videoModel;
+    const active = profiles.find(p => p.id === activeId) || profiles[0];
+    const stillLabel = (this.stillProfiles().find(p => p.id === this.state.stillModel) || {}).label || '—';
+    const videoLabel = (this.videoProfiles().find(p => p.id === this.state.videoModel) || {}).label || '—';
+    const stageTab = (id, icon, label) => {
+      const on = stage === id;
+      return '<button data-stage="' + id + '" style="flex:1;height:34px;border:none;border-radius:7px;background:' + (on ? '#fff' : 'transparent') + ';box-shadow:' + (on ? '0 1px 2px rgba(16,16,32,0.08)' : 'none') + ';font-family:inherit;font-size:13px;font-weight:500;color:' + (on ? '#16161D' : '#9A9AA8') + ';cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">' + icon + label + '</button>';
+    };
+    const modelTab = (p) => {
+      const on = p.id === activeId;
+      return '<button data-model="' + p.id + '" style="padding:6px 12px;border:1px solid ' + (on ? '#0217D3' : 'rgba(16,16,32,0.12)') + ';border-radius:999px;background:' + (on ? '#EEF0FF' : '#fff') + ';color:' + (on ? '#0217D3' : '#5A5A6B') + ';font-family:inherit;font-size:12px;font-weight:500;cursor:pointer;white-space:nowrap;">' + p.label + '</button>';
+    };
+    return this.eyebrow('Prompt · Review') +
+      this.head('Review &amp; generate', 'Your compiled prompt, ready to run. Switch models for per-model phrasing guidance \u2014 then copy it and generate in that tool.') +
+      // stage switcher
+      '<div style="display:flex;gap:4px;background:#F0F1F4;border-radius:9px;padding:3px;margin-bottom:16px;">' +
+        stageTab('stills', camIcon, 'Stills prompt') + stageTab('video', vidIcon, 'Video prompt') +
+      '</div>' +
+      // model tabs
+      '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;">' + profiles.map(modelTab).join('') + '</div>' +
+      // active prompt card
+      '<div style="background:#fff;border:1px solid rgba(16,16,32,0.10);border-radius:12px;overflow:hidden;margin-bottom:16px;">' +
+        '<div style="padding:14px 18px;border-bottom:1px solid rgba(16,16,32,0.06);display:flex;align-items:center;justify-content:space-between;">' +
+          '<span style="font-size:13px;font-weight:500;color:#16161D;">' + active.label + ' &nbsp;<span style="font-weight:400;color:#9A9AA8;">' + active.tag + '</span></span>' +
+          '<span style="font-size:11px;font-weight:500;background:#E8F7F1;color:#1D9E75;padding:2px 8px;border-radius:999px;">Tailored</span>' +
+        '</div>' +
+        '<div style="padding:16px 18px;"><p style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;color:#16161D;line-height:1.7;">' + (shownPrompt ? this.escHtml(shownPrompt) : '<span style="color:#9A9AA8;">Fill in the earlier steps and your prompt builds here.</span>') + '</p></div>' +
+        '<div style="padding:12px 18px;border-top:1px solid rgba(16,16,32,0.06);background:#F7F5EF;display:flex;gap:9px;align-items:flex-start;">' +
+          '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#0217D3" stroke-width="1.5" stroke-linecap="round" style="flex-shrink:0;margin-top:1px;"><circle cx="8" cy="8" r="6.5"></circle><path d="M8 7v3.5M8 5v.2"></path></svg>' +
+          '<p style="font-size:12px;color:#5A5A6B;line-height:1.55;"><strong style="color:#16161D;">Why it\u2019s tailored \u2014</strong> ' + active.rule + '</p>' +
+        '</div>' +
+      '</div>' +
+      // generation plan \u2014 derived from the brief, no fake job state
+      '<div style="background:#fff;border:1px solid rgba(16,16,32,0.10);border-radius:12px;padding:16px 18px;margin-bottom:16px;">' +
+        '<p style="font-size:12px;font-weight:500;color:#16161D;margin-bottom:12px;">Generation plan</p>' +
+        '<div style="display:flex;flex-direction:column;gap:10px;">' +
+          '<div style="display:flex;align-items:center;justify-content:space-between;">' +
+            '<span style="font-size:13px;color:#5A5A6B;display:flex;align-items:center;gap:7px;">' + camIcon + 'Stills prompt</span>' +
+            '<span style="font-size:12px;font-weight:500;color:#16161D;">' + stillLabel + '</span>' +
+          '</div>' +
+          '<div style="height:1px;background:rgba(16,16,32,0.06);"></div>' +
+          '<div style="display:flex;align-items:center;justify-content:space-between;">' +
+            '<span style="font-size:13px;color:#5A5A6B;display:flex;align-items:center;gap:7px;">' + vidIcon + 'Video prompt &nbsp;<span style="font-size:11px;color:#9A9AA8;">image-to-video</span></span>' +
+            '<span style="font-size:12px;font-weight:500;color:#16161D;">' + videoLabel + '</span>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div style="display:flex;gap:10px;align-items:center;background:#EEF0FF;border:1px solid rgba(2,23,211,0.12);border-radius:10px;padding:14px 16px;">' +
+        '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#0217D3" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="6.5"></circle><path d="M8 5.5v3M8 10.5v.2"></path></svg>' +
+        '<p style="font-size:13px;color:#16161D;line-height:1.5;">\u201cGenerate stills\u201d saves these prompts to the shot and copies the active model\u2019s prompt \u2014 then run it in that tool. (Direct generation isn\u2019t connected yet.)</p>' +
+      '</div>';
+  }
+
+  renderVals() {
+    return {
+      goNext: () => {
+        if (this.state.step === 6) { this.generate(); return; }
+        this.setState({ step: Math.min(this.state.step + 1, 6) }); this.render();
+      },
+      goBack: () => { this.setState({ step: Math.max(this.state.step - 1, 1) }); this.render(); },
+      switchShot: (e) => {
+        if (!window.Store) return;
+        this.persistBuilder();
+        Store.setActive({ shotId: e.currentTarget.value });
+        this.seedFromActive();
+        this.render();
+        this.renderToolbar();
+      },
+      addShot: () => {
+        if (!window.Store) return;
+        const a = Store.getActive();
+        if (!a.projectId || !a.conceptId) { window.alert('Open a project first (Projects).'); return; }
+        this.persistBuilder();
+        const s = Store.addShot(a.projectId, a.conceptId, { builder: Store.defaultBuilder() });
+        Store.setActive({ shotId: s.id });
+        this.seedFromActive();
+        this.render();
+        this.renderToolbar();
+      },
+      renameShot: () => {
+        if (!window.Store || !this._ids) return;
+        const a = Store.getActive();
+        if (!a.shot) return;
+        const inp = document.getElementById('rename-input');
+        if (inp) inp.value = a.shot.name;
+        const m = document.getElementById('rename-modal'); if (m) m.style.display = 'flex';
+        if (inp) { inp.focus(); inp.select(); }
+      },
+      closeRename: () => {
+        const m = document.getElementById('rename-modal'); if (m) m.style.display = 'none';
+      },
+      saveRename: () => {
+        if (!window.Store || !this._ids) return;
+        const name = ((document.getElementById('rename-input') || {}).value || '').trim();
+        if (!name) return;
+        Store.renameShot(this._ids.projectId, this._ids.conceptId, this._ids.shotId, name);
+        const m = document.getElementById('rename-modal'); if (m) m.style.display = 'none';
+        this.renderToolbar();
+      }
+    };
+  }
+
+  generate() {
+    // No generation backend is wired — be honest, persist, and confirm.
+    this.persistBuilder();
+    if (window.Store && this._ids && this._ids.shotId) {
+      const doc = Store.load();
+      const p = doc.projects.filter((x) => x.id === this._ids.projectId)[0];
+      if (p) {
+        const c = (p.concepts || []).filter((x) => x.id === this._ids.conceptId)[0];
+        const sh = c && (c.shots || []).filter((x) => x.id === this._ids.shotId)[0];
+        if (sh) { sh.status = 'prompted'; Store.save(doc); }
+      }
+    }
+    // BUG-02 fix: actually copy the active model's prompt (the panel promises this).
+    const compiled = this.compilePrompt();
+    const text = (this.state.reviewStage === 'video' ? compiled.video : compiled.stills) || compiled.stills || compiled.video || '';
+    let copied = false;
+    if (text) {
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(text); copied = true; }
+        else { const t = document.createElement('textarea'); t.value = text; document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove(); copied = true; }
+      } catch (e) { copied = false; }
+    }
+    const btn = document.getElementById('btn-next');
+    if (btn && btn.firstChild) {
+      const orig = btn.firstChild.textContent;
+      btn.firstChild.textContent = copied ? 'Prompt copied ✓' : 'Prompts saved ✓';
+      setTimeout(() => { if (btn.firstChild) btn.firstChild.textContent = orig; }, 1800);
+    }
+  }
+}
+</script>
+<script src="./promptcompile.js"></script>
+<script src="./store.js"></script>
+<script src="./nav.js"></script>
+</body>
+</html>

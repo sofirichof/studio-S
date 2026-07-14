@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="./vendor/fonts/host-grotesk.css" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Host Grotesk',system-ui,sans-serif;background:#F7F5EF;overflow:hidden;}
+  .nav-item{transition:background .12s,color .12s;cursor:pointer;}
+  .nav-item:hover{background:#F0F1F4!important;color:#16161D!important;}
+  .asset-card{transition:box-shadow .12s,border-color .12s;cursor:pointer;}
+  .asset-card:hover{box-shadow:0 4px 14px rgba(16,16,32,.09)!important;border-color:rgba(16,16,32,.18)!important;}
+  .tab-btn{transition:all .12s;cursor:pointer;}
+  .card-action{transition:background .12s;cursor:pointer;}
+  .card-action:hover{background:#F0F1F4!important;}
+  ::-webkit-scrollbar{width:4px;}
+  ::-webkit-scrollbar-thumb{background:rgba(16,16,32,.12);border-radius:2px;}
+</style>
+</helmet>
+<div style="display:flex;height:100vh;width:100vw;overflow:hidden;">
+  <!-- Nav -->
+  <div style="width:248px;background:#fff;border-right:1px solid rgba(16,16,32,.08);display:flex;flex-direction:column;flex-shrink:0;">
+    <div style="padding:16px 16px 12px;border-bottom:1px solid rgba(16,16,32,.06);">
+      <div style="display:flex;align-items:center;gap:10px;"><img src="uploads/logo.png" style="width:28px;height:28px;border-radius:7px;flex-shrink:0;"/><div><p style="font-size:13px;font-weight:500;color:#16161D;">Studio S</p><p style="font-size:11px;color:#9A9AA8;">Supergood</p></div></div>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:12px 8px;">
+      <div style="padding:0 8px;margin-bottom:16px;"><div style="position:relative;"><select style="width:100%;height:32px;background:#F7F5EF;border:1px solid rgba(16,16,32,.08);border-radius:8px;padding:0 28px 0 10px;font-family:'Host Grotesk',system-ui;font-size:12px;color:#16161D;appearance:none;font-weight:500;visibility:hidden;"><option>No project yet</option></select><svg style="position:absolute;right:8px;top:50%;transform:translateY(-50%);pointer-events:none;" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#9A9AA8" stroke-width="1.5" stroke-linecap="round"><path d="M3 5l3 3 3-3"></path></svg></div></div>
+      <p style="font-size:12px;font-weight:500;color:#9A9AA8;padding:0 12px;margin-bottom:4px;">Create</p>
+      <div class="nav-item" style="display:flex;align-items:center;gap:10px;padding:0 12px;height:36px;border-radius:8px;margin-bottom:2px;color:#5A5A6B;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="5" height="5" rx="1"></rect><rect x="9" y="2" width="5" height="5" rx="1"></rect><rect x="2" y="9" width="5" height="5" rx="1"></rect><rect x="9" y="9" width="5" height="5" rx="1"></rect></svg><span style="font-size:14px;">Prompt builder</span></div>
+      <!-- Active: References -->
+      <div style="display:flex;align-items:center;gap:10px;padding:0 12px;height:36px;border-radius:8px;margin-bottom:2px;background:#EEF0FF;position:relative;cursor:pointer;"><div style="position:absolute;left:0;top:8px;bottom:8px;width:2px;background:#0217D3;border-radius:0 2px 2px 0;"></div><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#0217D3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="6" height="10" rx="1"></rect><rect x="9" y="3" width="6" height="6" rx="1"></rect><rect x="9" y="11" width="6" height="2" rx="1"></rect></svg><span style="font-size:14px;color:#0217D3;font-weight:500;">References</span></div>
+      <div class="nav-item" style="display:flex;align-items:center;gap:10px;padding:0 12px;height:36px;border-radius:8px;margin-bottom:2px;color:#5A5A6B;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="2" width="5" height="12" rx="1"></rect><rect x="9" y="2" width="5" height="7" rx="1"></rect><rect x="9" y="11" width="5" height="3" rx="1"></rect></svg><span style="font-size:14px;">Multi-Shot</span></div>
+      <p style="font-size:12px;font-weight:500;color:#9A9AA8;padding:8px 12px 4px;margin-top:8px;">Manage</p>
+      <div class="nav-item" style="display:flex;align-items:center;gap:10px;padding:0 12px;height:36px;border-radius:8px;margin-bottom:2px;color:#5A5A6B;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="12" height="10" rx="2"></rect><path d="M2 7h12"></path></svg><span style="font-size:14px;">Projects</span></div>
+      <p style="font-size:12px;font-weight:500;color:#9A9AA8;padding:8px 12px 4px;margin-top:8px;">Edit &amp; handoff</p>
+      <div class="nav-item" style="display:flex;align-items:center;gap:10px;padding:0 12px;height:36px;border-radius:8px;margin-bottom:2px;color:#5A5A6B;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 8h10M3 4h10M3 12h6"></path></svg><span style="font-size:14px;">Palmier</span></div>
+      <div style="display:flex;align-items:center;gap:10px;padding:0 12px;height:36px;border-radius:8px;opacity:.4;cursor:default;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#9A9AA8" stroke-width="1.5" stroke-linecap="round"><rect x="4" y="7" width="8" height="7" rx="1.5"></rect><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"></path></svg><span style="font-size:14px;color:#9A9AA8;">Finishing</span></div>
+      <p style="font-size:12px;font-weight:500;color:#9A9AA8;padding:8px 12px 4px;margin-top:8px;">Help</p>
+      <div class="nav-item" style="display:flex;align-items:center;gap:10px;padding:0 12px;height:36px;border-radius:8px;margin-bottom:2px;color:#5A5A6B;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 4h12M2 8h8M2 12h5"></path></svg><span style="font-size:14px;">Workflow guide</span></div>
+      <div class="nav-item" style="display:flex;align-items:center;gap:10px;padding:0 12px;height:36px;border-radius:8px;margin-bottom:2px;color:#5A5A6B;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="6"></circle><path d="M8 7.5V11M8 5.5v.5"></path></svg><span style="font-size:14px;">AI setup</span></div>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;">
+    <div style="background:#fff;border-bottom:1px solid rgba(16,16,32,.08);padding:0 28px;flex-shrink:0;">
+      <div style="display:flex;align-items:center;justify-content:space-between;height:52px;">
+        <div style="display:flex;align-items:center;gap:8px;"><span id="ref-project" style="font-size:12px;color:#9A9AA8;">No project</span><span style="font-size:12px;color:rgba(16,16,32,.2);">›</span><span style="font-size:14px;font-weight:500;color:#16161D;">References</span></div>
+        <button onclick="{{ addReference }}" style="height:32px;padding:0 14px;background:#0217D3;border:none;border-radius:8px;font-family:'Host Grotesk',system-ui;font-size:13px;font-weight:500;color:#fff;cursor:pointer;display:flex;align-items:center;gap:6px;">
+          <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round"><line x1="7" y1="1" x2="7" y2="13"></line><line x1="1" y1="7" x2="13" y2="7"></line></svg>
+          Add reference
+        </button>
+      </div>
+    </div>
+
+    <!-- Tabs (rendered by JS so filtering stays in one place) -->
+    <div style="background:#fff;border-bottom:1px solid rgba(16,16,32,.06);padding:0 28px;flex-shrink:0;">
+      <div id="ref-tabs" style="display:flex;gap:0;height:42px;align-items:flex-end;"></div>
+    </div>
+
+    <div style="flex:1;overflow-y:auto;padding:24px 28px;">
+      <div id="refs-mount"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Reference wizard modal -->
+<div id="ref-modal" style="display:none;position:fixed;inset:0;background:rgba(16,16,32,0.32);z-index:100;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:14px;width:480px;max-width:92vw;max-height:86vh;display:flex;flex-direction:column;box-shadow:0 12px 40px rgba(16,16,32,0.2);">
+    <div style="padding:22px 24px 0;">
+      <p id="ref-modal-title" style="font-size:16px;font-weight:500;color:#16161D;">Add reference</p>
+      <p id="ref-modal-step" style="font-size:12px;color:#9A9AA8;margin-top:2px;"></p>
+    </div>
+    <div id="ref-stage" style="padding:18px 24px;overflow-y:auto;display:flex;flex-direction:column;gap:16px;"></div>
+    <div style="display:flex;gap:10px;justify-content:space-between;padding:0 24px 22px;">
+      <button onclick="{{ closeRef }}" style="height:36px;padding:0 16px;background:#fff;border:1px solid rgba(16,16,32,0.12);border-radius:8px;font-family:'Host Grotesk',system-ui;font-size:14px;font-weight:500;color:#16161D;cursor:pointer;">Cancel</button>
+      <div style="display:flex;gap:10px;">
+        <button id="ref-back" onclick="{{ backRef }}" style="display:none;height:36px;padding:0 16px;background:#fff;border:1px solid rgba(16,16,32,0.12);border-radius:8px;font-family:'Host Grotesk',system-ui;font-size:14px;font-weight:500;color:#16161D;cursor:pointer;">Back</button>
+        <button id="ref-next" onclick="{{ nextRef }}" style="height:36px;padding:0 18px;background:#0217D3;border:none;border-radius:8px;font-family:'Host Grotesk',system-ui;font-size:14px;font-weight:500;color:#fff;cursor:pointer;">Continue</button>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900}}">
+class Component extends DCLogic {
+  componentDidMount() {
+    this._filter = '';                       // '' = All, else a kind id
+    this._wiz = null;                        // { step: 1|2|3, refId: null|id, name, kind, fields }
+    this.renderTabs();
+    this.renderRefs();
+  }
+
+  esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
+  kindLabel(kind) {
+    const k = (window.PromptCompile ? PromptCompile.kinds() : []).find((x) => x.id === kind);
+    return k ? k.label : kind;
+  }
+
+  // ── tabs ──
+  renderTabs() {
+    const el = document.getElementById('ref-tabs');
+    if (!el || !window.PromptCompile) return;
+    const tabs = [{ id: '', label: 'All' }].concat(PromptCompile.kinds().map((k) => ({ id: k.id, label: k.label + 's' })));
+    el.innerHTML = tabs.map((t) => {
+      const on = t.id === this._filter;
+      return '<button class="tab-btn" data-tab="' + t.id + '" style="height:42px;padding:0 16px;border:none;border-bottom:2px solid ' + (on ? '#0217D3' : 'transparent') + ';background:transparent;font-family:\'Host Grotesk\',system-ui;font-size:13px;' + (on ? 'font-weight:500;color:#0217D3;' : 'color:#9A9AA8;') + 'cursor:pointer;">' + t.label + '</button>';
+    }).join('');
+    el.querySelectorAll('[data-tab]').forEach((b) => {
+      b.onclick = () => { this._filter = b.getAttribute('data-tab'); this.renderTabs(); this.renderRefs(); };
+    });
+  }
+
+  // ── grid ──
+  renderRefs() {
+    if (!window.Store) return;
+    const active = Store.getActive();
+    const projEl = document.getElementById('ref-project');
+    if (projEl) projEl.textContent = active.project ? active.project.name : 'No project';
+    // Sidebar project selector is populated and wired by nav.js (initProjectSelect)
+    // like every other page — do not mutate the select here; imperative option
+    // rewrites inside the DC/React-managed sidebar crash the reconciler.
+    const mount = document.getElementById('refs-mount');
+    if (!mount) return;
+    let refs = active.projectId ? Store.listReferences(active.projectId) : [];
+    if (this._filter) refs = refs.filter((r) => r.kind === this._filter);
+
+    if (!refs.length) {
+      mount.innerHTML =
+        '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:72px 24px;">' +
+          '<div style="width:52px;height:52px;border-radius:13px;background:#EEF0FF;display:flex;align-items:center;justify-content:center;margin-bottom:16px;">' +
+            '<svg width="24" height="24" viewBox="0 0 16 16" fill="none" stroke="#0217D3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="6" height="10" rx="1"/><rect x="9" y="3" width="6" height="6" rx="1"/><rect x="9" y="11" width="6" height="2" rx="1"/></svg>' +
+          '</div>' +
+          '<p style="font-size:17px;font-weight:500;color:#16161D;margin-bottom:6px;">No references yet</p>' +
+          '<p style="font-size:14px;color:#5A5A6B;max-width:360px;line-height:1.6;">' +
+            (active.projectId ? 'Build a prompt for each character, location, prop or look, generate it in your image tool, then attach the result here so it can lock consistency across shots.' : 'Create or open a project first, then add references to it.') +
+          '</p>' +
+        '</div>';
+      return;
+    }
+
+    const thumbUrl = (r) => {
+      if (!r.imagePath) return '';
+      try { return window.__TAURI__.core.convertFileSrc(r.imagePath); } catch (e) { return ''; }
+    };
+
+    mount.innerHTML =
+      '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;">' +
+        refs.map((r) => {
+          const url = thumbUrl(r);
+          const thumb = url
+            ? '<div style="height:130px;background:#F0F1F4 url(&quot;' + this.esc(url) + '&quot;) center/cover no-repeat;"></div>'
+            : '<div style="height:130px;background:repeating-linear-gradient(45deg,#e8eaf0 0,#e8eaf0 1px,#F0F1F4 1px,#F0F1F4 10px);display:flex;align-items:center;justify-content:center;"><span style="font-size:11px;color:#9A9AA8;background:#fff;border:1px solid rgba(16,16,32,.08);border-radius:6px;padding:3px 8px;">No image yet</span></div>';
+          const actionBtn = (act, title, svg) =>
+            '<button class="card-action" data-act="' + act + '" data-ref="' + r.id + '" title="' + title + '" style="height:28px;flex:1;display:flex;align-items:center;justify-content:center;gap:5px;background:#fff;border:1px solid rgba(16,16,32,.1);border-radius:7px;font-family:inherit;font-size:11px;color:#5A5A6B;">' + svg + '</button>';
+          return '<div class="asset-card" style="background:#fff;border:1px solid rgba(16,16,32,.08);border-radius:12px;overflow:hidden;box-shadow:0 1px 2px rgba(16,16,32,.04);">' +
+            thumb +
+            '<div style="padding:12px 14px;">' +
+              '<p style="font-size:13px;font-weight:500;color:#16161D;margin-bottom:2px;">' + this.esc(r.name) + '</p>' +
+              '<p style="font-size:12px;color:#9A9AA8;margin-bottom:10px;">' + this.esc(this.kindLabel(r.kind)) + (r.prompt ? '' : ' · no prompt yet') + '</p>' +
+              '<div style="display:flex;gap:6px;">' +
+                actionBtn('edit', 'Edit prompt', '<svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M11.5 2.5l2 2L5 13H3v-2z"></path></svg>Edit') +
+                (r.prompt ? actionBtn('copy', 'Copy prompt', '<svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="5" y="5" width="8" height="9" rx="1.5"></rect><path d="M3 11V3a1 1 0 0 1 1-1h7"></path></svg>Copy') : '') +
+                actionBtn('image', r.imagePath ? 'Replace image' : 'Attach generated image', '<svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="3" width="12" height="10" rx="2"></rect><circle cx="6" cy="7" r="1.3"></circle><path d="M3 12l3.5-3 2.5 2 2-1.5 2 2"></path></svg>Image') +
+                actionBtn('delete', 'Delete reference', '<svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2.5 4h11M6.5 4V2.5h3V4M4 4l.7 9.5h6.6L12 4M6.7 7v4M9.3 7v4"></path></svg>') +
+              '</div>' +
+            '</div>' +
+          '</div>';
+        }).join('') +
+      '</div>';
+
+    mount.querySelectorAll('[data-act]').forEach((b) => {
+      b.onclick = (e) => {
+        e.stopPropagation();
+        const id = b.getAttribute('data-ref'), act = b.getAttribute('data-act');
+        if (act === 'edit') this.openWizard(id);
+        else if (act === 'copy') this.copyPrompt(id, b);
+        else if (act === 'image') this.attachImage(id);
+        else if (act === 'delete') this.deleteRef(id);
+      };
+    });
+  }
+
+  deleteRef(refId) {
+    const r = Store.getReference(refId);
+    if (!r) return;
+    if (!window.confirm('Delete “' + r.name + '”? Shots using it will drop it from their prompts. This cannot be undone.')) return;
+    Store.deleteReference(refId);
+    this.renderRefs();
+  }
+
+  copyPrompt(refId, btn) {
+    const r = Store.getReference(refId);
+    if (!r || !r.prompt) return;
+    navigator.clipboard.writeText(r.prompt).then(() => {
+      const old = btn.innerHTML;
+      btn.innerHTML = 'Copied';
+      setTimeout(() => { btn.innerHTML = old; }, 1200);
+    }).catch(() => {});
+  }
+
+  async attachImage(refId) {
+    const dlg = window.__TAURI__ && window.__TAURI__.dialog;
+    if (!dlg) { window.alert('Image attach needs the desktop app.'); return; }
+    const path = await dlg.open({ multiple: false, filters: [{ name: 'Image', extensions: ['png', 'jpg', 'jpeg', 'webp'] }] });
+    if (!path) return; // dialog cancelled — keep the existing image
+    Store.updateReference(refId, { imagePath: typeof path === 'string' ? path : path.path || '' });
+    this.renderRefs();
+  }
+
+  // ── wizard ──
+  openWizard(refId) {
+    const r = refId ? Store.getReference(refId) : null;
+    this._wiz = {
+      step: 1,
+      refId: refId || null,
+      name: r ? r.name : '',
+      kind: r ? r.kind : 'character',
+      fields: r && r.fields ? Object.assign({}, r.fields) : {}
+    };
+    const m = document.getElementById('ref-modal');
+    if (m) m.style.display = 'flex';
+    const t = document.getElementById('ref-modal-title');
+    if (t) t.textContent = refId ? 'Edit reference' : 'Add reference';
+    this.renderWizard();
+  }
+
+  captureStage() {
+    const w = this._wiz;
+    if (!w) return;
+    if (w.step === 1) {
+      const n = document.getElementById('ref-name');
+      const k = document.getElementById('ref-kind');
+      if (n) w.name = n.value.trim();
+      if (k) w.kind = k.value;
+    } else if (w.step === 2) {
+      PromptCompile.fieldsFor(w.kind).forEach((f) => {
+        const el = document.getElementById('ref-f-' + f.key);
+        if (el) w.fields[f.key] = el.value;
+      });
+    }
+  }
+
+  renderWizard() {
+    const w = this._wiz;
+    const stage = document.getElementById('ref-stage');
+    const stepEl = document.getElementById('ref-modal-step');
+    const back = document.getElementById('ref-back');
+    const next = document.getElementById('ref-next');
+    if (!w || !stage) return;
+    if (stepEl) stepEl.textContent = 'Step ' + w.step + ' of 3 — ' + (w.step === 1 ? 'Basics' : w.step === 2 ? this.kindLabel(w.kind) + ' details' : 'Prompt');
+    if (back) back.style.display = w.step > 1 ? 'block' : 'none';
+    if (next) next.textContent = w.step === 3 ? (w.refId ? 'Save changes' : 'Save reference') : 'Continue';
+
+    const input = (id, val, ph) => '<input id="' + id + '" type="text" value="' + this.esc(val || '') + '" placeholder="' + this.esc(ph || '') + '" style="width:100%;height:36px;background:#fff;border:1px solid rgba(16,16,32,0.12);border-radius:10px;padding:0 12px;font-family:\'Host Grotesk\',system-ui;font-size:14px;color:#16161D;outline:none;" />';
+    const area = (id, val, ph) => '<textarea id="' + id + '" placeholder="' + this.esc(ph || '') + '" style="width:100%;height:76px;background:#fff;border:1px solid rgba(16,16,32,0.12);border-radius:10px;padding:10px 12px;font-family:\'Host Grotesk\',system-ui;font-size:14px;color:#16161D;resize:vertical;line-height:1.5;outline:none;">' + this.esc(val || '') + '</textarea>';
+    const label = (t) => '<label style="font-size:12px;font-weight:500;color:#16161D;display:block;margin-bottom:6px;">' + t + '</label>';
+
+    if (w.step === 1) {
+      stage.innerHTML =
+        '<div>' + label('Name') + input('ref-name', w.name, 'e.g. Hero A, Kitchen B') + '</div>' +
+        '<div>' + label('Type') +
+          '<div style="position:relative;">' +
+            '<select id="ref-kind" style="width:100%;height:36px;background:#fff;border:1px solid rgba(16,16,32,0.12);border-radius:10px;padding:0 28px 0 12px;font-family:\'Host Grotesk\',system-ui;font-size:14px;color:#16161D;appearance:none;cursor:pointer;outline:none;">' +
+              PromptCompile.kinds().map((k) => '<option value="' + k.id + '"' + (k.id === w.kind ? ' selected' : '') + '>' + k.label + '</option>').join('') +
+            '</select>' +
+            '<svg style="position:absolute;right:10px;top:50%;transform:translateY(-50%);pointer-events:none;" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#9A9AA8" stroke-width="1.5" stroke-linecap="round"><path d="M3 5l3 3 3-3"></path></svg>' +
+          '</div>' +
+        '</div>';
+      const n = document.getElementById('ref-name');
+      if (n) n.focus();
+    } else if (w.step === 2) {
+      stage.innerHTML = PromptCompile.fieldsFor(w.kind).map((f) =>
+        '<div>' + label(f.label) + (f.type === 'textarea' ? area('ref-f-' + f.key, w.fields[f.key], f.placeholder) : input('ref-f-' + f.key, w.fields[f.key], f.placeholder)) + '</div>'
+      ).join('');
+    } else {
+      const compiled = PromptCompile.compileReferencePrompt(w.kind, w.name, w.fields);
+      stage.innerHTML =
+        '<div>' + label('Compiled prompt — paste into your image generator') +
+          '<textarea id="ref-prompt-final" style="width:100%;height:130px;background:#F7F5EF;border:1px solid rgba(16,16,32,0.12);border-radius:10px;padding:10px 12px;font-family:\'Host Grotesk\',system-ui;font-size:13px;color:#16161D;resize:vertical;line-height:1.6;outline:none;">' + this.esc(compiled.stills) + '</textarea>' +
+          '<p style="font-size:12px;color:#9A9AA8;margin-top:8px;line-height:1.5;">Tweak the wording if you like — your edits are what gets saved. After generating, attach the result image from the reference card.</p>' +
+        '</div>';
+    }
+  }
+
+  // ── modal handlers ──
+  renderVals() {
+    return {
+      addReference: () => {
+        if (!window.Store) return;
+        if (!Store.getActive().projectId) { window.alert('Create or open a project first.'); return; }
+        this.openWizard(null);
+      },
+      closeRef: () => {
+        this._wiz = null;
+        const m = document.getElementById('ref-modal');
+        if (m) m.style.display = 'none';
+      },
+      backRef: () => {
+        if (!this._wiz || this._wiz.step <= 1) return;
+        this.captureStage();
+        this._wiz.step -= 1;
+        this.renderWizard();
+      },
+      nextRef: () => {
+        const w = this._wiz;
+        if (!w) return;
+        this.captureStage();
+        if (w.step === 1 && !w.name) {
+          const n = document.getElementById('ref-name');
+          if (n) n.focus();
+          return;
+        }
+        if (w.step < 3) { w.step += 1; this.renderWizard(); return; }
+        // save
+        const promptEl = document.getElementById('ref-prompt-final');
+        const prompt = promptEl ? promptEl.value.trim() : '';
+        const payload = { name: w.name, kind: w.kind, fields: w.fields, prompt: prompt };
+        if (w.refId) Store.updateReference(w.refId, payload);
+        else Store.addReference(Store.getActive().projectId, payload);
+        this._wiz = null;
+        const m = document.getElementById('ref-modal');
+        if (m) m.style.display = 'none';
+        this.renderTabs();
+        this.renderRefs();
+      }
+    };
+  }
+}
+</script>
+<script src="./promptcompile.js"></script>
+<script src="./store.js"></script>
+<script src="./nav.js"></script>
+</body>
+</html>
