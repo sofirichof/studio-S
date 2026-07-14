@@ -3,6 +3,7 @@
 // the sidebar (per-node listeners would go stale on every re-render).
 (function () {
   var MAP = {
+    'home': 'home.html',
     'prompt builder': 'promptbuilder.html',
     'references': 'references.html',
     'multi-shot': 'multishot.html',
@@ -32,13 +33,9 @@
   }
 
   // Single delegated click handler — never goes stale.
+  // (The old "Finish setup" hijack that forced promptbuilder.html is gone —
+  // index.html's Done step owns its own destinations now.)
   document.addEventListener('click', function (e) {
-    // Onboarding "Finish setup" → main app.
-    var fin = e.target.closest && e.target.closest('#btn-next');
-    if (fin && (fin.textContent || '').trim().toLowerCase().indexOf('finish') !== -1) {
-      setTimeout(function () { go('promptbuilder.html'); }, 0);
-      return;
-    }
     var dest = navTargetFor(e.target);
     if (dest) { e.preventDefault(); go(dest); }
   }, true);
@@ -168,7 +165,30 @@
     });
   }
 
-  function init() { markCursors(); decorateProjectName(); initProjectSelect(); initTheme(); }
+  // ── Home nav row ──
+  // home.html is new; older pages' authored sidebars don't have a Home row.
+  // Inject one centrally (same pattern as the project select) so every page
+  // gets it without editing each sidebar's markup.
+  function initHomeRow() {
+    var sidebar = document.querySelector('div[style*="border-right"]');
+    if (!sidebar) return;
+    var scroll = sidebar.children[1];
+    if (!scroll) return;
+    var spans = scroll.querySelectorAll('span');
+    for (var i = 0; i < spans.length; i++) {
+      if ((spans[i].textContent || '').trim().toLowerCase() === 'home') return; // already there
+    }
+    // Insert after the project-select wrap (first child) when present.
+    var row = document.createElement('div');
+    row.className = 'nav-item';
+    row.style.cssText = 'display:flex;align-items:center;gap:10px;padding:0 12px;height:36px;border-radius:8px;margin-bottom:2px;color:#5A5A6B;cursor:pointer;';
+    row.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6.5L8 2l6 4.5V13a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6.5z"></path><path d="M6 14V9h4v5"></path></svg><span style="font-size:14px;">Home</span>';
+    var first = scroll.firstChild;
+    var anchor = (first && first.querySelector && first.querySelector('select')) ? first.nextSibling : first;
+    scroll.insertBefore(row, anchor);
+  }
+
+  function init() { markCursors(); decorateProjectName(); initProjectSelect(); initHomeRow(); initTheme(); }
   if (document.readyState !== 'loading') init();
   else document.addEventListener('DOMContentLoaded', init);
   // Re-run cosmetics after the DC runtime re-renders (navigation itself is delegated).

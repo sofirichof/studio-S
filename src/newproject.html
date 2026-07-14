@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="./vendor/fonts/host-grotesk.css" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Host Grotesk', system-ui, sans-serif; background: #F7F5EF; overflow: hidden; }
+  input:focus, textarea:focus { outline: 3px solid rgba(2,23,211,0.25); outline-offset: 1px; border-color: #0217D3 !important; }
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-thumb { background: rgba(16,16,32,.12); border-radius: 2px; }
+</style>
+</helmet>
+<div style="width:100vw; height:100vh; display:flex; flex-direction:column; overflow:hidden;">
+
+  <!-- Top bar -->
+  <div style="background:#fff; border-bottom:1px solid rgba(16,16,32,0.08); padding:0 48px; flex-shrink:0;">
+    <div style="max-width:680px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; height:56px;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <img src="uploads/logo.png" alt="Studio S" style="width:24px; height:24px; border-radius:5px; object-fit:cover; flex-shrink:0;" />
+        <span style="font-size:13px; font-weight:500; color:#16161D;">New project</span>
+      </div>
+      <button onclick="{{ cancel }}" style="height:32px; padding:0 14px; background:transparent; border:none; font-family:'Host Grotesk',system-ui,sans-serif; font-size:13px; font-weight:500; color:#5A5A6B; cursor:pointer;" onmouseover="this.style.color='#16161D'" onmouseout="this.style.color='#5A5A6B'">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div style="flex:1; overflow-y:auto; padding:40px 48px;">
+    <div style="max-width:680px; margin:0 auto;">
+      <h2 style="font-size:22px; font-weight:500; color:#16161D; margin-bottom:6px; letter-spacing:-0.01em;">Point Claude at your assets</h2>
+      <p style="font-size:14px; color:#5A5A6B; margin-bottom:24px; line-height:1.6;">Claude reads your brief, references, and any existing materials — then writes a production plan. The studio scaffolds your concepts and shots from it automatically.</p>
+
+      <!-- Project name -->
+      <div style="background:#fff; border:1px solid rgba(16,16,32,0.10); border-radius:12px; padding:20px; margin-bottom:16px;">
+        <p style="font-size:12px; font-weight:500; color:#16161D; margin-bottom:10px;">Project name</p>
+        <input id="np-name" type="text" placeholder="e.g. US Bank — Rotation 4" style="width:100%; height:36px; background:#F7F5EF; border:1px solid rgba(16,16,32,0.08); border-radius:10px; padding:0 12px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:13px; color:#16161D; outline:none;" />
+        <p style="font-size:12px; color:#9A9AA8; margin-top:10px; line-height:1.5;">Give this project a name. If you leave it blank we'll name it after the folder.</p>
+      </div>
+
+      <!-- 1: Folder picker -->
+      <div style="background:#fff; border:1px solid rgba(16,16,32,0.10); border-radius:12px; padding:20px; margin-bottom:16px;">
+        <p style="font-size:12px; font-weight:500; color:#16161D; margin-bottom:12px;"><span style="display:inline-flex; width:18px; height:18px; background:#0217D3; border-radius:50%; align-items:center; justify-content:center; margin-right:6px; font-size:10px; color:#fff; font-weight:500; vertical-align:middle;">1</span>Choose your assets folder</p>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <div style="flex:1; height:36px; background:#F7F5EF; border:1px solid rgba(16,16,32,0.08); border-radius:10px; padding:0 12px; display:flex; align-items:center; gap:8px; overflow:hidden;">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#9A9AA8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M1 4.5C1 3.67 1.67 3 2.5 3h2.29a1 1 0 0 1 .7.29L6.71 4.5H11.5c.83 0 1.5.67 1.5 1.5v5c0 .83-.67 1.5-1.5 1.5h-9C1.67 12.5 1 11.83 1 11v-6.5z"/></svg>
+            <span style="font-size:13px; color:#9A9AA8; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" id="folder-path-display">No folder selected</span>
+          </div>
+          <button onclick="{{ pickFolder }}" style="height:36px; padding:0 16px; background:#fff; border:1px solid rgba(16,16,32,0.12); border-radius:8px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:13px; font-weight:500; color:#16161D; cursor:pointer; white-space:nowrap; flex-shrink:0;" onmouseover="this.style.background='#F0F1F4'" onmouseout="this.style.background='#fff'">Choose folder</button>
+        </div>
+        <p style="font-size:12px; color:#9A9AA8; margin-top:10px; line-height:1.5;">Drop your brief, storyboard, references, and scripts in one folder. Claude reads everything in it.</p>
+      </div>
+
+      <!-- 2: Copy build instructions -->
+      <div id="plan-instructions-panel" style="display:none; background:#EEF0FF; border:1px solid rgba(2,23,211,0.15); border-radius:12px; padding:20px; margin-bottom:16px;">
+        <p style="font-size:12px; font-weight:500; color:#0217D3; margin-bottom:4px;"><span style="display:inline-flex; width:18px; height:18px; background:#0217D3; border-radius:50%; align-items:center; justify-content:center; margin-right:6px; font-size:10px; color:#fff; font-weight:500; vertical-align:middle;">2</span>Send to Claude</p>
+        <p style="font-size:12px; color:#5A5A6B; margin-bottom:14px; line-height:1.5;">Copy these instructions and paste them into Claude.ai or Claude Code. Claude will read your folder and write the production plan.</p>
+        <div style="position:relative;">
+          <textarea id="plan-instructions-text" readonly style="width:100%; height:110px; background:#fff; border:1px solid rgba(2,23,211,0.15); border-radius:8px; padding:12px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:11.5px; color:#5A5A6B; line-height:1.55; resize:none; outline:none; cursor:text;"></textarea>
+          <button onclick="{{ copyInstructions }}" id="copy-instructions-btn" style="position:absolute; top:8px; right:8px; height:28px; padding:0 12px; background:#0217D3; border:none; border-radius:6px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:11px; font-weight:500; color:#fff; cursor:pointer; display:flex; align-items:center; gap:5px;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
+            <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="6" height="6" rx="1"/><path d="M1.5 7.5V2a1 1 0 0 1 1-1h5.5"/></svg>
+            Copy
+          </button>
+        </div>
+      </div>
+
+      <!-- 3: Scan for plan -->
+      <div id="plan-scan-panel" style="display:none; background:#fff; border:1px solid rgba(16,16,32,0.10); border-radius:12px; padding:20px; margin-bottom:16px;">
+        <p style="font-size:12px; font-weight:500; color:#16161D; margin-bottom:4px;"><span style="display:inline-flex; width:18px; height:18px; background:#0217D3; border-radius:50%; align-items:center; justify-content:center; margin-right:6px; font-size:10px; color:#fff; font-weight:500; vertical-align:middle;">3</span>Import the plan</p>
+        <p style="font-size:12px; color:#9A9AA8; margin-bottom:14px; line-height:1.5;">Once Claude has written <strong>studio-s-plan.json</strong> to your folder, click Scan to pull it in.</p>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <button onclick="{{ scanForPlan }}" style="height:36px; padding:0 20px; background:#0217D3; border:none; border-radius:8px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:13px; font-weight:500; color:#fff; cursor:pointer;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">Scan for plan</button>
+          <span id="plan-scan-status" style="font-size:12px; color:#9A9AA8;"></span>
+        </div>
+      </div>
+
+      <!-- Footer actions -->
+      <div style="display:flex; align-items:center; justify-content:space-between; padding:8px 0 40px;">
+        <button onclick="{{ createEmpty }}" style="height:36px; padding:0 16px; background:transparent; border:none; font-family:'Host Grotesk',system-ui,sans-serif; font-size:13px; font-weight:500; color:#5A5A6B; cursor:pointer; text-decoration:underline;" onmouseover="this.style.color='#16161D'" onmouseout="this.style.color='#5A5A6B'">Skip the plan — create an empty project</button>
+        <button id="np-open" onclick="{{ openProject }}" style="display:none; height:36px; padding:0 20px; background:#0217D3; border:none; border-radius:8px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:13px; font-weight:500; color:#fff; cursor:pointer;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">Open project →</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1280, &quot;height&quot;: 800}}">
+class Component extends DCLogic {
+  componentDidMount() {
+    this._assetsFolder = '';
+    this._createdProjectId = null;
+  }
+
+  async pickDir() {
+    try {
+      const t = window.__TAURI__;
+      if (t && t.dialog && t.dialog.open) {
+        const r = await t.dialog.open({ directory: true, multiple: false });
+        return typeof r === 'string' ? r : '';
+      }
+    } catch (e) {}
+    return '';
+  }
+
+  projectName() {
+    const typed = ((document.getElementById('np-name') || {}).value || '').trim();
+    return typed || (this._assetsFolder || '').split('/').filter(Boolean).pop() || 'Untitled project';
+  }
+
+  generatorGuide(model) {
+    // Per-generator prompt-engineering craft so each shot "name" is written in the
+    // native prompt language of the tool the user actually generates in.
+    var guides = {
+      seedance: `GENERATOR: Seedance 2.0 — write each shot as a Seedance prompt (English only).
+Structure each shot's text in this order:
+  Characters: short, specific, vivid anchors — only the characters in this shot; carry their state forward (wet hair, bloodied knuckle, same wardrobe).
+  Scene: 1–2 sentences, geo-spatial — where each person is relative to the location and each other.
+  CUT 1 — [shot type, lens feel, movement]: acting beat, eye-line, breath, what the camera does, what the light does.
+  CUT 2 / CUT 3 as needed.
+Each shot targets ~15s; a held single shot or a 3-cut sequence are both valid — design it to fill the 15s. Photoreal, natural light, 24fps, environmental sound only, no on-screen text.`,
+      higgsfield: `GENERATOR: Higgsfield — write each shot as a Higgsfield image-to-video prompt (English).
+Higgsfield leads with a CAMERA-MOTION preset, so name the move first, then describe subject motion concisely:
+  • Open with the camera motion (e.g. "Crash Zoom in", "Bullet Time orbit", "Robo-arm push", "FPV drone", "Dolly-in", "Whip-pan").
+  • Then the subject's motion/action in one or two clear clauses.
+  • Keep it tight — Higgsfield rewards a strong single move + clear subject action over dense paragraphs.
+  • Note the start-frame intent (what the first still shows) since these are image-to-video.`,
+      kling: `GENERATOR: Kling 3.0 — camera instruction FIRST, the still is the anchor. "Slow push-in. Subject: … Scene: … Camera: smooth dolly-in, eye level. Preserve source framing." Keep environmental events minimal; Kling spends its budget on subject + camera motion.`,
+      runway: `GENERATOR: Runway Gen-4 — concise motion brief. State the camera move + subject action, and emphasise "stable / consistent / no distortion" to avoid drift. Short clip (~4s).`,
+      sora: `GENERATOR: Sora — describe each shot as a short filmed scene in natural narrative prose ("A four-second shot: … as the camera eases slowly inward. Continuous take."), not parameters.`,
+      mixed: `GENERATOR: Mixed tools — write cinematic, tool-agnostic shot descriptions (shot type, lens, blocking, acting beat, light, camera move) that translate cleanly into Seedance, Kling, Runway, Higgsfield, or Sora.`
+    };
+    return guides[model] || guides.mixed;
+  }
+
+  buildClaudeInstructions(folderPath) {
+    const settings = window.Store && Store.getSettings ? Store.getSettings() : {};
+    const model = settings.defaultVideoModel || 'mixed';
+    return `You are a top-tier film director and cinematographer building a production plan for the Studio S app (Supergood). You turn briefs and scripts into a shot-by-shot plan the studio scaffolds into concepts and shots.
+
+Assets folder: ${folderPath}
+
+${this.generatorGuide(model)}
+
+STEP 1 — Read everything in the folder: brief, storyboard, references, mood boards, and especially any SCRIPT, treatment, or scene breakdown.
+
+STEP 2 — Build the shot list, writing every shot's prompt in the GENERATOR convention above.
+
+▸ IF THERE IS A SCRIPT (or treatment / scene breakdown):
+Act as a shotlist director — this is cinema, not a clip. Don't transcribe the script into beats; block, light, and pace it. For each scene:
+  • Block the mise-en-scène — where each character stands/moves, geo-spatial position, what hands are doing.
+  • Pace dramatically — give heavy moments their own shots; compress action into short ones.
+  • Direct the acting specifically — not "she looks sad" but "eyes drop, jaw tightens, swallows once before answering."
+  • Specify the camera — lens, height, movement, and its motivation ("low-angle 35mm slow dolly-in as she realizes").
+  • Hold continuity in your head — character state, wardrobe, props, emotional carry across shots.
+Split a long scene into multiple shots. Each shot "name" is the full prompt-ready text in the generator's convention (English).
+
+▸ IF THERE IS NO SCRIPT (brief only):
+Derive 2–5 concepts from the brief (e.g. "Hero product reveal", "Lifestyle sequence", "Testimonial cut"), each with 3–8 specific shots, each written in the generator convention.
+
+STEP 3 — Write the plan as JSON to: ${folderPath}/studio-s-plan.json
+
+Exact format:
+{
+  "concepts": [
+    {
+      "name": "Concept / scene name — one-line description of what happens",
+      "shots": [
+        { "label": "1A", "name": "Full prompt-ready shot text in the generator's convention" },
+        { "label": "1B", "name": "Next shot — same craft and convention" }
+      ]
+    }
+  ],
+  "todos": [
+    "Production step, e.g. Generate stills for all shots",
+    "Next step, e.g. Test hero shots in motion",
+    "Next step, e.g. Review selects with client"
+  ]
+}
+
+LABELS ARE REQUIRED: every shot carries a "label" — the concept number plus a sequential letter. Concept 1's shots are "1A", "1B", "1C"…; concept 2's are "2A", "2B"…. Never skip or reuse a label; they are how the team calls shots on the board.
+
+One scene = one concept; split long scenes into multiple shots under it. "todos" is this project's ordered production checklist — the concrete steps from here to delivery (generation, motion tests, review, handoff); 4–8 items.`;
+  }
+
+  finish(projectId) {
+    Store.setActive({ projectId: projectId });
+    window.location.href = 'home.html';
+  }
+
+  renderVals() {
+    return {
+      cancel: () => { window.location.href = (window.Store && Store.listProjects().length) ? 'projects.html' : 'home.html'; },
+      pickFolder: async () => {
+        const display = document.getElementById('folder-path-display');
+        if (!(window.__TAURI__ && window.__TAURI__.dialog && window.__TAURI__.dialog.open)) {
+          if (display) { display.textContent = 'Folder picking works in the Studio S desktop app only — open the app to choose a folder.'; display.style.color = '#9A5B00'; }
+          return;
+        }
+        const dir = await this.pickDir();
+        if (!dir) return;
+        this._assetsFolder = dir;
+        if (display) { display.textContent = dir; display.style.color = '#16161D'; }
+        const instrPanel = document.getElementById('plan-instructions-panel');
+        const scanPanel = document.getElementById('plan-scan-panel');
+        if (instrPanel) instrPanel.style.display = 'block';
+        if (scanPanel) scanPanel.style.display = 'block';
+        const textarea = document.getElementById('plan-instructions-text');
+        if (textarea) textarea.value = this.buildClaudeInstructions(dir);
+      },
+      copyInstructions: () => {
+        const textarea = document.getElementById('plan-instructions-text');
+        if (!textarea) return;
+        navigator.clipboard.writeText(textarea.value).catch(() => {
+          textarea.select();
+          document.execCommand('copy');
+        });
+        const btn = document.getElementById('copy-instructions-btn');
+        if (btn) {
+          btn.innerHTML = '<svg width="11" height="11" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg> Copied!';
+          setTimeout(() => {
+            btn.innerHTML = '<svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="6" height="6" rx="1"/><path d="M1.5 7.5V2a1 1 0 0 1 1-1h5.5"/></svg> Copy';
+          }, 2000);
+        }
+      },
+      scanForPlan: async () => {
+        const dir = this._assetsFolder;
+        const status = document.getElementById('plan-scan-status');
+        if (!dir) { if (status) status.textContent = 'Pick a folder first.'; return; }
+        if (status) status.textContent = 'Scanning…';
+        try {
+          const t = window.__TAURI__;
+          if (t && t.core && t.core.invoke) {
+            const plan = await t.core.invoke('scan_plan_folder', { dir });
+            if (plan && plan.content) {
+              const settings = Store.getSettings ? Store.getSettings() : {};
+              // Reuse the project already created for this folder so re-scanning
+              // (e.g. while waiting for Claude to write the file) doesn't spawn
+              // duplicate projects — it just refreshes the same one.
+              let p = (Store.listProjects() || []).filter((x) => x.assetsFolder === dir)[0];
+              if (!p) p = Store.createProject({ name: this.projectName(), assetsFolder: dir, outputFolder: settings.defaultOutputFolder || '' });
+              Store.scaffoldFromPlan(p.id, plan.content);
+              this._createdProjectId = p.id;
+              if (status) { status.textContent = '✓ Plan imported — concepts and shots ready.'; status.style.color = '#0217D3'; }
+              const open = document.getElementById('np-open');
+              if (open) open.style.display = 'block';
+            } else {
+              if (status) { status.textContent = 'No plan file found yet. Paste the instructions into Claude and try again.'; status.style.color = '#9A9AA8'; }
+            }
+          } else {
+            if (status) { status.textContent = 'Available in the desktop app only.'; status.style.color = '#9A9AA8'; }
+          }
+        } catch (e) {
+          if (status) { status.textContent = 'Scan failed — check the folder path.'; status.style.color = '#FF002E'; }
+        }
+      },
+      createEmpty: () => {
+        if (!window.Store) return;
+        const settings = Store.getSettings ? Store.getSettings() : {};
+        const p = Store.createProject({ name: this.projectName(), assetsFolder: this._assetsFolder || '', outputFolder: settings.defaultOutputFolder || '' });
+        this.finish(p.id);
+      },
+      openProject: () => {
+        if (this._createdProjectId) this.finish(this._createdProjectId);
+      }
+    };
+  }
+}
+</script>
+<script src="./store.js"></script>
+<script src="./updater.js"></script>
+</body>
+</html>

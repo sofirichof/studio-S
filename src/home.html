@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="./vendor/fonts/host-grotesk.css" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Host Grotesk',system-ui,sans-serif;background:#F7F5EF;overflow:hidden;}
+  .nav-item{transition:background .12s,color .12s;cursor:pointer;}
+  .nav-item:hover{background:#F0F1F4!important;color:#16161D!important;}
+  .quick-card{transition:box-shadow .12s,border-color .12s;cursor:pointer;}
+  .quick-card:hover{box-shadow:0 4px 14px rgba(16,16,32,.09)!important;border-color:rgba(16,16,32,.18)!important;}
+  .proj-row{transition:background .12s;cursor:pointer;}
+  .proj-row:hover{background:#F0F1F4!important;}
+  ::-webkit-scrollbar{width:4px;}
+  ::-webkit-scrollbar-thumb{background:rgba(16,16,32,.12);border-radius:2px;}
+</style>
+</helmet>
+<div style="display:flex;height:100vh;width:100vw;overflow:hidden;">
+  <!-- Nav -->
+  <div style="width:248px;background:#fff;border-right:1px solid rgba(16,16,32,.08);display:flex;flex-direction:column;flex-shrink:0;">
+    <div style="padding:16px 16px 12px;border-bottom:1px solid rgba(16,16,32,.06);">
+      <div style="display:flex;align-items:center;gap:10px;"><img src="uploads/logo.png" style="width:28px;height:28px;border-radius:7px;flex-shrink:0;"/><div><p style="font-size:13px;font-weight:500;color:#16161D;">Studio S</p><p style="font-size:11px;color:#9A9AA8;">Supergood</p></div></div>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:12px 8px;">
+      <div style="padding:0 8px;margin-bottom:16px;"><div style="position:relative;"><select style="width:100%;height:32px;background:#F7F5EF;border:1px solid rgba(16,16,32,.08);border-radius:8px;padding:0 28px 0 10px;font-family:'Host Grotesk',system-ui;font-size:12px;color:#16161D;appearance:none;font-weight:500;visibility:hidden;"><option>No project yet</option></select><svg style="position:absolute;right:8px;top:50%;transform:translateY(-50%);pointer-events:none;" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#9A9AA8" stroke-width="1.5" stroke-linecap="round"><path d="M3 5l3 3 3-3"></path></svg></div></div>
+      <!-- Active: Home -->
+      <div style="display:flex;align-items:center;gap:10px;padding:0 12px;height:36px;border-radius:8px;margin-bottom:2px;background:#EEF0FF;position:relative;cursor:pointer;"><div style="position:absolute;left:0;top:8px;bottom:8px;width:2px;background:#0217D3;border-radius:0 2px 2px 0;"></div><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#0217D3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6.5L8 2l6 4.5V13a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6.5z"></path><path d="M6 14V9h4v5"></path></svg><span style="font-size:14px;color:#0217D3;font-weight:500;">Home</span></div>
+      <p style="font-size:12px;font-weight:500;color:#9A9AA8;padding:8px 12px 4px;margin-top:8px;">Create</p>
+      <div class="nav-item" style="display:flex;align-items:center;gap:10px;padding:0 12px;height:36px;border-radius:8px;margin-bottom:2px;color:#5A5A6B;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="5" height="5" rx="1"></rect><rect x="9" y="2" width="5" height="5" rx="1"></rect><rect x="2" y="9" width="5" height="5" rx="1"></rect><rect x="9" y="9" width="5" height="5" rx="1"></rect></svg><span style="font-size:14px;">Prompt builder</span></div>
+      <div class="nav-item" style="display:flex;align-items:center;gap:10px;padding:0 12px;height:36px;border-radius:8px;margin-bottom:2px;color:#5A5A6B;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="6" height="10" rx="1"></rect><rect x="9" y="3" width="6" height="6" rx="1"></rect><rect x="9" y="11" width="6" height="2" rx="1"></rect></svg><span style="font-size:14px;">References</span></div>
+      <div class="nav-item" style="display:flex;align-items:center;gap:10px;padding:0 12px;height:36px;border-radius:8px;margin-bottom:2px;color:#5A5A6B;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="2" width="5" height="12" rx="1"></rect><rect x="9" y="2" width="5" height="7" rx="1"></rect><rect x="9" y="11" width="5" height="3" rx="1"></rect></svg><span style="font-size:14px;">Multi-Shot</span></div>
+      <p style="font-size:12px;font-weight:500;color:#9A9AA8;padding:8px 12px 4px;margin-top:8px;">Manage</p>
+      <div class="nav-item" style="display:flex;align-items:center;gap:10px;padding:0 12px;height:36px;border-radius:8px;margin-bottom:2px;color:#5A5A6B;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="12" height="10" rx="2"></rect><path d="M2 7h12"></path></svg><span style="font-size:14px;">Projects</span></div>
+      <p style="font-size:12px;font-weight:500;color:#9A9AA8;padding:8px 12px 4px;margin-top:8px;">Edit &amp; handoff</p>
+      <div class="nav-item" style="display:flex;align-items:center;gap:10px;padding:0 12px;height:36px;border-radius:8px;margin-bottom:2px;color:#5A5A6B;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 8h10M3 4h10M3 12h6"></path></svg><span style="font-size:14px;">Palmier</span></div>
+      <div style="display:flex;align-items:center;gap:10px;padding:0 12px;height:36px;border-radius:8px;opacity:.4;cursor:default;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#9A9AA8" stroke-width="1.5" stroke-linecap="round"><rect x="4" y="7" width="8" height="7" rx="1.5"></rect><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"></path></svg><span style="font-size:14px;color:#9A9AA8;">Finishing</span></div>
+      <p style="font-size:12px;font-weight:500;color:#9A9AA8;padding:8px 12px 4px;margin-top:8px;">Help</p>
+      <div class="nav-item" style="display:flex;align-items:center;gap:10px;padding:0 12px;height:36px;border-radius:8px;margin-bottom:2px;color:#5A5A6B;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 4h12M2 8h8M2 12h5"></path></svg><span style="font-size:14px;">Workflow guide</span></div>
+      <div class="nav-item" style="display:flex;align-items:center;gap:10px;padding:0 12px;height:36px;border-radius:8px;margin-bottom:2px;color:#5A5A6B;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="6"></circle><path d="M8 7.5V11M8 5.5v.5"></path></svg><span style="font-size:14px;">AI setup</span></div>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;">
+    <div style="background:#fff;border-bottom:1px solid rgba(16,16,32,.08);padding:0 28px;flex-shrink:0;">
+      <div style="display:flex;align-items:center;justify-content:space-between;height:52px;">
+        <span style="font-size:14px;font-weight:500;color:#16161D;">Home</span>
+        <button onclick="{{ newProject }}" style="height:32px;padding:0 14px;background:#0217D3;border:none;border-radius:8px;font-family:'Host Grotesk',system-ui;font-size:13px;font-weight:500;color:#fff;cursor:pointer;display:flex;align-items:center;gap:6px;">
+          <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round"><line x1="7" y1="1" x2="7" y2="13"></line><line x1="1" y1="7" x2="13" y2="7"></line></svg>
+          New project
+        </button>
+      </div>
+    </div>
+
+    <div style="flex:1;overflow-y:auto;padding:28px;">
+      <div id="home-mount" style="max-width:860px;"></div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900}}">
+class Component extends DCLogic {
+  componentDidMount() { this.renderHome(); }
+
+  esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
+  shotStats(p) {
+    let total = 0, prompted = 0;
+    (p.concepts || []).forEach((c) => (c.shots || []).forEach((s) => {
+      total++;
+      if (s.status && s.status !== 'draft') prompted++;
+    }));
+    return { total, prompted };
+  }
+
+  renderHome() {
+    if (!window.Store) return;
+    const mount = document.getElementById('home-mount');
+    if (!mount) return;
+    const active = Store.getActive();
+    const projects = Store.listProjects();
+
+    if (!projects.length) {
+      mount.innerHTML =
+        '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:96px 24px;">' +
+          '<div style="width:52px;height:52px;border-radius:13px;background:#EEF0FF;display:flex;align-items:center;justify-content:center;margin-bottom:16px;">' +
+            '<svg width="24" height="24" viewBox="0 0 16 16" fill="none" stroke="#0217D3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6.5L8 2l6 4.5V13a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6.5z"/></svg>' +
+          '</div>' +
+          '<p style="font-size:17px;font-weight:500;color:#16161D;margin-bottom:6px;">Welcome to Studio S</p>' +
+          '<p style="font-size:14px;color:#5A5A6B;max-width:380px;line-height:1.6;margin-bottom:20px;">Create your first project — point Claude at your assets folder and the studio scaffolds concepts and shots for you.</p>' +
+          '<button data-home="new" style="height:38px;padding:0 20px;background:#0217D3;border:none;border-radius:8px;font-family:inherit;font-size:13px;font-weight:500;color:#fff;cursor:pointer;">Create a project</button>' +
+        '</div>';
+      this.bind(mount);
+      return;
+    }
+
+    const p = active.project || projects[0];
+    const stats = this.shotStats(p);
+    const pct = stats.total ? Math.round((stats.prompted / stats.total) * 100) : 0;
+    const refs = Store.listReferences(p.id);
+    const todos = (Store.listTodos(p.id) || []);
+    const todoDone = todos.filter((t) => t.done).length;
+    const nextTodo = todos.filter((t) => !t.done)[0];
+
+    const quick = (dest, title, sub, svg) =>
+      '<div class="quick-card" data-home="go" data-dest="' + dest + '" style="flex:1;min-width:180px;background:#fff;border:1px solid rgba(16,16,32,.08);border-radius:12px;padding:16px;box-shadow:0 1px 2px rgba(16,16,32,.04);">' +
+        '<div style="width:32px;height:32px;border-radius:8px;background:#EEF0FF;display:flex;align-items:center;justify-content:center;margin-bottom:10px;">' + svg + '</div>' +
+        '<p style="font-size:13px;font-weight:500;color:#16161D;margin-bottom:2px;">' + title + '</p>' +
+        '<p style="font-size:12px;color:#9A9AA8;line-height:1.5;">' + sub + '</p>' +
+      '</div>';
+
+    mount.innerHTML =
+      // Active project hero
+      '<div style="background:#fff;border:1px solid rgba(16,16,32,.08);border-radius:14px;padding:24px;box-shadow:0 1px 2px rgba(16,16,32,.04);margin-bottom:16px;">' +
+        '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;">' +
+          '<div style="min-width:0;">' +
+            '<p style="font-size:12px;color:#9A9AA8;margin-bottom:4px;">Active project</p>' +
+            '<p style="font-size:20px;font-weight:500;color:#16161D;letter-spacing:-0.01em;margin-bottom:10px;">' + this.esc(p.name) + '</p>' +
+            '<div style="display:flex;gap:16px;flex-wrap:wrap;">' +
+              '<span style="font-size:12px;color:#5A5A6B;">' + stats.prompted + ' of ' + stats.total + ' shots prompted</span>' +
+              '<span style="font-size:12px;color:#5A5A6B;">' + refs.length + ' reference' + (refs.length === 1 ? '' : 's') + '</span>' +
+              (todos.length ? '<span style="font-size:12px;color:#5A5A6B;">' + todoDone + '/' + todos.length + ' production steps done</span>' : '') +
+            '</div>' +
+          '</div>' +
+          '<button data-home="go" data-dest="promptbuilder.html" style="height:38px;padding:0 20px;background:#0217D3;border:none;border-radius:8px;font-family:inherit;font-size:13px;font-weight:500;color:#fff;cursor:pointer;flex-shrink:0;">Continue in Prompt builder →</button>' +
+        '</div>' +
+        '<div style="height:5px;background:#ECEDF0;border-radius:999px;overflow:hidden;margin-top:16px;">' +
+          '<div style="height:100%;width:' + pct + '%;background:#0217D3;border-radius:999px;"></div>' +
+        '</div>' +
+        (nextTodo ? '<p style="font-size:12px;color:#9A9AA8;margin-top:10px;">Next up: <span style="color:#5A5A6B;">' + this.esc(nextTodo.label) + '</span></p>' : '') +
+      '</div>' +
+
+      // Quick links
+      '<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:24px;">' +
+        quick('references.html', 'References', 'Lock characters, locations, props and looks.',
+          '<svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#0217D3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="6" height="10" rx="1"/><rect x="9" y="3" width="6" height="6" rx="1"/><rect x="9" y="11" width="6" height="2" rx="1"/></svg>') +
+        quick('multishot.html', 'Multi-Shot', 'Review every shot’s prompt in one board.',
+          '<svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#0217D3" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="2" width="5" height="12" rx="1"/><rect x="9" y="2" width="5" height="7" rx="1"/><rect x="9" y="11" width="5" height="3" rx="1"/></svg>') +
+        quick('palmier.html', 'Palmier', 'Hand off selects for AI assembly.',
+          '<svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#0217D3" stroke-width="1.5" stroke-linecap="round"><path d="M3 8h10M3 4h10M3 12h6"/></svg>') +
+      '</div>' +
+
+      // Other projects
+      (projects.length > 1
+        ? '<p style="font-size:12px;font-weight:500;color:#9A9AA8;margin-bottom:8px;">All projects</p>' +
+          '<div style="background:#fff;border:1px solid rgba(16,16,32,.08);border-radius:12px;overflow:hidden;">' +
+            projects.map((x) => {
+              const st = this.shotStats(x);
+              const on = x.id === p.id;
+              return '<div class="proj-row" data-home="switch" data-pid="' + x.id + '" style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;border-bottom:1px solid rgba(16,16,32,.05);' + (on ? 'background:#F7F8FF;' : '') + '">' +
+                '<span style="font-size:13px;font-weight:500;color:#16161D;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + this.esc(x.name) + (on ? ' <span style="font-size:11px;color:#0217D3;font-weight:500;">· active</span>' : '') + '</span>' +
+                '<span style="font-size:12px;color:#9A9AA8;flex-shrink:0;">' + st.prompted + '/' + st.total + ' shots</span>' +
+              '</div>';
+            }).join('') +
+          '</div>'
+        : '');
+
+    this.bind(mount);
+  }
+
+  bind(mount) {
+    mount.querySelectorAll('[data-home]').forEach((el) => {
+      el.onclick = () => {
+        const act = el.getAttribute('data-home');
+        if (act === 'new') window.location.href = 'newproject.html';
+        else if (act === 'go') window.location.href = el.getAttribute('data-dest');
+        else if (act === 'switch') {
+          Store.setActive({ projectId: el.getAttribute('data-pid') });
+          this.renderHome();
+        }
+      };
+    });
+  }
+
+  renderVals() {
+    return {
+      newProject: () => { window.location.href = 'newproject.html'; }
+    };
+  }
+}
+</script>
+<script src="./store.js"></script>
+<script src="./nav.js"></script>
+<script src="./updater.js"></script>
+</body>
+</html>

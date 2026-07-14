@@ -89,8 +89,10 @@
     return Object.assign({}, doc.settings);
   }
   function isConfigured() {
-    var s = load().settings;
-    return !!(s.configured && s.claudeApiKey);
+    // The API key is optional at setup (addable later in AI setup), so the
+    // launch gate is the flag alone — requiring the key here would loop
+    // key-less users back into onboarding forever.
+    return !!load().settings.configured;
   }
   function markConfigured() { return setSettings({ configured: true }); }
 
@@ -113,7 +115,7 @@
       todos: [],
       concepts: [
         { id: firstConceptId, name: 'Concept 1',
-          shots: [ { id: firstShotId, name: 'Shot 1', status: 'draft', builder: defaultBuilder() } ] }
+          shots: [ { id: firstShotId, name: 'Shot 1', label: '1A', status: 'draft', builder: defaultBuilder() } ] }
       ]
     };
     doc.projects.push(p);
@@ -154,6 +156,15 @@
     p.concepts.push(c); p.updatedAt = now(); save(doc);
     return c;
   }
+  // Shot labels: concept number + letter — 1A, 1B, … 1Z, 1AA, 2A …
+  function shotLetter(i) {
+    var s = '';
+    do { s = String.fromCharCode(65 + (i % 26)) + s; i = Math.floor(i / 26) - 1; } while (i >= 0);
+    return s;
+  }
+  function shotLabel(conceptIndex, shotIndex) {
+    return (conceptIndex + 1) + shotLetter(shotIndex);
+  }
   function addShot(projectId, conceptId, opts) {
     opts = opts || {};
     var doc = load();
@@ -161,9 +172,11 @@
     if (!p) return null;
     var c = p.concepts.filter(function (x) { return x.id === conceptId; })[0];
     if (!c) return null;
+    var ci = p.concepts.indexOf(c);
     var s = {
       id: newId('shot'),
       name: opts.name || ('Shot ' + (c.shots.length + 1)),
+      label: opts.label || shotLabel(ci, c.shots.length),
       status: 'draft',
       builder: opts.builder || defaultBuilder()
     };
@@ -330,9 +343,13 @@
         desc: c.desc || c.description || parts.slice(1).join(' — ') || '',
         shots: (Array.isArray(shots) && shots.length ? shots : [{}]).map(function (sh, j) {
           sh = (sh && typeof sh === 'object') ? sh : {};
+          // Honor the plan's label ("1A", "2C"…) when well-formed; else generate.
+          var lbl = String(sh.label || '').trim().toUpperCase();
+          if (!/^\d+[A-Z]+$/.test(lbl)) lbl = shotLabel(i, j);
           return {
             id: newId('shot'),
             name: sh.name || sh.title || ('Shot ' + (j + 1)),
+            label: lbl,
             status: 'draft',
             builder: defaultBuilder()
           };
@@ -363,6 +380,7 @@
     getActive: getActive, setActive: setActive,
     getStylePrefix: getStylePrefix, setStylePrefix: setStylePrefix,
     scaffoldFromPlan: scaffoldFromPlan,
-    defaultBuilder: defaultBuilder
+    defaultBuilder: defaultBuilder,
+    shotLabel: shotLabel
   };
 })();

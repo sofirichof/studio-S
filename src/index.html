@@ -104,7 +104,7 @@
         <div id="step-basics" style="display:none;">
           <p style="font-size:12px; font-weight:500; color:#9A9AA8; margin-bottom:8px; letter-spacing:0.02em;">Setup · Basics</p>
           <h2 style="font-size:22px; font-weight:500; color:#16161D; margin-bottom:6px; letter-spacing:-0.01em;">Tell us about your work</h2>
-          <p style="font-size:14px; color:#5A5A6B; margin-bottom:32px; line-height:1.6;">Configure the three things the studio needs to run — you won't be asked again.</p>
+          <p style="font-size:14px; color:#5A5A6B; margin-bottom:32px; line-height:1.6;">Two things and you're in — you won't be asked again.</p>
 
           <div style="display:flex; flex-direction:column; gap:24px;">
 
@@ -131,148 +131,6 @@
               <p style="font-size:12px; color:#9A9AA8; margin-top:6px;">Where generated stills and video clips are saved.</p>
             </div>
 
-            <!-- Default model -->
-            <div>
-              <label style="font-size:12px; font-weight:500; color:#16161D; display:block; margin-bottom:10px;">Default video model</label>
-              <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                <span class="choice-card selected" onclick="{{ selectTool }}" data-val="kling" style="padding:8px 16px; border:1px solid #0217D3; border-radius:8px; font-size:13px; cursor:pointer; transition:all 0.12s; color:#0217D3; background:#EEF0FF;">Kling 3.0</span>
-                <span class="choice-card" onclick="{{ selectTool }}" data-val="seedance" style="padding:8px 16px; border:1px solid rgba(16,16,32,0.12); border-radius:8px; font-size:13px; cursor:pointer; transition:all 0.12s; color:#16161D; background:#fff;">Seedance 2.0</span>
-                <span class="choice-card" onclick="{{ selectTool }}" data-val="runway" style="padding:8px 16px; border:1px solid rgba(16,16,32,0.12); border-radius:8px; font-size:13px; cursor:pointer; transition:all 0.12s; color:#16161D; background:#fff;">Runway Gen-4</span>
-                <span class="choice-card" onclick="{{ selectTool }}" data-val="sora" style="padding:8px 16px; border:1px solid rgba(16,16,32,0.12); border-radius:8px; font-size:13px; cursor:pointer; transition:all 0.12s; color:#16161D; background:#fff;">Sora</span>
-                <span class="choice-card" onclick="{{ selectTool }}" data-val="higgsfield" style="padding:8px 16px; border:1px solid rgba(16,16,32,0.12); border-radius:8px; font-size:13px; cursor:pointer; transition:all 0.12s; color:#16161D; background:#fff;">Higgsfield</span>
-                <span class="choice-card" onclick="{{ selectTool }}" data-val="mixed" style="padding:8px 16px; border:1px solid rgba(16,16,32,0.12); border-radius:8px; font-size:13px; cursor:pointer; transition:all 0.12s; color:#16161D; background:#fff;">Mix of tools</span>
-              </div>
-              <p style="font-size:12px; color:#9A9AA8; margin-top:8px;">Sets prompt defaults and model-specific guidance in the builder. Changeable per project.</p>
-            </div>
-
-          </div>
-        </div>
-
-        <!-- Step 3: Plan with Claude -->
-        <div id="step-plan" style="display:none;">
-          <p style="font-size:12px; font-weight:500; color:#9A9AA8; margin-bottom:8px; letter-spacing:0.02em;">Setup · Plan</p>
-          <h2 style="font-size:22px; font-weight:500; color:#16161D; margin-bottom:6px; letter-spacing:-0.01em;">Point Claude at your assets</h2>
-          <p style="font-size:14px; color:#5A5A6B; margin-bottom:24px; line-height:1.6;">Claude reads your brief, references, and any existing materials — then writes a production plan. The studio scaffolds your concepts and shots from it automatically.</p>
-
-          <!-- Project name -->
-          <div style="background:#fff; border:1px solid rgba(16,16,32,0.10); border-radius:12px; padding:20px; margin-bottom:16px;">
-            <p style="font-size:12px; font-weight:500; color:#16161D; margin-bottom:10px;">Project name</p>
-            <input id="np-name" type="text" placeholder="e.g. US Bank — Rotation 4" oninput="{{ setProjectName }}" style="width:100%; box-sizing:border-box; height:36px; background:#F7F5EF; border:1px solid rgba(16,16,32,0.08); border-radius:10px; padding:0 12px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:13px; color:#16161D; outline:none;" />
-            <p style="font-size:12px; color:#9A9AA8; margin-top:10px; line-height:1.5;">Give this project a name. If you leave it blank we'll name it after the folder.</p>
-          </div>
-
-          <!-- Step 1: Folder picker -->
-          <div style="background:#fff; border:1px solid rgba(16,16,32,0.10); border-radius:12px; padding:20px; margin-bottom:16px;">
-            <p style="font-size:12px; font-weight:500; color:#16161D; margin-bottom:12px;"><span style="display:inline-flex; width:18px; height:18px; background:#0217D3; border-radius:50%; align-items:center; justify-content:center; margin-right:6px; font-size:10px; color:#fff; font-weight:500; vertical-align:middle;">1</span>Choose your assets folder</p>
-            <div style="display:flex; gap:10px; align-items:center;">
-              <div style="flex:1; height:36px; background:#F7F5EF; border:1px solid rgba(16,16,32,0.08); border-radius:10px; padding:0 12px; display:flex; align-items:center; gap:8px; overflow:hidden;">
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#9A9AA8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M1 4.5C1 3.67 1.67 3 2.5 3h2.29a1 1 0 0 1 .7.29L6.71 4.5H11.5c.83 0 1.5.67 1.5 1.5v5c0 .83-.67 1.5-1.5 1.5h-9C1.67 12.5 1 11.83 1 11v-6.5z"/></svg>
-                <span style="font-size:13px; color:#9A9AA8; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" id="folder-path-display">No folder selected</span>
-              </div>
-              <button onclick="{{ pickFolder }}" style="height:36px; padding:0 16px; background:#fff; border:1px solid rgba(16,16,32,0.12); border-radius:8px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:13px; font-weight:500; color:#16161D; cursor:pointer; white-space:nowrap; transition:all 0.12s; flex-shrink:0;" onmouseover="this.style.background='#F0F1F4'" onmouseout="this.style.background='#fff'">Choose folder</button>
-            </div>
-            <p style="font-size:12px; color:#9A9AA8; margin-top:10px; line-height:1.5;">Drop your brief, storyboard, references, and scripts in one folder. Claude reads everything in it.</p>
-          </div>
-
-          <!-- Step 2: Copy build instructions (shown after folder picked) -->
-          <div id="plan-instructions-panel" style="display:none; background:#EEF0FF; border:1px solid rgba(2,23,211,0.15); border-radius:12px; padding:20px; margin-bottom:16px;">
-            <p style="font-size:12px; font-weight:500; color:#0217D3; margin-bottom:4px;"><span style="display:inline-flex; width:18px; height:18px; background:#0217D3; border-radius:50%; align-items:center; justify-content:center; margin-right:6px; font-size:10px; color:#fff; font-weight:500; vertical-align:middle;">2</span>Send to Claude</p>
-            <p style="font-size:12px; color:#5A5A6B; margin-bottom:14px; line-height:1.5;">Copy these instructions and paste them into Claude.ai or Claude Code. Claude will read your folder and write the production plan.</p>
-            <div style="position:relative;">
-              <textarea id="plan-instructions-text" readonly style="width:100%; box-sizing:border-box; height:110px; background:#fff; border:1px solid rgba(2,23,211,0.15); border-radius:8px; padding:12px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:11.5px; color:#5A5A6B; line-height:1.55; resize:none; outline:none; cursor:text;"></textarea>
-              <button onclick="{{ copyInstructions }}" id="copy-instructions-btn" style="position:absolute; top:8px; right:8px; height:28px; padding:0 12px; background:#0217D3; border:none; border-radius:6px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:11px; font-weight:500; color:#fff; cursor:pointer; display:flex; align-items:center; gap:5px; transition:opacity 0.12s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
-                <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="6" height="6" rx="1"/><path d="M1.5 7.5V2a1 1 0 0 1 1-1h5.5"/></svg>
-                Copy
-              </button>
-            </div>
-          </div>
-
-          <!-- Step 3: Scan for plan -->
-          <div id="plan-scan-panel" style="display:none; background:#fff; border:1px solid rgba(16,16,32,0.10); border-radius:12px; padding:20px;">
-            <p style="font-size:12px; font-weight:500; color:#16161D; margin-bottom:4px;"><span style="display:inline-flex; width:18px; height:18px; background:#0217D3; border-radius:50%; align-items:center; justify-content:center; margin-right:6px; font-size:10px; color:#fff; font-weight:500; vertical-align:middle;">3</span>Import the plan</p>
-            <p style="font-size:12px; color:#9A9AA8; margin-bottom:14px; line-height:1.5;">Once Claude has written <strong>studio-s-plan.json</strong> to your folder, click Scan to pull it in.</p>
-            <div style="display:flex; gap:10px; align-items:center;">
-              <button onclick="{{ scanForPlan }}" style="height:36px; padding:0 20px; background:#0217D3; border:none; border-radius:8px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:13px; font-weight:500; color:#fff; cursor:pointer; transition:opacity 0.12s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">Scan for plan</button>
-              <span id="plan-scan-status" style="font-size:12px; color:#9A9AA8;"></span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Step 4: Pipeline orientation -->
-        <div id="step-pipeline" style="display:none;">
-          <p style="font-size:12px; font-weight:500; color:#9A9AA8; margin-bottom:8px; letter-spacing:0.02em;">Setup · Pipeline</p>
-          <h2 style="font-size:22px; font-weight:500; color:#16161D; margin-bottom:6px; letter-spacing:-0.01em;">Your production pipeline</h2>
-          <p style="font-size:14px; color:#5A5A6B; margin-bottom:32px; line-height:1.6;">Four stages, each with a specialist tool. Studio S sits at the centre — prompts to stills to video.</p>
-
-          <div style="display:flex; flex-direction:column; gap:12px;">
-            <!-- Stage 1 -->
-            <div class="pipeline-node" style="background:#fff; border:1px solid rgba(16,16,32,0.10); border-radius:12px; padding:18px 20px; display:flex; align-items:center; gap:16px; transition:border-color 0.12s; cursor:default;">
-              <div style="width:36px; height:36px; background:#F0F1F4; border-radius:8px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="#5A5A6B" stroke-width="1.5" stroke-linecap="round"><circle cx="9" cy="9" r="7"/><path d="M9 6v3l2 2"/></svg>
-              </div>
-              <div style="flex:1;">
-                <p style="font-size:14px; font-weight:500; color:#16161D; margin-bottom:2px;">1 · Claude</p>
-                <p style="font-size:13px; color:#5A5A6B; line-height:1.5;">Ideate, plan, brief. Claude reads your assets and writes the production plan.</p>
-              </div>
-              <span style="font-size:11px; font-weight:500; background:#F0F1F4; color:#9A9AA8; padding:3px 10px; border-radius:999px; flex-shrink:0;">Ideate</span>
-            </div>
-
-            <!-- Connector -->
-            <div style="display:flex; align-items:center; justify-content:center; height:16px;">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#ECEDF0" stroke-width="1.5" stroke-linecap="round"><path d="M8 2v12M4 10l4 4 4-4"/></svg>
-            </div>
-
-            <!-- Stage 2 - active -->
-            <div class="pipeline-node" style="background:#EEF0FF; border:1px solid #0217D3; border-radius:12px; padding:18px 20px; display:flex; align-items:center; gap:16px; transition:border-color 0.12s; cursor:default;">
-              <div style="width:36px; height:36px; background:#0217D3; border-radius:8px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                <svg width="18" height="18" viewBox="0 0 22 22" fill="none"><rect x="3" y="3" width="7" height="7" rx="1.5" fill="white"/><rect x="12" y="3" width="7" height="7" rx="1.5" fill="white" opacity=".45"/><rect x="3" y="12" width="7" height="7" rx="1.5" fill="white" opacity=".45"/><rect x="12" y="12" width="7" height="7" rx="1.5" fill="white"/></svg>
-              </div>
-              <div style="flex:1;">
-                <p style="font-size:14px; font-weight:500; color:#0217D3; margin-bottom:2px;">2 · Studio S — you are here</p>
-                <p style="font-size:13px; color:#5A5A6B; line-height:1.5;">Prompt Builder → stills → image-to-video → music &amp; SFX.</p>
-              </div>
-              <span style="font-size:11px; font-weight:500; background:#0217D3; color:#fff; padding:3px 10px; border-radius:999px; flex-shrink:0;">Active</span>
-            </div>
-
-            <!-- Connector -->
-            <div style="display:flex; align-items:center; justify-content:center; height:16px;">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#ECEDF0" stroke-width="1.5" stroke-linecap="round"><path d="M8 2v12M4 10l4 4 4-4"/></svg>
-            </div>
-
-            <!-- Stage 3 -->
-            <div class="pipeline-node" style="background:#fff; border:1px solid rgba(16,16,32,0.10); border-radius:12px; padding:18px 20px; display:flex; align-items:center; gap:16px; transition:border-color 0.12s; cursor:default; opacity:0.65;">
-              <div style="width:36px; height:36px; background:#F0F1F4; border-radius:8px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="#5A5A6B" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="3" width="14" height="12" rx="2"/><path d="M2 7h14"/></svg>
-              </div>
-              <div style="flex:1;">
-                <p style="font-size:14px; font-weight:500; color:#16161D; margin-bottom:2px;">3 · Palmier (handoff)</p>
-                <p style="font-size:13px; color:#5A5A6B; line-height:1.5;">Hand off to Palmier to edit and assemble your cut. Studio S opens Palmier and tracks the versions — the editing happens there, not in this app.</p>
-              </div>
-              <span style="font-size:11px; font-weight:500; background:#F0F1F4; color:#9A9AA8; padding:3px 10px; border-radius:999px; flex-shrink:0; display:flex; align-items:center; gap:4px;">
-                <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="#9A9AA8" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="4" width="6" height="5" rx="1"/><path d="M3.5 4V3a1.5 1.5 0 0 1 3 0v1"/></svg>
-                Up next
-              </span>
-            </div>
-
-            <!-- Connector -->
-            <div style="display:flex; align-items:center; justify-content:center; height:16px;">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#ECEDF0" stroke-width="1.5" stroke-linecap="round"><path d="M8 2v12M4 10l4 4 4-4"/></svg>
-            </div>
-
-            <!-- Stage 4 -->
-            <div class="pipeline-node" style="background:#fff; border:1px solid rgba(16,16,32,0.10); border-radius:12px; padding:18px 20px; display:flex; align-items:center; gap:16px; transition:border-color 0.12s; cursor:default; opacity:0.65;">
-              <div style="width:36px; height:36px; background:#F0F1F4; border-radius:8px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="#5A5A6B" stroke-width="1.5" stroke-linecap="round"><path d="M9 2v14M2 9h14"/></svg>
-              </div>
-              <div style="flex:1;">
-                <p style="font-size:14px; font-weight:500; color:#16161D; margin-bottom:2px;">4 · Finishing</p>
-                <p style="font-size:13px; color:#5A5A6B; line-height:1.5;">Premiere edit, DaVinci colour, After Effects motion. Human craft on top of AI foundations.</p>
-              </div>
-              <span style="font-size:11px; font-weight:500; background:#F0F1F4; color:#9A9AA8; padding:3px 10px; border-radius:999px; flex-shrink:0; display:flex; align-items:center; gap:4px;">
-                <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="#9A9AA8" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="4" width="6" height="5" rx="1"/><path d="M3.5 4V3a1.5 1.5 0 0 1 3 0v1"/></svg>
-                Up next
-              </span>
-            </div>
           </div>
         </div>
 
@@ -282,11 +140,11 @@
             <svg width="28" height="28" viewBox="0 0 28 28" fill="none" stroke="#1D9E75" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="5,14 11,20 23,8"/></svg>
           </div>
           <h2 style="font-size:22px; font-weight:500; color:#16161D; margin-bottom:8px; letter-spacing:-0.01em;">You're all set</h2>
-          <p style="font-size:14px; color:#5A5A6B; margin-bottom:40px; line-height:1.6; max-width:400px; margin-left:auto; margin-right:auto;">Your studio is configured. Start with the Prompt Builder to build your first shot — or head to Projects to set up a new campaign.</p>
+          <p style="font-size:14px; color:#5A5A6B; margin-bottom:40px; line-height:1.6; max-width:400px; margin-left:auto; margin-right:auto;">Your studio is configured. Create your first project — Claude reads your assets folder and scaffolds the shot list — or have a look around first.</p>
 
           <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
-            <button onclick="{{ openProjects }}" style="height:44px; padding:0 24px; background:#fff; border:1px solid rgba(16,16,32,0.12); border-radius:8px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:14px; font-weight:500; color:#16161D; cursor:pointer; transition:all 0.12s;" onmouseover="this.style.background='#F0F1F4'" onmouseout="this.style.background='#fff'">View projects</button>
-            <button onclick="{{ openBuilder }}" style="height:44px; padding:0 24px; background:#0217D3; border:none; border-radius:8px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:14px; font-weight:500; color:#fff; cursor:pointer; transition:background 0.12s;" onmouseover="this.style.background='#0212A8'" onmouseout="this.style.background='#0217D3'">Open Prompt Builder</button>
+            <button onclick="{{ openHome }}" style="height:44px; padding:0 24px; background:#fff; border:1px solid rgba(16,16,32,0.12); border-radius:8px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:14px; font-weight:500; color:#16161D; cursor:pointer; transition:all 0.12s;" onmouseover="this.style.background='#F0F1F4'" onmouseout="this.style.background='#fff'">Go to Home</button>
+            <button onclick="{{ openNewProject }}" style="height:44px; padding:0 24px; background:#0217D3; border:none; border-radius:8px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:14px; font-weight:500; color:#fff; cursor:pointer; transition:background 0.12s;" onmouseover="this.style.background='#0212A8'" onmouseout="this.style.background='#0217D3'">Create first project</button>
           </div>
 
           <!-- Quick stats -->
@@ -327,7 +185,7 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1280, &quot;height&quot;: 800}}">
 class Component extends DCLogic {
-  state = { step: 0, model: 'kling', assetsFolder: '', outputFolder: '', projectName: '' }; // 0=welcome, 1=basics, 2=plan, 3=pipeline, 4=done
+  state = { step: 0, outputFolder: '' }; // 0=welcome, 1=basics, 2=done
 
   // Native folder picker (Tauri). Returns a path string or '' if unavailable/cancelled.
   async pickDir() {
@@ -343,30 +201,21 @@ class Component extends DCLogic {
 
   componentDidMount() {
     const configured = !!(window.Store && Store.isConfigured());
-    // "New project" mode (?new=1): user is already set up — skip the welcome video
-    // and run the quiz directly to build a new project.
-    this.isNewProject = /[?&]new=1\b/.test(window.location.search);
-    if (this.isNewProject) {
-      // Already-configured users don't re-enter Basics (API key / model / folder) to
-      // make a new project — jump straight to Plan. Seed the model from saved settings
-      // so finishSetup()'s saveBasics() doesn't clobber it back to the default.
-      const startStep = configured ? 2 : 1;
-      this.newProjectFloor = startStep;
-      const patch = { step: startStep };
-      if (configured) patch.model = Store.getSettings().defaultVideoModel || this.state.model;
-      this.setState(patch); this.renderStep(startStep);
+    // Legacy "?new=1" links: project creation lives on its own page now.
+    if (/[?&]new=1\b/.test(window.location.search)) {
+      window.location.href = 'newproject.html';
+      return;
     }
-    else if (configured) {
-      // Returning, configured users skip the welcome/setup flow entirely (the wizard
+    if (configured) {
       // promises "you won't be asked again"). Settings stay editable on the AI-setup page.
-      window.location.href = 'projects.html';
+      window.location.href = 'home.html';
       return;
     }
     else { this.renderStep(0); } // first run: show the welcome video
     // Only wire up the welcome video when the welcome step is actually shown. In
     // ?new=1 mode the welcome step is hidden, so playing it would leak audio from
     // an invisible element and install global unmute listeners on the wizard.
-    const v = this.isNewProject ? null : document.querySelector('#step-welcome video');
+    const v = document.querySelector('#step-welcome video');
     if (v) {
       v.volume = 1;
       // Try with sound first (works in the Tauri app). If a browser blocks it,
@@ -407,7 +256,7 @@ class Component extends DCLogic {
   renderStep(step) {
     const welcome = document.getElementById('step-welcome');
     const shell = document.getElementById('light-shell');
-    const stepEls = ['step-basics','step-plan','step-pipeline','step-done'];
+    const stepEls = ['step-basics','step-done'];
 
     if (step === 0) {
       welcome.style.display = 'flex';
@@ -430,22 +279,14 @@ class Component extends DCLogic {
       }
     });
 
-    // Keep the Claude handoff instructions in sync with the current generator:
-    // if the folder was picked earlier and the user then changed the model on
-    // Basics, the textarea would otherwise still show the old generator's guide.
-    if (step === 2 && this.state.assetsFolder) {
-      const ta = document.getElementById('plan-instructions-text');
-      if (ta) ta.value = this.buildClaudeInstructions(this.state.assetsFolder);
-    }
-
-    // Progress bar: steps 1-4
-    const pct = [25, 50, 75, 100][step - 1] || 25;
+    // Progress bar: steps 1-2
+    const pct = [50, 100][step - 1] || 50;
     const bar = document.getElementById('progress-bar');
     if (bar) bar.style.width = pct + '%';
 
     // Counter
     const counter = document.getElementById('step-counter');
-    if (counter) counter.textContent = `Step ${step} of 4`;
+    if (counter) counter.textContent = `Step ${step} of 2`;
 
     // Wizard step dots
     this.renderWizardHeader(step);
@@ -454,15 +295,15 @@ class Component extends DCLogic {
     const footer = document.getElementById('step-footer');
     const btnBack = document.getElementById('btn-back');
     const btnNext = document.getElementById('btn-next');
-    if (footer) footer.style.display = step === 5 ? 'none' : 'flex';
+    if (footer) footer.style.display = step === 2 ? 'none' : 'flex';
     if (btnBack) btnBack.style.visibility = step <= 1 ? 'hidden' : 'visible';
-    if (btnNext) btnNext.textContent = step === 4 ? 'Finish setup' : 'Continue';
+    if (btnNext) btnNext.textContent = 'Finish setup';
   }
 
   renderWizardHeader(current) {
     const container = document.getElementById('wizard-steps');
     if (!container) return;
-    const steps = ['Basics', 'Plan', 'Pipeline', 'Done'];
+    const steps = ['Basics', 'Done'];
     container.innerHTML = steps.map((label, i) => {
       const num = i + 1;
       const done = current > num;
@@ -498,100 +339,24 @@ class Component extends DCLogic {
       },
       goStep1: () => {
         // Returning, configured users skip setup and go straight to the app.
-        if (window.Store && Store.isConfigured()) { window.location.href = 'projects.html'; return; }
+        if (window.Store && Store.isConfigured()) { window.location.href = 'home.html'; return; }
         this.setState({ step: 1 });
         this.renderStep(1);
       },
       goNext: () => {
-        // Persist Basics fields before advancing past step 1.
-        if (this.state.step === 1) this.saveBasics();
-        const next = Math.min(this.state.step + 1, 4);
-        if (this.state.step === 4) { this.finishSetup(); return; }
-        this.setState({ step: next });
-        this.renderStep(next);
+        // Finishing Basics IS finishing setup — persist and mark configured,
+        // then show the Done step with its own destination buttons.
+        if (this.state.step === 1) {
+          this.saveBasics();
+          if (window.Store) Store.markConfigured();
+          this.setState({ step: 2 });
+          this.renderStep(2);
+        }
       },
       goBack: () => {
-        const prev = Math.max(this.state.step - 1, this.newProjectFloor || 0);
+        const prev = Math.max(this.state.step - 1, 0);
         this.setState({ step: prev });
         this.renderStep(prev);
-      },
-      selectTool: (e) => {
-        const cards = document.querySelectorAll('.choice-card');
-        cards.forEach(c => {
-          c.style.borderColor = 'rgba(16,16,32,0.12)';
-          c.style.background = '#fff';
-          c.style.color = '#16161D';
-        });
-        e.currentTarget.style.borderColor = '#0217D3';
-        e.currentTarget.style.background = '#EEF0FF';
-        e.currentTarget.style.color = '#0217D3';
-        this.setState({ model: e.currentTarget.getAttribute('data-val') || 'kling' });
-      },
-      setProjectName: (e) => { this.state.projectName = (e && e.currentTarget ? e.currentTarget.value : ''); },
-      pickFolder: async () => {
-        const display = document.getElementById('folder-path-display');
-        if (!(window.__TAURI__ && window.__TAURI__.dialog && window.__TAURI__.dialog.open)) {
-          if (display) { display.textContent = 'Folder picking works in the Studio S desktop app only — open the app to choose a folder.'; display.style.color = '#9A5B00'; }
-          return;
-        }
-        const dir = await this.pickDir();
-        if (!dir) return;
-        this.setState({ assetsFolder: dir });
-        if (display) { display.textContent = dir; display.style.color = '#16161D'; }
-
-        // Show the handoff panels
-        const instrPanel = document.getElementById('plan-instructions-panel');
-        const scanPanel = document.getElementById('plan-scan-panel');
-        if (instrPanel) instrPanel.style.display = 'block';
-        if (scanPanel) scanPanel.style.display = 'block';
-
-        // Populate the instructions textarea
-        const textarea = document.getElementById('plan-instructions-text');
-        if (textarea) textarea.value = this.buildClaudeInstructions(dir);
-      },
-      copyInstructions: () => {
-        const textarea = document.getElementById('plan-instructions-text');
-        if (!textarea) return;
-        navigator.clipboard.writeText(textarea.value).catch(() => {
-          textarea.select();
-          document.execCommand('copy');
-        });
-        const btn = document.getElementById('copy-instructions-btn');
-        if (btn) {
-          btn.innerHTML = '<svg width="11" height="11" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg> Copied!';
-          setTimeout(() => {
-            btn.innerHTML = '<svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="6" height="6" rx="1"/><path d="M1.5 7.5V2a1 1 0 0 1 1-1h5.5"/></svg> Copy';
-          }, 2000);
-        }
-      },
-      scanForPlan: async () => {
-        const dir = this.state.assetsFolder;
-        const status = document.getElementById('plan-scan-status');
-        if (!dir) { if (status) status.textContent = 'Pick a folder first.'; return; }
-        if (status) status.textContent = 'Scanning…';
-        try {
-          const t = window.__TAURI__;
-          if (t && t.core && t.core.invoke) {
-            const plan = await t.core.invoke('scan_plan_folder', { dir });
-            if (plan && plan.content) {
-              const name = (this.state.projectName || '').trim() || dir.split('/').filter(Boolean).pop() || 'New project';
-              // Reuse the project already created for this folder so re-scanning
-              // (e.g. while waiting for Claude to write the file) doesn't spawn
-              // duplicate projects — it just refreshes the same one.
-              let p = (Store.listProjects() || []).filter((x) => x.assetsFolder === dir)[0];
-              if (!p) p = Store.createProject({ name, assetsFolder: dir, outputFolder: this.state.outputFolder });
-              Store.scaffoldFromPlan(p.id, plan.content);
-              this.createdProjectId = p.id; // so finishSetup opens this project
-              if (status) { status.textContent = '✓ Plan imported — concepts and shots ready.'; status.style.color = '#0217D3'; }
-            } else {
-              if (status) { status.textContent = 'No plan file found yet. Paste the instructions into Claude and try again.'; status.style.color = '#9A9AA8'; }
-            }
-          } else {
-            if (status) { status.textContent = 'Available in the desktop app only.'; status.style.color = '#9A9AA8'; }
-          }
-        } catch (e) {
-          if (status) { status.textContent = 'Scan failed — check the folder path.'; status.style.color = '#FF002E'; }
-        }
       },
       pickOutputFolder: async () => {
         const display = document.getElementById('output-folder-display');
@@ -605,111 +370,20 @@ class Component extends DCLogic {
         if (window.Store) Store.setSettings({ defaultOutputFolder: dir });
         if (display) { display.textContent = dir; display.style.color = '#16161D'; }
       },
-      openProjects: () => { this.finishSetup('projects.html'); },
-      openBuilder: () => { this.finishSetup('promptbuilder.html'); },
+      openHome: () => { window.location.href = 'home.html'; },
+      openNewProject: () => { window.location.href = 'newproject.html'; },
     };
-  }
-
-  generatorGuide(model) {
-    // Per-generator prompt-engineering craft so each shot "name" is written in the
-    // native prompt language of the tool the user actually generates in.
-    var guides = {
-      seedance: `GENERATOR: Seedance 2.0 — write each shot as a Seedance prompt (English only).
-Structure each shot's text in this order:
-  Characters: short, specific, vivid anchors — only the characters in this shot; carry their state forward (wet hair, bloodied knuckle, same wardrobe).
-  Scene: 1–2 sentences, geo-spatial — where each person is relative to the location and each other.
-  CUT 1 — [shot type, lens feel, movement]: acting beat, eye-line, breath, what the camera does, what the light does.
-  CUT 2 / CUT 3 as needed.
-Each shot targets ~15s; a held single shot or a 3-cut sequence are both valid — design it to fill the 15s. Photoreal, natural light, 24fps, environmental sound only, no on-screen text.`,
-      higgsfield: `GENERATOR: Higgsfield — write each shot as a Higgsfield image-to-video prompt (English).
-Higgsfield leads with a CAMERA-MOTION preset, so name the move first, then describe subject motion concisely:
-  • Open with the camera motion (e.g. "Crash Zoom in", "Bullet Time orbit", "Robo-arm push", "FPV drone", "Dolly-in", "Whip-pan").
-  • Then the subject's motion/action in one or two clear clauses.
-  • Keep it tight — Higgsfield rewards a strong single move + clear subject action over dense paragraphs.
-  • Note the start-frame intent (what the first still shows) since these are image-to-video.`,
-      kling: `GENERATOR: Kling 3.0 — camera instruction FIRST, the still is the anchor. "Slow push-in. Subject: … Scene: … Camera: smooth dolly-in, eye level. Preserve source framing." Keep environmental events minimal; Kling spends its budget on subject + camera motion.`,
-      runway: `GENERATOR: Runway Gen-4 — concise motion brief. State the camera move + subject action, and emphasise "stable / consistent / no distortion" to avoid drift. Short clip (~4s).`,
-      sora: `GENERATOR: Sora — describe each shot as a short filmed scene in natural narrative prose ("A four-second shot: … as the camera eases slowly inward. Continuous take."), not parameters.`,
-      mixed: `GENERATOR: Mixed tools — write cinematic, tool-agnostic shot descriptions (shot type, lens, blocking, acting beat, light, camera move) that translate cleanly into Seedance, Kling, Runway, Higgsfield, or Sora.`
-    };
-    return guides[model] || guides.mixed;
-  }
-
-  buildClaudeInstructions(folderPath) {
-    const model = this.state.model || 'kling';
-    return `You are a top-tier film director and cinematographer building a production plan for the Studio S app (Supergood). You turn briefs and scripts into a shot-by-shot plan the studio scaffolds into concepts and shots.
-
-Assets folder: ${folderPath}
-
-${this.generatorGuide(model)}
-
-STEP 1 — Read everything in the folder: brief, storyboard, references, mood boards, and especially any SCRIPT, treatment, or scene breakdown.
-
-STEP 2 — Build the shot list, writing every shot's prompt in the GENERATOR convention above.
-
-▸ IF THERE IS A SCRIPT (or treatment / scene breakdown):
-Act as a shotlist director — this is cinema, not a clip. Don't transcribe the script into beats; block, light, and pace it. For each scene:
-  • Block the mise-en-scène — where each character stands/moves, geo-spatial position, what hands are doing.
-  • Pace dramatically — give heavy moments their own shots; compress action into short ones.
-  • Direct the acting specifically — not "she looks sad" but "eyes drop, jaw tightens, swallows once before answering."
-  • Specify the camera — lens, height, movement, and its motivation ("low-angle 35mm slow dolly-in as she realizes").
-  • Hold continuity in your head — character state, wardrobe, props, emotional carry across shots.
-Split a long scene into multiple shots. Each shot "name" is the full prompt-ready text in the generator's convention (English).
-
-▸ IF THERE IS NO SCRIPT (brief only):
-Derive 2–5 concepts from the brief (e.g. "Hero product reveal", "Lifestyle sequence", "Testimonial cut"), each with 3–8 specific shots, each written in the generator convention.
-
-STEP 3 — Write the plan as JSON to: ${folderPath}/studio-s-plan.json
-
-Exact format:
-{
-  "concepts": [
-    {
-      "name": "Concept / scene name — one-line description of what happens",
-      "shots": [
-        { "name": "Full prompt-ready shot text in the generator's convention" },
-        { "name": "Next shot — same craft and convention" }
-      ]
-    }
-  ],
-  "todos": [
-    "Production step, e.g. Generate stills for all shots",
-    "Next step, e.g. Test hero shots in motion",
-    "Next step, e.g. Review selects with client"
-  ]
-}
-
-One scene = one concept; split long scenes into multiple shots under it. "todos" is this project's ordered production checklist — the concrete steps from here to delivery (generation, motion tests, review, handoff); 4–8 items.`;
   }
 
   saveBasics() {
     if (!window.Store) return;
     const key = (document.getElementById('claude-key-input') || {}).value || '';
-    const patch = { defaultVideoModel: this.state.model };
+    const patch = {};
     if (key) patch.claudeApiKey = key;
     if (this.state.outputFolder) patch.defaultOutputFolder = this.state.outputFolder;
     Store.setSettings(patch);
   }
 
-  finishSetup(dest) {
-    if (window.Store) { this.saveBasics(); Store.markConfigured(); }
-    // Make sure a project exists whenever the user named one or scanned a folder —
-    // in first-run setup too, not just the ?new=1 quiz — so a typed name is never
-    // silently dropped (previously first-run finished with "No project yet").
-    if (window.Store) {
-      let id = this.createdProjectId;
-      const name = (this.state.projectName || '').trim() || (this.state.assetsFolder || '').split('/').filter(Boolean).pop() || '';
-      if (!id && (name || this.isNewProject)) {
-        const p = Store.createProject({ name: name || 'Untitled project', assetsFolder: this.state.assetsFolder || '', outputFolder: this.state.outputFolder || '' });
-        id = p.id;
-      }
-      if (id) Store.setActive({ projectId: id });
-      // The ?new=1 quiz always opens the builder on the new project.
-      if (this.isNewProject) { window.location.href = 'promptbuilder.html'; return; }
-    }
-    // First-run: honor the button the user clicked on the Done step.
-    window.location.href = dest || 'projects.html';
-  }
 }
 
 </script>
@@ -717,4 +391,3 @@ One scene = one concept; split long scenes into multiple shots under it. "todos"
 <script src="./nav.js"></script>
 <script src="./updater.js"></script>
 </body>
-</html>
