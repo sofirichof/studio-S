@@ -82,6 +82,27 @@ class Component extends DCLogic {
     return { total, prompted };
   }
 
+  // Client label for a project — hides the migration placeholder "Unassigned".
+  clientLabel(p) {
+    if (!p || !p.clientId || !Store.getClient) return '';
+    const c = Store.getClient(p.clientId);
+    return (c && c.name && c.name !== 'Unassigned') ? c.name : '';
+  }
+
+  // Interim pipeline stage from shot data (deliverable/version signals layer in
+  // once those exist). Honest today: Planning → Prompting → Ready to hand off.
+  stageOf(p) {
+    const st = this.shotStats(p);
+    if (!st.total) return { label: 'Planning', tone: '#9A9AA8', bg: '#F0F1F4' };
+    if (st.prompted >= st.total) return { label: 'Ready to hand off', tone: '#1D9E75', bg: '#E8F7F1' };
+    return { label: 'Prompting', tone: '#0217D3', bg: '#EEF0FF' };
+  }
+
+  stagePill(p) {
+    const s = this.stageOf(p);
+    return '<span style="font-size:11px;font-weight:500;color:' + s.tone + ';background:' + s.bg + ';border-radius:999px;padding:2px 10px;">' + s.label + '</span>';
+  }
+
   renderHome() {
     if (!window.Store) return;
     const mount = document.getElementById('home-mount');
@@ -110,26 +131,46 @@ class Component extends DCLogic {
     const todos = (Store.listTodos(p.id) || []);
     const todoDone = todos.filter((t) => t.done).length;
     const nextTodo = todos.filter((t) => !t.done)[0];
+    const client = this.clientLabel(p);
 
-    const quick = (dest, title, sub, svg) =>
-      '<div class="quick-card" data-home="go" data-dest="' + dest + '" style="flex:1;min-width:180px;background:#fff;border:1px solid rgba(16,16,32,.08);border-radius:12px;padding:16px;box-shadow:0 1px 2px rgba(16,16,32,.04);">' +
-        '<div style="width:32px;height:32px;border-radius:8px;background:#EEF0FF;display:flex;align-items:center;justify-content:center;margin-bottom:10px;">' + svg + '</div>' +
-        '<p style="font-size:13px;font-weight:500;color:#16161D;margin-bottom:2px;">' + title + '</p>' +
-        '<p style="font-size:12px;color:#9A9AA8;line-height:1.5;">' + sub + '</p>' +
+    // Producer summary strip from the agency spine. Review status lives on
+    // deliverables/versions, which don't exist until they're created in a
+    // project — so show real counts when there are any, else an honest note.
+    const work = Store.getWork ? Store.getWork() : { counts: { inReview: 0, blocked: 0 } };
+    const cc = work.counts;
+    const hasQueue = (cc.inReview + cc.blocked) > 0;
+    const tile = (n, label, tone) =>
+      '<div style="flex:1;min-width:120px;background:#fff;border:1px solid rgba(16,16,32,.08);border-radius:12px;padding:14px 16px;box-shadow:0 1px 2px rgba(16,16,32,.04);">' +
+        '<p style="font-size:24px;font-weight:600;color:' + tone + ';font-variant-numeric:tabular-nums;line-height:1;margin-bottom:4px;">' + n + '</p>' +
+        '<p style="font-size:12px;color:#9A9AA8;">' + label + '</p>' +
       '</div>';
+    const queueStrip = hasQueue
+      ? '<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px;">' +
+          tile(cc.inReview, 'In review', '#0217D3') +
+          tile(cc.blocked, 'Blocked', '#C4102E') +
+          tile(cc.projects, 'Active projects', '#16161D') +
+        '</div>'
+      : '<div style="background:#fff;border:1px solid rgba(16,16,32,.08);border-radius:12px;padding:13px 16px;margin-bottom:20px;display:flex;align-items:center;gap:10px;">' +
+          '<svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#9A9AA8" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><path d="M8 5.5v3M8 10.5v.2"/></svg>' +
+          '<span style="font-size:12px;color:#9A9AA8;line-height:1.5;">Review tracking — in-review and blocked deliverables land here once you add deliverables to a project.</span>' +
+        '</div>';
+
+    const heroMeta = [
+      this.stagePill(p),
+      '<span style="font-size:12px;color:#5A5A6B;">' + stats.prompted + ' of ' + stats.total + ' shots prompted</span>',
+      '<span style="font-size:12px;color:#5A5A6B;">' + refs.length + ' reference' + (refs.length === 1 ? '' : 's') + '</span>',
+      todos.length ? '<span style="font-size:12px;color:#5A5A6B;">' + todoDone + '/' + todos.length + ' production steps done</span>' : ''
+    ].filter(Boolean).join('');
 
     mount.innerHTML =
+      queueStrip +
       // Active project hero
-      '<div style="background:#fff;border:1px solid rgba(16,16,32,.08);border-radius:14px;padding:24px;box-shadow:0 1px 2px rgba(16,16,32,.04);margin-bottom:16px;">' +
+      '<div style="background:#fff;border:1px solid rgba(16,16,32,.08);border-radius:14px;padding:24px;box-shadow:0 1px 2px rgba(16,16,32,.04);margin-bottom:24px;">' +
         '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;">' +
           '<div style="min-width:0;">' +
-            '<p style="font-size:12px;color:#9A9AA8;margin-bottom:4px;">Active project</p>' +
-            '<p style="font-size:20px;font-weight:500;color:#16161D;letter-spacing:-0.01em;margin-bottom:10px;">' + this.esc(p.name) + '</p>' +
-            '<div style="display:flex;gap:16px;flex-wrap:wrap;">' +
-              '<span style="font-size:12px;color:#5A5A6B;">' + stats.prompted + ' of ' + stats.total + ' shots prompted</span>' +
-              '<span style="font-size:12px;color:#5A5A6B;">' + refs.length + ' reference' + (refs.length === 1 ? '' : 's') + '</span>' +
-              (todos.length ? '<span style="font-size:12px;color:#5A5A6B;">' + todoDone + '/' + todos.length + ' production steps done</span>' : '') +
-            '</div>' +
+            '<p style="font-size:12px;color:#9A9AA8;margin-bottom:4px;">Active project' + (client ? ' · <span style="color:#5A5A6B;font-weight:500;">' + this.esc(client) + '</span>' : '') + '</p>' +
+            '<p style="font-size:20px;font-weight:500;color:#16161D;letter-spacing:-0.01em;margin-bottom:12px;">' + this.esc(p.name) + '</p>' +
+            '<div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">' + heroMeta + '</div>' +
           '</div>' +
           '<button data-home="go" data-dest="promptbuilder.html" style="height:38px;padding:0 20px;background:#0217D3;border:none;border-radius:8px;font-family:inherit;font-size:13px;font-weight:500;color:#fff;cursor:pointer;flex-shrink:0;">Continue in Prompt builder →</button>' +
         '</div>' +
@@ -139,30 +180,32 @@ class Component extends DCLogic {
         (nextTodo ? '<p style="font-size:12px;color:#9A9AA8;margin-top:10px;">Next up: <span style="color:#5A5A6B;">' + this.esc(nextTodo.label) + '</span></p>' : '') +
       '</div>' +
 
-      // Quick links
-      '<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:24px;">' +
-        quick('references.html', 'References', 'Lock characters, locations, props and looks.',
-          '<svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#0217D3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="6" height="10" rx="1"/><rect x="9" y="3" width="6" height="6" rx="1"/><rect x="9" y="11" width="6" height="2" rx="1"/></svg>') +
-        quick('multishot.html', 'Multi-Shot', 'Review every shot’s prompt in one board.',
-          '<svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#0217D3" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="2" width="5" height="12" rx="1"/><rect x="9" y="2" width="5" height="7" rx="1"/><rect x="9" y="11" width="5" height="3" rx="1"/></svg>') +
-        quick('palmier.html', 'Palmier', 'Hand off selects for AI assembly.',
-          '<svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#0217D3" stroke-width="1.5" stroke-linecap="round"><path d="M3 8h10M3 4h10M3 12h6"/></svg>') +
-      '</div>' +
-
-      // Other projects
-      (projects.length > 1
-        ? '<p style="font-size:12px;font-weight:500;color:#9A9AA8;margin-bottom:8px;">All projects</p>' +
-          '<div style="background:#fff;border:1px solid rgba(16,16,32,.08);border-radius:12px;overflow:hidden;">' +
-            projects.map((x) => {
-              const st = this.shotStats(x);
-              const on = x.id === p.id;
-              return '<div class="proj-row" data-home="switch" data-pid="' + x.id + '" style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;border-bottom:1px solid rgba(16,16,32,.05);' + (on ? 'background:#F7F8FF;' : '') + '">' +
-                '<span style="font-size:13px;font-weight:500;color:#16161D;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + this.esc(x.name) + (on ? ' <span style="font-size:11px;color:#0217D3;font-weight:500;">· active</span>' : '') + '</span>' +
-                '<span style="font-size:12px;color:#9A9AA8;flex-shrink:0;">' + st.prompted + '/' + st.total + ' shots</span>' +
-              '</div>';
-            }).join('') +
-          '</div>'
-        : '');
+      // Project grid
+      '<p style="font-size:12px;font-weight:500;color:#9A9AA8;margin-bottom:10px;">' + (projects.length > 1 ? 'All projects' : 'Project') + '</p>' +
+      '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;">' +
+        projects.map((x) => {
+          const st = this.shotStats(x);
+          const xp = st.total ? Math.round((st.prompted / st.total) * 100) : 0;
+          const on = x.id === p.id;
+          const cl = this.clientLabel(x);
+          const xt = (Store.listTodos(x.id) || []).filter((t) => !t.done)[0];
+          return '<div class="quick-card" data-home="switch" data-pid="' + x.id + '" style="background:#fff;border:1px solid ' + (on ? 'rgba(2,23,211,.35)' : 'rgba(16,16,32,.08)') + ';border-radius:12px;padding:16px;box-shadow:0 1px 2px rgba(16,16,32,.04);">' +
+            (cl ? '<p style="font-size:11px;color:#9A9AA8;margin-bottom:3px;text-transform:uppercase;letter-spacing:.05em;">' + this.esc(cl) + '</p>' : '') +
+            '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">' +
+              '<p style="font-size:14px;font-weight:500;color:#16161D;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;">' + this.esc(x.name) + '</p>' +
+              (on ? '<span style="font-size:10px;color:#0217D3;font-weight:500;flex-shrink:0;">ACTIVE</span>' : '') +
+            '</div>' +
+            '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;">' +
+              this.stagePill(x) +
+              '<span style="font-size:11px;color:#9A9AA8;flex-shrink:0;">' + st.prompted + '/' + st.total + ' shots</span>' +
+            '</div>' +
+            '<div style="height:4px;background:#ECEDF0;border-radius:999px;overflow:hidden;">' +
+              '<div style="height:100%;width:' + xp + '%;background:#0217D3;border-radius:999px;"></div>' +
+            '</div>' +
+            (xt ? '<p style="font-size:11px;color:#9A9AA8;margin-top:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Next: ' + this.esc(xt.label) + '</p>' : '') +
+          '</div>';
+        }).join('') +
+      '</div>';
 
     this.bind(mount);
   }
