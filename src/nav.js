@@ -183,8 +183,15 @@
     row.className = 'nav-item';
     row.style.cssText = 'display:flex;align-items:center;gap:10px;padding:0 12px;height:36px;border-radius:8px;margin-bottom:2px;color:#5A5A6B;cursor:pointer;';
     row.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6.5L8 2l6 4.5V13a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6.5z"></path><path d="M6 14V9h4v5"></path></svg><span style="font-size:14px;">Home</span>';
-    var first = scroll.firstChild;
-    var anchor = (first && first.querySelector && first.querySelector('select')) ? first.nextSibling : first;
+    // Place Home directly below the project dropdown (matching home.html's
+    // authored order) no matter where that wrap sits among the direct children.
+    var anchor = scroll.firstChild;
+    for (var j = 0; j < scroll.children.length; j++) {
+      if (scroll.children[j].querySelector && scroll.children[j].querySelector('select')) {
+        anchor = scroll.children[j].nextSibling;
+        break;
+      }
+    }
     scroll.insertBefore(row, anchor);
   }
 

@@ -8,10 +8,12 @@ the `production-quality-review` skill instead — see the bottom of this file.
 ## Repo map
 
 No bundler — pages are authored directly as standalone HTML/CSS/JS in `src/` (`npm run sync` is
-a no-op placeholder). Each `.html` file in `src/` is a page: `index.html` (main/dashboard),
-`palmier.html`, `promptbuilder.html`, `finishing.html`, `multishot.html`, `projects.html`,
-`references.html`, `workflow.html`, `aisetup.html`. Shared logic: `store.js`,
-`nav.js`, `support.js`, `updater.js`, `styles.css`. `assets/` and `vendor/` hold static files.
+a no-op placeholder). Each `.html` file in `src/` is a page: `index.html` (first-run
+onboarding only; configured users redirect to Home), `home.html` (landing dashboard),
+`newproject.html` (project creation / Claude plan import), `palmier.html`, `promptbuilder.html`,
+`finishing.html`, `multishot.html`, `projects.html`, `references.html` (asset prompt
+maker/manager), `workflow.html`, `aisetup.html`. Shared logic: `store.js`,
+`nav.js`, `support.js`, `updater.js`, `promptcompile.js`, `styles.css`. `assets/` and `vendor/` hold static files.
 
 **Several of these files are large** — `promptbuilder.html` (~80KB), `index.html` (~46KB),
 `support.js` (~58KB), `finishing.html`/`projects.html`/`palmier.html` (~26-32KB each). Reading

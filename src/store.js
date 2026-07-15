@@ -54,6 +54,15 @@
       doc.projects = Array.isArray(doc.projects) ? doc.projects : [];
       doc.references = Array.isArray(doc.references) ? doc.references : [];
       doc.ui = Object.assign(d.ui, doc.ui || {});
+      // Backfill shot labels (1A, 1B…) on data that predates them. In-memory
+      // only — persisted whenever anything next saves; idempotent either way.
+      doc.projects.forEach(function (p) {
+        (p.concepts || []).forEach(function (c, ci) {
+          (c.shots || []).forEach(function (s, si) {
+            if (!s.label) s.label = shotLabel(ci, si);
+          });
+        });
+      });
       return doc;
     } catch (e) {
       // Don't wipe on corruption — back up the bad blob, return defaults.
