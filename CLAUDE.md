@@ -13,7 +13,15 @@ onboarding only; configured users redirect to Home), `home.html` (landing dashbo
 `newproject.html` (project creation / Claude plan import), `palmier.html`, `promptbuilder.html`,
 `finishing.html`, `multishot.html`, `projects.html`, `references.html` (asset prompt
 maker/manager), `workflow.html`, `aisetup.html`. Shared logic: `store.js`,
-`nav.js`, `support.js`, `updater.js`, `promptcompile.js`, `styles.css`. `assets/` and `vendor/` hold static files.
+`nav.js`, `support.js`, `updater.js`, `promptcompile.js`, `styles.css`.
+
+`store.js` is mid-migration to a **v2 "agency spine"** schema (clients → projects →
+deliverables → typed assets → versions → people) that evolves the v1 model
+(projects → concepts → shots + flat references) forward non-destructively; the old
+objects are preserved and `listReferences`/etc. are back-compat shims. Only the store
+layer exists so far — no UI reads the new objects yet. Full design + slice plan:
+`docs/superpowers/specs/2026-07-15-agency-spine-slice1-store-design.md`. Store tests:
+`npm test` (`tests/store-v2.test.cjs`). `assets/` and `vendor/` hold static files.
 
 **Several of these files are large** — `promptbuilder.html` (~80KB), `index.html` (~46KB),
 `support.js` (~58KB), `finishing.html`/`projects.html`/`palmier.html` (~26-32KB each). Reading

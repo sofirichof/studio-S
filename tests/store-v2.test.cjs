@@ -67,6 +67,37 @@ d = Store.load();
 ok('idempotent: still 1 client', d.clients.length === 1);
 ok('idempotent: still 2 reference assets', d.assets.filter(a => a.type === 'reference').length === 2);
 
+// ── B2. migration edge cases (handled in code — now asserted) ──
+// Orphan reference: projectId points at a project that no longer exists.
+reset({
+  version: 1,
+  settings: {},
+  projects: [{ id: 'prj_live', name: 'Live', concepts: [] }],
+  references: [{ id: 'ref_orphan', projectId: 'prj_GONE', name: 'Ghost', kind: 'prop', fields: {}, prompt: '', imagePath: '' }],
+  ui: {}
+});
+d = Store.load();
+var orphan = d.assets.filter(function (a) { return a.id === 'ref_orphan'; })[0];
+ok('edge: orphan reference still folds (no throw)', !!orphan && orphan.type === 'reference');
+ok('edge: orphan reference gets empty clientId (project gone)', orphan && orphan.clientId === '');
+ok('edge: live project still migrated cleanly alongside orphan', d.projects[0].clientId === d.clients[0].id);
+
+// Dangling builder link: a shot points at a ref id that was never in references[].
+reset({
+  version: 1,
+  settings: {},
+  projects: [{ id: 'prj_d', name: 'D', concepts: [{ id: 'cd', name: 'C', shots: [
+    { id: 'sd', name: 'S', label: '1A', status: 'draft',
+      builder: { charRefIds: ['ref_missing'], propRefIds: [], locRefId: null, styleRefId: null } }
+  ] }] }],
+  references: [],
+  ui: {}
+});
+d = Store.load();
+var b = d.projects[0].concepts[0].shots[0].builder;
+ok('edge: dangling builder link survives migration untouched', b.charRefIds.length === 1 && b.charRefIds[0] === 'ref_missing');
+ok('edge: dangling link resolves to null (no throw on getReference)', Store.getReference('ref_missing') === null);
+
 // ── C. CRUD round-trips ──
 reset();
 const cli = Store.createClient({ name: 'US Bank', brand: { styleLook: 'clean', legal: 'NFL clearance' } });
