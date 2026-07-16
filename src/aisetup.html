@@ -94,6 +94,19 @@
           </div>
         </div>
 
+        <!-- App updates -->
+        <div style="background:#fff;border:1px solid rgba(16,16,32,.08);border-radius:12px;padding:24px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+            <p style="font-size:14px;font-weight:500;color:#16161D;">App updates</p>
+            <span id="app-version" style="font-size:11px;font-weight:500;background:#F0F1F4;color:#9A9AA8;padding:2px 8px;border-radius:999px;"></span>
+          </div>
+          <p style="font-size:13px;color:#5A5A6B;margin-bottom:18px;line-height:1.5;">Studio S checks for a new version automatically each time it opens. You can also check now.</p>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <button onclick="{{ checkUpdates }}" id="check-updates-btn" style="height:36px;padding:0 16px;background:#fff;border:1px solid rgba(16,16,32,.12);border-radius:8px;font-family:'Host Grotesk',system-ui;font-size:13px;font-weight:500;color:#16161D;cursor:pointer;">Check for updates</button>
+            <span id="update-status" style="font-size:12px;color:#9A9AA8;"></span>
+          </div>
+        </div>
+
         <!-- Save -->
         <div style="display:flex;justify-content:flex-end;padding-bottom:32px;">
           <span id="save-confirm" style="font-size:12px;color:#1D9E75;align-self:center;margin-right:12px;opacity:0;transition:opacity .2s;">Saved</span>
@@ -125,6 +138,15 @@ class Component extends DCLogic {
     const out = document.getElementById('output-folder-display');
     if (out && s.defaultOutputFolder) { out.textContent = s.defaultOutputFolder; out.style.color = '#16161D'; }
     this.refreshStatus(!!s.claudeApiKey);
+    // Current app version chip (desktop app only).
+    const ver = document.getElementById('app-version');
+    if (ver && window.Updater && window.Updater.getVersion) {
+      Promise.resolve(window.Updater.getVersion()).then(function (v) {
+        ver.textContent = v ? ('v' + v) : 'Desktop app only';
+      }).catch(function () { ver.textContent = ''; });
+    } else if (ver) {
+      ver.textContent = 'Desktop app only';
+    }
   }
 
   refreshStatus(connected) {
@@ -152,6 +174,21 @@ class Component extends DCLogic {
 
   renderVals() {
     return {
+      checkUpdates: () => {
+        const btn = document.getElementById('check-updates-btn');
+        const status = document.getElementById('update-status');
+        if (!window.Updater) { if (status) { status.textContent = 'Updater unavailable.'; status.style.color = '#9A9AA8'; } return; }
+        if (btn) btn.disabled = true;
+        if (status) { status.textContent = 'Checking…'; status.style.color = '#9A9AA8'; }
+        Promise.resolve(window.Updater.checkNow()).then(function (r) {
+          if (btn) btn.disabled = false;
+          if (!status) return;
+          if (r.status === 'available') { status.textContent = 'Update available' + (r.version ? ' (v' + r.version + ')' : '') + ' — see the banner below.'; status.style.color = '#0217D3'; }
+          else if (r.status === 'current') { status.textContent = "You're up to date."; status.style.color = '#1D9E75'; }
+          else if (r.status === 'unavailable') { status.textContent = 'Update checks work in the desktop app only.'; status.style.color = '#9A5B00'; }
+          else { status.textContent = "Couldn't check — you may be offline."; status.style.color = '#FF002E'; }
+        });
+      },
       pickOutputFolder: async () => {
         const dir = await this.pickDir();
         if (!dir) return;
@@ -182,5 +219,6 @@ class Component extends DCLogic {
 </script>
 <script src="./store.js"></script>
 <script src="./nav.js"></script>
+<script src="./updater.js"></script>
 </body>
 </html>
