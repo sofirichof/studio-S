@@ -145,7 +145,7 @@
     <p class="former">Formerly <b>AI Film Studio</b> · renamed v0.3.0, 1 Jul 2026 · versions before 0.3.0 are <b>inferred</b> — repo has no git history; reconstructed from <code>_archive/</code> snapshots + <code>release-v*</code> folders.</p>
 
     <div class="facts">
-      <div class="fact"><div class="k">Current</div><div class="v mono"><span class="dot"></span>v0.3.5</div></div>
+      <div class="fact"><div class="k">Current</div><div class="v mono"><span class="dot"></span>v0.3.7</div></div>
       <div class="fact"><div class="k">Storage key</div><div class="v mono">aifs.v1</div></div>
       <div class="fact"><div class="k">Bundle id</div><div class="v mono">com.supergood.studios</div></div>
       <div class="fact"><div class="k">Rust cmds</div><div class="v">3 · lib.rs</div></div>
@@ -247,15 +247,76 @@
     </div>
 
     <div class="node pivot">
-      <div class="stamp"><span class="date">9 Jul 2026</span><span class="ver">v0.3.5</span><span class="tag">Schema v2</span></div>
-      <h3>store.js schema v2 + Work dashboard</h3>
+      <div class="stamp"><span class="date">9 Jul 2026</span><span class="ver">v0.3.5</span><span class="tag">Restructure · shelved</span></div>
+      <h3>"Us" restructure — built, then reverted</h3>
+      <p class="body">A full agency-repositioning restructure (schema v2: <code>clients → projects → deliverables</code> + typed <code>assets</code>/<code>versions</code>/<code>people</code>, new <code>work.html</code> front door) was built in one pass — then <b>accidentally shipped over the working app</b> and, walked end-to-end, graded <b>D / not production-usable</b> (18 defects, 4 fatal — all implementation/copy, no schema flaws).</p>
       <ul class="pts">
-        <li><b>Schema v2:</b> <code>clients</code> → <code>projects</code> → <code>deliverables</code>, plus unified typed <code>assets</code> (reference / generated / cut), <code>versions</code>, <code>people</code>.</li>
-        <li><code>migrate()</code> folds v1 (<code>project→concept→shot</code> + flat <code>references[]</code>) forward — idempotent, non-destructive; <code>listReferences</code>/<code>addReference</code> back-compat shim.</li>
-        <li>New API: <code>registerCut</code>, <code>getWork</code>, <code>getProjectBrand</code>, <code>createDeliverable</code>, <code>createAsset</code>/<code>listAssets</code>.</li>
-        <li>New front door <code>src/work.html</code> (Work dashboard), wired via <code>index.html</code> redirect + <code>nav.js</code> MAP.</li>
-        <li class="warn">Deferred to engineering handoff: multi-user shared state, live Frame.io/Drive sync, cost attribution. This solo build is the standardization proof.</li>
+        <li class="warn">Reverted: the pre-restructure <b>3.5</b> was restored as the working app; the restructure was archived in <code>_archive/us-restructure-3.56-wip-2026-07-09/</code>.</li>
+        <li>Lessons locked: never <code>npm run ship</code> without an explicit go; a big change must bump the version; jsdom/Node passing ≠ usable — drive the real flow before declaring done.</li>
       </ul>
+    </div>
+  </div>
+
+  <!-- ERA III -->
+  <section class="era">
+    <div class="era-line">
+      <span class="era-num">Era III</span>
+      <h2>Agency spine, done right</h2>
+      <span class="span">v0.3.6 → v0.3.7 · 14–16 Jul</span>
+    </div>
+    <p>Restart from the verified 3.5 base. Ship the creative-facing features first, then rebuild the agency data model by <b>evolving</b> 3.5 forward (not resurrecting the shelved code) — each step browser-verified and committed.</p>
+  </section>
+
+  <div class="track">
+    <div class="node">
+      <div class="stamp"><span class="date">14 Jul 2026</span><span class="ver">v0.3.5</span><span class="tag">Recovery</span></div>
+      <h3>3.5 source recovered + baseline</h3>
+      <ul class="pts">
+        <li>Full <code>src/</code> recovered from the release binary (brotli-embedded assets) and restored; git initialized with a 3.5 baseline commit.</li>
+        <li>Director-name feedback (Mike): DP "look" presets show <b>generic labels</b> in the UI (internal preset keys are still surnames — opaque, never shown).</li>
+      </ul>
+    </div>
+
+    <div class="node">
+      <div class="stamp"><span class="date">15 Jul 2026</span><span class="ver">unreleased</span><span class="tag">Feature</span></div>
+      <h3>Asset generator + shot labels</h3>
+      <ul class="pts">
+        <li>References became an <b>asset prompt maker + manager</b>: per-type wizard (character/location/prop/look/product) compiling generator-ready prompts via shared <code>promptcompile.js</code>; kind-filter tabs; edit/copy/delete; result-image attach (Tauri dialog + <code>convertFileSrc</code> thumbnails).</li>
+        <li>Prompt builder gained live reference pickers — selected refs weave into the compiled shot prompt.</li>
+        <li>Shot labels (<code>1A</code>, <code>1B</code>, <code>2A</code>…) required in the Claude plan, parsed/generated on import, shown across projects / multi-shot / builder.</li>
+      </ul>
+    </div>
+
+    <div class="node">
+      <div class="stamp"><span class="date">15 Jul 2026</span><span class="ver">unreleased</span><span class="tag">UX</span></div>
+      <h3>Onboarding slimmed + Home landing</h3>
+      <ul class="pts">
+        <li>First-run cut to welcome → Basics (API key optional + output folder); the launch gate no longer requires a key.</li>
+        <li>New <code>newproject.html</code> owns project creation (name / assets folder / Claude handoff / plan import); legacy <code>?new=1</code> redirects there.</li>
+        <li>New <code>home.html</code> dashboard is the landing page — the app no longer opens on the prompt builder; <code>nav.js</code> injects a Home row on every page.</li>
+      </ul>
+    </div>
+
+    <div class="node pivot">
+      <div class="stamp"><span class="date">15–16 Jul 2026</span><span class="ver">v0.3.6</span><span class="tag">Schema v2 · shipped</span></div>
+      <h3>store.js v2 (evolved) + Work dashboard</h3>
+      <ul class="pts">
+        <li><b>Schema v2</b> reached by <b>evolving the working 3.5 store</b> (not the shelved archive): <code>clients → projects → deliverables</code> + typed <code>assets</code> / <code>versions</code> / <code>people</code>, alongside the preserved <code>concepts</code>/<code>shots</code>.</li>
+        <li><code>migrate()</code> is idempotent + non-destructive and <b>preserves each reference id</b> so shot-builder links survive the fold; <code>listReferences</code>/… kept as shims over typed assets (References wizard unchanged).</li>
+        <li>New API: <code>getWork</code> (dashboard aggregation), <code>getProjectBrand</code> (live), deliverable/asset/version/people CRUD, <code>registerCut</code>. Diverges from the archive: does <b>not</b> auto-project concepts→deliverables / shots→generated.</li>
+        <li>Work dashboard rebuilt on <code>home.html</code> reading <code>getWork()</code> — producer summary (in-review / blocked / active), client-aware hero, project cards; honest empty-states until deliverables exist.</li>
+        <li>Verified: <code>tests/store-v2.test.cjs</code> <b>60/60</b> + driven in-browser on a migrated populated store. Shipped signed.</li>
+      </ul>
+    </div>
+
+    <div class="node">
+      <div class="stamp"><span class="date">16 Jul 2026</span><span class="ver">v0.3.7</span><span class="tag">Release · current</span></div>
+      <h3>Updater UI</h3>
+      <ul class="pts">
+        <li>On-launch <b>"Checking for updates…"</b> pill (bottom-left) that settles to "up to date" or steps aside for the update banner.</li>
+        <li>Manual <b>Check for updates</b> button in AI setup (<code>window.Updater.checkNow()</code>), reusing the same check path.</li>
+      </ul>
+      <div class="callout"><b>Web-hosting note (for Lucas):</b> static site backed by <code>localStorage</code> — no backend/API key to host. One external runtime dep (Babel via <code>unpkg.com</code> in <code>support.js</code>); desktop-only features (folder pick, <code>scan_plan_folder</code>, local image attach, updater) go inert on the web and degrade gracefully. Full detail → <code>docs/HANDOFF-lucas-web-2026-07-16.md</code>.</div>
     </div>
   </div>
 
