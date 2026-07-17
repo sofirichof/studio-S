@@ -28,7 +28,7 @@
   },
   "bundle": {
     "active": true,
-    "targets": ["app", "dmg"],
+    "targets": ["app"],
     "createUpdaterArtifacts": true,
     "category": "Productivity",
     "icon": [

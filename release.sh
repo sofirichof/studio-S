@@ -30,7 +30,6 @@ B="src-tauri/target/release/bundle"
 # the just-built one and get published by mistake.
 TARGZ=$(ls -t "$B/macos/"*.app.tar.gz 2>/dev/null | head -1)
 SIG=$(ls -t "$B/macos/"*.app.tar.gz.sig 2>/dev/null | head -1)
-DMG=$(ls -t "$B/dmg/"*.dmg 2>/dev/null | head -1)
 if [ -z "$TARGZ" ] || [ -z "$SIG" ]; then echo "✗ No signed updater artifacts found — check the build log."; exit 1; fi
 
 # GitHub replaces spaces with dots in release-asset URLs, so reference the dotted name.
@@ -38,7 +37,24 @@ ASSET=$(basename "$TARGZ" | sed 's/ /./g')
 
 OUT="release-v$VERSION"
 rm -rf "$OUT"; mkdir -p "$OUT"
-cp "$TARGZ" "$OUT/"; cp "$SIG" "$OUT/"; cp "$DMG" "$OUT/"
+cp "$TARGZ" "$OUT/"; cp "$SIG" "$OUT/"
+
+# Build the DMG with hdiutil instead of Tauri's bundle_dmg.sh. That script uses
+# AppleScript to style the installer window and DIES in a headless/automation
+# context — and because of `set -e` it was aborting this whole script before it
+# ever wrote the updater artifacts or latest.json (why 0.3.6/0.3.7 never shipped).
+# bundle.targets is now ["app"] so Tauri no longer runs it; we make a compressed
+# "drag to Applications" installer directly here.
+APP=$(ls -td "$B/macos/"*.app 2>/dev/null | head -1)
+if [ -z "$APP" ]; then echo "✗ No .app bundle built — check the build log."; exit 1; fi
+VOL=$(basename "${APP%.app}")
+DMG="$OUT/$VOL.dmg"
+STAGE="$(mktemp -d)/stage"; mkdir -p "$STAGE"
+cp -R "$APP" "$STAGE/"
+ln -s /Applications "$STAGE/Applications"   # drag-to-install target
+rm -f "$DMG"
+hdiutil create -volname "$VOL" -srcfolder "$STAGE" -fs HFS+ -format UDZO -ov "$DMG" >/dev/null
+rm -rf "$(dirname "$STAGE")"
 
 cat > "$OUT/latest.json" <<EOF
 {
