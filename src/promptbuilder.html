@@ -188,7 +188,7 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1440, &quot;height&quot;: 900}}">
 class Component extends DCLogic {
-  state = { step: 1, reviewStage: 'stills', stillModel: 'gpt', videoModel: 'kling', density: 'few', lookMode: 'dp', camMode: 'specific', dp: 'deakins', comp: 'mc', shot: 'wide', angle: 'eye', lens: '24', move: 'push', depth: 'shallow', framing: [], previewView: 'front', pinned: true, charRefIds: [], propRefIds: [], locRefId: null, styleRefId: null };
+  state = { step: 1, reviewStage: 'stills', stillModel: 'gpt', videoModel: 'kling', density: 'few', lookMode: 'dp', camMode: 'specific', dp: 'deakins', comp: 'mc', shot: 'wide', angle: 'eye', lens: '24', move: 'push', depth: 'shallow', framing: [], previewView: 'front', pinned: true, charRefIds: [], propRefIds: [], locRefId: null, styleRefId: null, atTags: true };
 
   compLabel(id) {
     return { tl:'Top left', tc:'Top centre', tr:'Top right', ml:'Left third', mc:'Centre', mr:'Right third', bl:'Bottom left', bc:'Bottom centre', br:'Bottom right' }[id] || 'Centre';
@@ -440,7 +440,7 @@ class Component extends DCLogic {
   }
 
   builderKeys() {
-    return ['stillModel','videoModel','density','lookMode','camMode','dp','comp','shot','angle','lens','move','depth','framing','prefixOverride','subject','environment','negative','charRefIds','propRefIds','locRefId','styleRefId'];
+    return ['stillModel','videoModel','density','lookMode','camMode','dp','comp','shot','angle','lens','move','depth','framing','prefixOverride','subject','environment','negative','charRefIds','propRefIds','locRefId','styleRefId','atTags'];
   }
 
   seedFromActive() {
@@ -477,6 +477,11 @@ class Component extends DCLogic {
     return String(v == null ? '' : v).replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
   }
 
+  // @-handles only mean something to Higgsfield, so the toggle only bites there.
+  usesAtTags() {
+    return this.state.videoModel === 'higgsfield' && this.state.atTags !== false;
+  }
+
   // Single source of truth for the compiled prompt, built from real builder state.
   // Used by the sidebar rail, the Review card, and Generate — so all three agree.
   compilePrompt() {
@@ -499,7 +504,7 @@ class Component extends DCLogic {
     if (window.PromptCompile && window.Store) {
       const ids = (s.charRefIds || []).concat(s.propRefIds || [], [s.locRefId, s.styleRefId]);
       const refs = ids.filter(Boolean).map((id) => Store.getReference(id)).filter(Boolean);
-      compiled = PromptCompile.weaveReferences(compiled, refs);
+      compiled = PromptCompile.weaveReferences(compiled, refs, { atTags: this.usesAtTags() });
     }
     return compiled;
   }
@@ -614,6 +619,9 @@ class Component extends DCLogic {
       { id:'sora', label:'Sora', tag:'image-to-video',
         prompt:'A four-second shot: commuters cross a downtown intersection in warm golden-hour light as the camera eases slowly inward. Natural movement, cinematic, continuous take.',
         rule:'Described as a short filmed scene \u2014 narrative phrasing over parameters.' },
+      { id:'higgsfield', label:'Higgsfield', tag:'image-to-video',
+        prompt:'Slow Push In. @Commuters cross the intersection at an easy pace, coats moving in the wind. Golden-hour light holds on the signage behind them.',
+        rule:'Camera-motion preset first, then one clear subject action \u2014 Higgsfield rewards a single strong move over dense paragraphs. Saved elements are addressed by @handle.' },
     ];
   }
 
@@ -762,6 +770,8 @@ class Component extends DCLogic {
         this.render();
       };
     });
+    const at = document.querySelector('[data-attags]');
+    if (at) at.onclick = () => { this.setState({ atTags: this.state.atTags === false }); this.render(); };
   }
 
   bindChips() {
@@ -957,7 +967,7 @@ class Component extends DCLogic {
       return this.eyebrow('Prompt · Output') +
         this.head('Models &amp; output', 'Studio S writes a stills prompt and an image-to-video prompt from the same brief. Pick one or more models for each stage \u2014 prompts are tailored to each.') +
         this.field('Stills model \u2014 text-to-image', this.chips('smodel', [{label:'GPT Image', on:true},{label:'Nano Banana Pro', on:true},{label:'Seedream 4.5'},{label:'FLUX.2'},{label:'Midjourney v7'}], true), 'GPT Image (ChatGPT) for prompt accuracy &amp; world knowledge, Nano Banana Pro for character consistency, Seedream for text &amp; product, FLUX.2 for photoreal, Midjourney for art direction.') +
-        this.field('Video model \u2014 image-to-video', this.chips('vmodel', [{label:'Kling 3.0', on:true},{label:'Seedance'},{label:'Runway Gen-4'},{label:'Sora'}], true), 'The stills you pick are animated with these. Kling, Seedance and Nano Banana Pro run natively in Palmier too.') +
+        this.field('Video model \u2014 image-to-video', this.chips('vmodel', [{label:'Kling 3.0', on:true},{label:'Seedance'},{label:'Runway Gen-4'},{label:'Sora'},{label:'Higgsfield'}], true), 'The stills you pick are animated with these. Kling, Seedance and Nano Banana Pro run natively in Palmier too.') +
         this.field('Aspect ratio', this.chips('ar', [{label:'16:9', on:true},{label:'9:16'},{label:'1:1'},{label:'2.39:1'}]), '') +
         this.field('Stills per model', this.chips('count', [{label:'2'},{label:'4', on:true},{label:'6'},{label:'8'}]), '') +
         this.field('Negative prompt', this.textarea('negative', this.state.negative, 'Optional \u2014 what to avoid. e.g. blurry, distorted hands, text artifacts, oversaturated'), 'Optional \u2014 applies to both stages.');
@@ -983,6 +993,17 @@ class Component extends DCLogic {
       const on = p.id === activeId;
       return '<button data-model="' + p.id + '" style="padding:6px 12px;border:1px solid ' + (on ? '#0217D3' : 'rgba(16,16,32,0.12)') + ';border-radius:999px;background:' + (on ? '#EEF0FF' : '#fff') + ';color:' + (on ? '#0217D3' : '#5A5A6B') + ';font-family:inherit;font-size:12px;font-weight:500;cursor:pointer;white-space:nowrap;">' + p.label + '</button>';
     };
+    const atOn = this.state.atTags !== false;
+    const atRow = active.id !== 'higgsfield' ? '' :
+      '<div style="padding:12px 18px;border-top:1px solid rgba(16,16,32,0.06);display:flex;align-items:center;justify-content:space-between;gap:12px;">' +
+        '<div>' +
+          '<p style="font-size:12px;font-weight:500;color:#16161D;">@ asset tags</p>' +
+          '<p style="font-size:11px;color:#9A9AA8;line-height:1.5;">Address attached references by their Higgsfield @handle, keeping the description alongside.</p>' +
+        '</div>' +
+        '<button data-attags="1" role="switch" aria-checked="' + (atOn ? 'true' : 'false') + '" style="flex-shrink:0;width:40px;height:23px;border:none;border-radius:999px;padding:0;cursor:pointer;background:' + (atOn ? '#0217D3' : 'rgba(16,16,32,0.16)') + ';position:relative;transition:background .15s;">' +
+          '<span style="position:absolute;top:2px;left:' + (atOn ? '19px' : '2px') + ';width:19px;height:19px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(16,16,32,0.2);transition:left .15s;"></span>' +
+        '</button>' +
+      '</div>';
     return this.eyebrow('Prompt · Review') +
       this.head('Review &amp; generate', 'Your compiled prompt, ready to run. Switch models for per-model phrasing guidance \u2014 then copy it and generate in that tool.') +
       // stage switcher
@@ -997,7 +1018,7 @@ class Component extends DCLogic {
           '<span style="font-size:13px;font-weight:500;color:#16161D;">' + active.label + ' &nbsp;<span style="font-weight:400;color:#9A9AA8;">' + active.tag + '</span></span>' +
           '<span style="font-size:11px;font-weight:500;background:#E8F7F1;color:#1D9E75;padding:2px 8px;border-radius:999px;">Tailored</span>' +
         '</div>' +
-        '<div style="padding:16px 18px;"><p style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;color:#16161D;line-height:1.7;">' + (shownPrompt ? this.escHtml(shownPrompt) : '<span style="color:#9A9AA8;">Fill in the earlier steps and your prompt builds here.</span>') + '</p></div>' +
+        '<div style="padding:16px 18px;"><p style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;color:#16161D;line-height:1.7;">' + (shownPrompt ? this.escHtml(shownPrompt) : '<span style="color:#9A9AA8;">Fill in the earlier steps and your prompt builds here.</span>') + '</p></div>' + atRow +
         '<div style="padding:12px 18px;border-top:1px solid rgba(16,16,32,0.06);background:#F7F5EF;display:flex;gap:9px;align-items:flex-start;">' +
           '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#0217D3" stroke-width="1.5" stroke-linecap="round" style="flex-shrink:0;margin-top:1px;"><circle cx="8" cy="8" r="6.5"></circle><path d="M8 7v3.5M8 5v.2"></path></svg>' +
           '<p style="font-size:12px;color:#5A5A6B;line-height:1.55;"><strong style="color:#16161D;">Why it\u2019s tailored \u2014</strong> ' + active.rule + '</p>' +

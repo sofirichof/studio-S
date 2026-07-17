@@ -92,26 +92,40 @@
 
   // One-clause description of a reference for weaving into a shot prompt:
   // every filled wizard field, joined in schema order.
-  function summarize(ref) {
+  // Higgsfield matches an element by an @-handle, which cannot contain spaces.
+  function atHandle(name) {
+    var slug = String(name || '').replace(/[^A-Za-z0-9]/g, '');
+    return slug ? '@' + slug : '';
+  }
+
+  function summarize(ref, atTags) {
     var fields = ref.fields || {};
     var vals = fieldsFor(ref.kind)
       .map(function (f) { return has(fields[f.key]) ? clean(fields[f.key]) : ''; })
       .filter(Boolean);
-    return vals.length ? ref.name + ' (' + vals.join(', ') + ')' : ref.name;
+    var label = ref.name;
+    if (atTags) {
+      var handle = atHandle(ref.name);
+      if (handle) label = handle;
+    }
+    return vals.length ? label + ' (' + vals.join(', ') + ')' : label;
   }
 
   // Fold attached references into a compiled shot prompt {stills, video}.
   // refs: array of reference records ({name, kind, fields}). Pure.
-  function weaveReferences(compiled, refs) {
+  // opts.atTags renders each reference as an @-handle for Higgsfield.
+  function weaveReferences(compiled, refs, opts) {
     refs = (refs || []).filter(Boolean);
     if (!refs.length || !compiled || !has(compiled.stills)) return compiled;
+    var atTags = !!(opts && opts.atTags);
+    var name = function (r) { return summarize(r, atTags); };
     var featured = refs.filter(function (r) { return r.kind !== 'look' && r.kind !== 'location'; });
     var places = refs.filter(function (r) { return r.kind === 'location'; });
     var looks = refs.filter(function (r) { return r.kind === 'look'; });
     var clauses = [];
-    if (featured.length) clauses.push('featuring ' + featured.map(summarize).join('; '));
-    if (places.length) clauses.push('set in ' + places.map(summarize).join('; '));
-    if (looks.length) clauses.push('in the style of ' + looks.map(summarize).join('; '));
+    if (featured.length) clauses.push('featuring ' + featured.map(name).join('; '));
+    if (places.length) clauses.push('set in ' + places.map(name).join('; '));
+    if (looks.length) clauses.push('in the style of ' + looks.map(name).join('; '));
     var stills = compiled.stills.replace(/\.$/, '') + ' — ' + clauses.join('; ') + '.';
     return { stills: stills, video: compiled.video };
   }
