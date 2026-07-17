@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "tauri": "tauri",
-    "test": "node tests/store-v2.test.cjs",
+    "test": "node tests/store-v2.test.cjs && node tests/promptcompile.test.cjs",
     "sync": "echo 'sync: authoring directly in src/'",
     "sync:build": "npm run sync && npm run tauri build",
     "dev": "npm run sync && npm run tauri dev",
