@@ -29,3 +29,6 @@ release-v*/
 *.njsproj
 *.sln
 *.sw?
+
+# Internal research — never publish (public repo)
+docs/research/

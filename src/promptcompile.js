@@ -114,6 +114,9 @@
   // Fold attached references into a compiled shot prompt {stills, video}.
   // refs: array of reference records ({name, kind, fields}). Pure.
   // opts.atTags renders each reference as an @-handle for Higgsfield.
+  // Stills get a trailing clause; the video prompt gets an identity-lock
+  // sentence, since the video generation is what actually consumes the
+  // attached reference media on models that accept it.
   function weaveReferences(compiled, refs, opts) {
     refs = (refs || []).filter(Boolean);
     if (!refs.length || !compiled || !has(compiled.stills)) return compiled;
@@ -127,13 +130,109 @@
     if (places.length) clauses.push('set in ' + places.map(name).join('; '));
     if (looks.length) clauses.push('in the style of ' + looks.map(name).join('; '));
     var stills = compiled.stills.replace(/\.$/, '') + ' — ' + clauses.join('; ') + '.';
-    return { stills: stills, video: compiled.video };
+    var video = compiled.video;
+    if (has(video) && (featured.length || places.length)) {
+      var idRefs = featured.concat(places);
+      if (atTags) {
+        // Higgsfield pattern: declare each asset handle up top, then lock it.
+        var decls = idRefs.map(function (r) { return summarize(r, true); }).join(' · ');
+        video = decls + '. ' + video.replace(/\.$/, '') + '. Each tagged reference stays a 100% match.';
+      } else {
+        video = video.replace(/\.$/, '') + ' ' + (featured.length ? 'Featured references stay a 100% match: ' : 'Location reference stays a 100% match: ') + idRefs.map(name).join('; ') + '.';
+      }
+    }
+    return { stills: stills, video: video };
+  }
+
+  // Compose the video prompt from the FULL builder state: the composed scene
+  // (subject, environment, look, lens — passed in via opts.scene) PLUS the time
+  // dimension the still can't carry. Sofia's complaint was "video prompts aren't
+  // just the movement" — so the scene leads, then subject action, then one
+  // motivated camera move stated separately, ambient motion, and positive
+  // continuity locks. Order and rules follow the harvested creator prompts and
+  // vendor formulas (RESEARCH-LOG claims 16, 21, 25, 28; docs/research/creator-prompts).
+  // ── Prompt dictionary ────────────────────────────────────────────────────
+  // Every creative control the builder exposes maps here to the language that
+  // reaches the model. `core` is the universal phrase (standard cinematography
+  // vocabulary — the same wording the harvested creator prompts use); `perModel`
+  // holds an override ONLY where the research verified a real difference. Where
+  // research is silent, the term is universal — inventing per-model wording is
+  // the exact thing the research discipline forbids. Contested items (lens as mm
+  // vs FOV) are deliberately absent — the raw value passes through until the
+  // Gen Log clicker A/B settles it (RESEARCH-LOG claims 10-11).
+  var DICT = {
+    angle: {
+      eye:   { core: 'shot at eye level' },
+      low:   { core: 'low-angle shot looking up at the subject' },
+      high:  { core: 'high-angle shot looking down at the subject' },
+      dutch: { core: 'canted dutch-angle framing' }
+    },
+    depth: {
+      shallow: { core: 'shallow depth of field, background thrown soft' },
+      layered: { core: 'layered depth, foreground, midground and background all legible' },
+      deep:    { core: 'deep focus, sharp from front to back' }
+    },
+    comp: {
+      tl: { core: 'subject placed top-left' }, tc: { core: 'subject placed top-centre' }, tr: { core: 'subject placed top-right' },
+      ml: { core: 'subject on the left third' }, mc: { core: 'subject centred in frame' }, mr: { core: 'subject on the right third' },
+      bl: { core: 'subject placed bottom-left' }, bc: { core: 'subject placed bottom-centre' }, br: { core: 'subject placed bottom-right' }
+    },
+    framing: {
+      Symmetrical: { core: 'symmetrical composition' },
+      lead: { core: 'strong leading lines' },
+      frame: { core: 'a frame-within-a-frame composition' },
+      'Negative space': { core: 'generous negative space' },
+      ots: { core: 'over-the-shoulder framing' }
+    },
+    density: {
+      single: { core: 'a lone figure' },
+      few:    { core: 'a few figures' },
+      crowd:  { core: 'set among a dense crowd' }
+    },
+    move: {
+      static:   { core: 'the camera is locked off, no camera move' },
+      push:     { core: 'the camera pushes in slowly' },
+      pan:      { core: 'the camera pans gently' },
+      tracking: { core: 'the camera tracks with the subject' },
+      handheld: { core: 'the camera is subtly handheld' }
+    }
+  };
+
+  // Resolve a control value to its phrase for a model. Per-model override wins
+  // when present; otherwise the universal core. Empty string if unmapped.
+  function term(control, value, model) {
+    var group = DICT[control]; if (!group) return '';
+    var entry = group[value]; if (!entry) return '';
+    if (model && entry.perModel && has(entry.perModel[model])) return entry.perModel[model];
+    return entry.core || '';
+  }
+  function compileVideo(s, opts) {
+    s = s || {};
+    opts = opts || {};
+    var parts = [];
+    // Scene — the whole shot, reused from the still so subject/look/lens are
+    // carried into the video, not discarded. Falls back to a bare animate line.
+    var scene = has(opts.scene) ? clean(opts.scene) : '';
+    parts.push(scene ? scene + '.' : 'Animate the still with natural motion true to the scene.');
+    // Subject action — what happens across the clip, stated before the camera.
+    if (has(s.action)) parts.push(clean(s.action) + '.');
+    // Camera — one motivated move, separate from subject motion.
+    var moveTxt = term('move', s.move, opts.model) || 'the camera moves subtly';
+    parts.push('Camera: ' + moveTxt + (has(s.action) ? ', following the action' : '') + '; one camera move only, no cuts.');
+    // Ambient / environmental motion.
+    parts.push('Ambient motion stays subtle and physical — air, light and background life move naturally' + (has(s.environment) ? ' within ' + clean(s.environment).toLowerCase() : '') + '.');
+    // Positive continuity locks.
+    parts.push('Hold the framing; same subject, wardrobe and lighting for the full shot.');
+    return parts.join(' ');
   }
 
   window.PromptCompile = {
     kinds: kinds,
     fieldsFor: fieldsFor,
     compileReferencePrompt: compileReferencePrompt,
-    weaveReferences: weaveReferences
+    weaveReferences: weaveReferences,
+    compileVideo: compileVideo,
+    term: term,
+    DICT: DICT
   };
 })();
