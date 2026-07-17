@@ -440,7 +440,7 @@ class Component extends DCLogic {
   }
 
   builderKeys() {
-    return ['stillModel','videoModel','density','lookMode','camMode','dp','comp','shot','angle','lens','move','depth','framing','prefixOverride','subject','environment','negative','charRefIds','propRefIds','locRefId','styleRefId','atTags'];
+    return ['stillModel','videoModel','density','lookMode','camMode','dp','comp','shot','angle','lens','move','depth','framing','prefixOverride','subject','action','environment','negative','charRefIds','propRefIds','locRefId','styleRefId','atTags'];
   }
 
   seedFromActive() {
@@ -495,9 +495,18 @@ class Component extends DCLogic {
       if (has(s.environment)) parts.push('— ' + s.environment.trim().replace(/\.$/, ''));
       if (s.lookMode === 'dp' && has(s.dp)) { const t = this.dpTraits().find((x) => x.id === s.dp); if (t) parts.push(', ' + t.note.replace(/\.$/, '')); }
       if (has(s.lens)) parts.push(', ' + s.lens + 'mm');
+      // Dictionary-driven film language: every camera/composition control emits
+      // its verified phrase, so angle, depth, placement and framing actually
+      // reach the prompt instead of only redrawing the preview.
+      const T = (c, v) => (window.PromptCompile && PromptCompile.term) ? PromptCompile.term(c, v, s.stillModel) : '';
+      const film = [T('angle', s.angle), T('comp', s.comp), T('depth', s.depth)]
+        .concat((s.framing || []).map((f) => T('framing', f)))
+        .concat([(s.density === 'single' || s.density === 'crowd') ? T('density', s.density) : ''])
+        .filter(Boolean);
+      film.forEach((c) => parts.push(', ' + c));
       stills = parts.join(' ').replace(/ ,/g, ',') + '.';
-      const moveTxt = { static:'locked-off, no camera move', push:'slow push-in', pan:'gentle pan', tracking:'tracking move', handheld:'subtle handheld' }[s.move] || 'subtle motion';
-      video = 'Animate the still: ' + moveTxt + ', natural ambient motion, hold the framing.';
+      video = (window.PromptCompile && PromptCompile.compileVideo) ? PromptCompile.compileVideo(s, { scene: stills, model: s.videoModel })
+        : 'Animate the still: natural ambient motion, hold the framing.';
     }
     let compiled = { stills: stills, video: video };
     // Weave attached references (characters, props/products, location, style look).
@@ -505,6 +514,13 @@ class Component extends DCLogic {
       const ids = (s.charRefIds || []).concat(s.propRefIds || [], [s.locRefId, s.styleRefId]);
       const refs = ids.filter(Boolean).map((id) => Store.getReference(id)).filter(Boolean);
       compiled = PromptCompile.weaveReferences(compiled, refs, { atTags: this.usesAtTags() });
+    }
+    // The negative field promises "applies to both stages" — honor it as a
+    // prose tail (no model exposes a negative_prompt param; see RESEARCH-LOG).
+    if (has(s.negative)) {
+      const avoid = ' Avoid: ' + s.negative.trim().replace(/\.$/, '') + '.';
+      if (has(compiled.stills)) compiled.stills += avoid;
+      if (has(compiled.video)) compiled.video += avoid;
     }
     return compiled;
   }
@@ -522,6 +538,7 @@ class Component extends DCLogic {
     const checks = [
       { ok: has(s.subject), label: 'Subject described' },
       { ok: has(s.subject) && s.subject.trim().length > 24, label: 'Subject detailed' },
+      { ok: has(s.action), label: 'Action / beat set' },
       { ok: has(s.environment), label: 'Environment set' },
       { ok: !!(s.framing && s.framing.length), label: 'Framing chosen' },
       { ok: has(s.prefixOverride), label: 'Style / look set' },
@@ -882,6 +899,7 @@ class Component extends DCLogic {
       return this.eyebrow('Prompt · Subject') +
         this.head('What\u2019s in the shot?', 'Describe the main subject. Be specific \u2014 who or what, how many, and what they\u2019re doing.') +
         this.field('Subject description', this.textarea('subject', this.state.subject, 'Who or what is in the shot — be specific. e.g. A lone commuter crossing a downtown intersection at dawn.'), 'The clearer the subject, the more consistent your stills.') +
+        this.field('What happens in the shot', this.textarea('action', this.state.action, 'The beat across the clip — subject motion, separate from the camera. e.g. She pours the coffee, then looks up as the door opens.'), 'The video prompt is composed from this. Movement of the camera is set later, in Camera.') +
         this.field('Subject type', this.chips('type', [{label:'People'},{label:'Product'},{label:'Architecture'},{label:'Landscape'},{label:'Vehicle'},{label:'Abstract'}]), '') +
         this.field('Density', densityRow + crowdPanel, '') +
         this.field('Character reference &nbsp;<span style="font-weight:400;color:#9A9AA8;">optional</span>', this.attachRef('Lock a recurring face or wardrobe', 'charRefIds', ['character'], true), 'Attached refs are sent to models that support identity consistency \u2014 Nano Banana Pro, Seedream, Kling.') +
