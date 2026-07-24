@@ -168,5 +168,24 @@ ok('stillLead: ar formatted into gpt/nano/seedream', PC.stillLead('gpt', { ar: '
 ok('stillLead: unknown model -> no lead', PC.stillLead('mystery').pre === '' && PC.stillLead('mystery').post === '');
 ok('stillLead: two models produce different treatment', JSON.stringify(PC.stillLead('gpt')) !== JSON.stringify(PC.stillLead('mj')));
 
+// ── N. realism baseline — the always-on "real photo, not AI" craft stack ──
+const rb = PC.realismBaseline();
+ok('baseline: returns several clauses', Array.isArray(rb) && rb.length >= 8);
+ok('baseline: carries the key anti-AI cue', rb.join(', ').indexOf('avoid supermodel perfection') !== -1);
+ok('baseline: film grain + naturalism present', rb.join(', ').indexOf('subtle film grain') !== -1 && rb.join(', ').indexOf('naturalistic performance') !== -1);
+// legal guard: no camera makes, film stocks, or real DP names may ever appear
+ok('baseline: brand/name-free (legal)', !/ARRI|Alexa|Kodak|Fuji|Vision3|Eterna|Deakins|Lubezki|Wong Kar|Doyle|Willis/i.test(rb.join(' ')));
+ok('baseline: people=false drops human-skin cues', PC.realismBaseline({ people: false }).join(' ').indexOf('skin pores') === -1);
+ok('baseline: default keeps human-skin cues', rb.join(' ').indexOf('skin pores') !== -1);
+ok('baseline: universal cues survive people=false', PC.realismBaseline({ people: false }).indexOf('subtle film grain') !== -1);
+ok('baseline: deterministic (same output twice)', JSON.stringify(PC.realismBaseline()) === JSON.stringify(PC.realismBaseline()));
+
+// ── O. camera/film craft — brand-free cinema-look ──
+const cc = PC.cameraCraft();
+ok('camera: returns clauses', Array.isArray(cc) && cc.length >= 3);
+ok('camera: carries the real craft (dynamic range + rolloff)', cc.join(', ').indexOf('wide dynamic range') !== -1 && cc.join(', ').indexOf('highlight rolloff') !== -1);
+ok('camera: brand/name-free (legal)', !/ARRI|Alexa|RED|Sony|Venice|Blackmagic|Kodak|Fuji|Vision3|Eterna/i.test(cc.join(' ')));
+ok('camera: deterministic', JSON.stringify(PC.cameraCraft()) === JSON.stringify(PC.cameraCraft()));
+
 console.log(pass + ' passed, ' + fail + ' failed');
 process.exit(fail ? 1 : 0);

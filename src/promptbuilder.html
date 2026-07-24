@@ -520,6 +520,13 @@ class Component extends DCLogic {
       film.forEach((c) => parts.push(', ' + c));
       // Realism extras (multi) — texture/physics cues, appended last.
       if (PC) PC.chipClauses('realism', chips.realism).forEach((c) => parts.push(', ' + c));
+      // Cinema-camera / film-look craft — brand-free (see promptcompile.cameraCraft).
+      if (PC && PC.cameraCraft) PC.cameraCraft().forEach((c) => parts.push(', ' + c));
+      // Always-on photographic-realism baseline — the "make it a real photo, not
+      // AI" craft the older app appended to every still and the current app had
+      // lost. Brand/name-free (see promptcompile.realismBaseline); the single
+      // biggest reason the old prompts read real.
+      if (PC && PC.realismBaseline) PC.realismBaseline().forEach((c) => parts.push(', ' + c));
       stills = parts.join(' ').replace(/ ,/g, ',') + '.';
       // Video reuses the CLEAN scene (before any per-model stills wrapping), so the
       // image-to-video prompt carries subject/look/lens without the stills lead/flags.
@@ -534,7 +541,7 @@ class Component extends DCLogic {
       // Per-model stills lead — model choice now changes the compiled text.
       const ar = (PC && PC.chipClause('ar', chips.ar)) || '16:9';
       const lead = PC && PC.stillLead ? PC.stillLead(s.stillModel, { ar }) : { pre: '', post: '' };
-      stills = pre + (lead.pre || '') + stills + (lead.post || '');
+      stills = pre + 'Cinematic film still. ' + (lead.pre || '') + stills + (lead.post || '');
     }
     let compiled = { stills: stills, video: video };
     // Weave attached references (characters, props/products, location, style look).
@@ -583,15 +590,12 @@ class Component extends DCLogic {
         : '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#9A9AA8" stroke-width="1.5" stroke-linecap="round"><circle cx="7" cy="7" r="6"></circle><path d="M7 4.2v3.4M7 9.6v.3"></path></svg>') +
       '<span style="font-size:12px;color:' + (c.ok ? '#5A5A6B' : '#9A9AA8') + ';">' + c.label + '</span></div>';
 
-    // live prompt built from real state (single source of truth: compilePrompt)
-    const compiled = this.compilePrompt();
-    const stills = compiled.stills, video = compiled.video;
-    const livePrompt = stills
-      ? '<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;"><span style="font-size:11px;font-weight:500;color:#0217D3;">Stills</span><span style="font-size:10px;color:#9A9AA8;">text-to-image</span></div>' +
-        '<p style="font-size:12px;color:#16161D;line-height:1.6;margin-bottom:12px;">' + esc(stills) + '</p>' +
-        '<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;"><span style="font-size:11px;font-weight:500;color:#0217D3;">Video</span><span style="font-size:10px;color:#9A9AA8;">image-to-video</span></div>' +
-        '<p style="font-size:12px;color:#16161D;line-height:1.6;">' + esc(video) + '</p>'
-      : '<p style="font-size:12px;color:#9A9AA8;line-height:1.6;">Fill in the steps and your prompt builds here.</p>';
+    // The compiled prompt's HOME is the end of the flow (step 6 · Review), NOT
+    // this sidebar. Printing the full prompt here the whole time read as chrome
+    // and "gave away the illusion of the building" (Sofia). The rail now shows
+    // only build progress; the finished prompt is revealed as the artifact on
+    // Review. compilePrompt stays the single source there.
+    const railNote = '<p style="font-size:12px;color:#9A9AA8;line-height:1.6;">Your prompt assembles as you go — it’s revealed, ready to run, on the final <strong style="color:#5A5A6B;font-weight:500;">Review</strong> step.</p>';
 
     const a = window.Store ? Store.getActive() : null;
     const shotStatus = a && a.shot ? ('<div style="border-top:1px solid rgba(16,16,32,0.08);padding-top:18px;">' +
@@ -604,7 +608,7 @@ class Component extends DCLogic {
       '<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:10px;"><span style="font-size:28px;font-weight:500;color:#16161D;letter-spacing:-0.02em;">' + pct + '%</span><span style="font-size:12px;font-weight:500;color:' + labelCol + ';">' + label + '</span></div>' +
       '<div style="height:6px;background:#ECEDF0;border-radius:999px;overflow:hidden;margin-bottom:16px;"><div style="height:100%;width:' + pct + '%;background:#FF002E;border-radius:999px;transition:width 0.4s;"></div></div>' +
       '<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:24px;">' + checks.map(checkRow).join('') + '</div>' +
-      '<div style="background:#F7F5EF;border:1px solid rgba(16,16,32,0.08);border-radius:10px;padding:14px;margin-bottom:24px;">' + livePrompt + '</div>' +
+      '<div style="background:#F7F5EF;border:1px solid rgba(16,16,32,0.08);border-radius:10px;padding:14px;margin-bottom:24px;">' + railNote + '</div>' +
       shotStatus;
   }
 
@@ -645,8 +649,8 @@ class Component extends DCLogic {
         prompt:'wide establishing photograph, downtown intersection, golden hour, commuters crossing, warm natural light, 24mm lens, eye level, photorealistic, natural skin and texture',
         rule:'Concise photoreal phrasing; sharpness keywords held back on purpose \u2014 FLUX tends to over-crisp.' },
       { id:'mj', label:'Midjourney v7', tag:'text-to-image',
-        prompt:'wide establishing shot, downtown intersection at golden hour, commuters crossing, warm natural light, Kodak Portra 400 --ar 16:9 --style raw --stylize 250 --v 7',
-        rule:'Film-stock color science (Portra) plus --ar / --style raw / --stylize flags. Expect aesthetic interpretation over literal accuracy.' },
+        prompt:'wide establishing shot, downtown intersection at golden hour, commuters crossing, warm natural light, warm portrait film stock, fine grain --ar 16:9 --style raw --stylize 250 --v 7',
+        rule:'Film-stock color science plus --ar / --style raw / --stylize flags. Expect aesthetic interpretation over literal accuracy.' },
     ];
   }
 

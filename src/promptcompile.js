@@ -346,6 +346,46 @@
     return parts.join(' ');
   }
 
+  // The always-on "make it read as a real photograph, not AI" craft stack —
+  // restored from the proven older recipe's naturalismTags. Deliberately
+  // brand/name-free: no camera makes, film stocks or real DP names (those are
+  // the legal-risk terms, and it's the descriptive craft — not the name — the
+  // model actually acts on). Human-skin cues are gated on `people` (default on)
+  // so a landscape or product still can opt out via { people: false }. Returns
+  // an array of clauses, mirroring chipClauses so compilePrompt appends it the
+  // same way.
+  function realismBaseline(opts) {
+    var people = !(opts && opts.people === false);
+    var universal = [
+      'natural imperfections',
+      'candid, unposed moment',
+      'subtle film grain',
+      'slight chromatic aberration at frame edges'
+    ];
+    var human = [
+      'visible skin pores and fabric weave detail',
+      'flyaway hair strands',
+      'realistic eye reflections, subtle asymmetry',
+      'avoid supermodel perfection',
+      'naturalistic performance, no exaggerated expressions'
+    ];
+    return people ? universal.concat(human) : universal;
+  }
+
+  // Brand-free cinema-camera / film-look craft — the sanitized descendant of the
+  // old recipe's camera line (which named ARRI/Kodak, i.e. the legal-risk brands).
+  // The model acts on the descriptive craft, not the brand name, so only the craft
+  // survives. Stills only, always on. Kept separate from realismBaseline so the
+  // two can be tuned (and legally re-checked) independently.
+  function cameraCraft() {
+    return [
+      'shot on a large-sensor cinema camera',
+      'wide dynamic range',
+      'natural colour and skin tones',
+      'film-like highlight rolloff'
+    ];
+  }
+
   window.PromptCompile = {
     kinds: kinds,
     fieldsFor: fieldsFor,
@@ -359,6 +399,8 @@
     chipClause: chipClause,
     chipClauses: chipClauses,
     stillAction: stillAction,
-    stillLead: stillLead
+    stillLead: stillLead,
+    realismBaseline: realismBaseline,
+    cameraCraft: cameraCraft
   };
 })();
