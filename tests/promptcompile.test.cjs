@@ -119,5 +119,54 @@ ok('term: every framing value maps', ['Symmetrical','lead','frame','Negative spa
 ok('term: model-aware falls back to core when no override', PC.term('move','push','veo3_1') === PC.term('move','push'));
 ok('compileVideo: move sourced from dict', PC.compileVideo({ move:'tracking' }).indexOf('tracks with the subject') !== -1);
 
+
+// ── L. per-model: reference handling differs by model capability ──
+const vbase = () => ({ stills: 'A shot of a woman.', video: PC.compileVideo({ action:'she waves', move:'push' }, { scene:'A shot of a woman' }) });
+let seed = PC.weaveReferences(vbase(), [charRef('Maya Chen','mid-30s')], { videoRefMode: 'array' });
+let king = PC.weaveReferences(vbase(), [charRef('Maya Chen','mid-30s')], { videoRefMode: 'frame' });
+ok('per-model: array mode weaves a 100% match ref', seed.video.indexOf('100% match') !== -1);
+ok('per-model: frame mode binds to the start frame instead', king.video.indexOf('starting frame already establishes') !== -1 && king.video.indexOf('Maya Chen') !== -1);
+ok('per-model: frame mode does NOT emit ref-array language', king.video.indexOf('100% match') === -1);
+ok('per-model: Kling and Seedance produce DIFFERENT video prompts', seed.video !== king.video);
+ok('videoRefMode: seedance=array', PC.videoRefMode('seedance') === 'array');
+ok('videoRefMode: kling=frame', PC.videoRefMode('kling') === 'frame');
+ok('videoRefMode: higgsfield=array', PC.videoRefMode('higgsfield') === 'array');
+ok('videoRefMode: unknown defaults to array', PC.videoRefMode('mystery') === 'array');
+
+// ── M. Phase-1 wiring: controls that now reach the STILLS prompt ──
+// action → still (frozen beat)
+ok('stillAction: returns cleaned beat', PC.stillAction('She reaches for the door.') === 'She reaches for the door');
+ok('stillAction: blank -> empty', PC.stillAction('') === '' && PC.stillAction(undefined) === '');
+
+// feel / grade / tod / light / realism chips resolve to clauses
+ok('chipClause: feel maps', PC.chipClause('feel', 0).indexOf('warm naturalistic') !== -1);
+ok('chipClause: feel last maps', PC.chipClause('feel', 6).indexOf('nostalgic film') !== -1);
+ok('chipClause: grade maps', PC.chipClause('grade', 4) === 'teal-and-orange grade');
+ok('chipClause: tod maps', PC.chipClause('tod', 1) === 'at golden hour');
+ok('chipClause: light maps', PC.chipClause('light', 0) === 'natural light');
+ok('chipClause: out-of-range empty', PC.chipClause('feel', 99) === '' && PC.chipClause('feel', -1) === '');
+ok('chipClause: undefined idx empty', PC.chipClause('feel', undefined) === '');
+ok('chipClause: unknown group empty', PC.chipClause('nope', 0) === '');
+ok('chipClauses: realism multi maps', (() => {
+  const cs = PC.chipClauses('realism', [1, 4]);
+  return cs.length === 2 && cs[0].indexOf('film grain') !== -1 && cs[1].indexOf('dust') !== -1;
+})());
+ok('chipClauses: non-array -> empty', PC.chipClauses('realism', undefined).length === 0);
+ok('chipClauses: drops unknown indices', PC.chipClauses('realism', [0, 999]).length === 1);
+
+// every option in each wired group has a non-empty clause (no silent gaps)
+ok('OPTS: every wired clause is non-empty', ['tod','light','feel','grade','realism'].every(
+  g => PC.OPTS[g].every(o => o.clause && o.clause.length > 0)));
+
+// per-model stills lead — model choice now changes the compiled text
+ok('stillLead: gpt leads photorealistic', PC.stillLead('gpt').pre.indexOf('Photorealistic') !== -1);
+ok('stillLead: nano leads photograph + 4K', PC.stillLead('nano').pre.indexOf('Photograph') !== -1 && PC.stillLead('nano').post.indexOf('4K') !== -1);
+ok('stillLead: flux holds back sharpness words', PC.stillLead('flux').post.indexOf('natural skin') !== -1 && PC.stillLead('flux').post.toLowerCase().indexOf('sharp') === -1);
+ok('stillLead: midjourney emits real flags', (() => { const p = PC.stillLead('mj', { ar: '9:16' }).post; return p.indexOf('--ar 9:16') !== -1 && p.indexOf('--style raw') !== -1 && p.indexOf('--v 7') !== -1; })());
+ok('stillLead: mj defaults ar to 16:9', PC.stillLead('mj').post.indexOf('--ar 16:9') !== -1);
+ok('stillLead: ar formatted into gpt/nano/seedream', PC.stillLead('gpt', { ar: '1:1' }).post.indexOf('1:1') !== -1 && PC.stillLead('seedream', { ar: '1:1' }).post.indexOf('1:1') !== -1);
+ok('stillLead: unknown model -> no lead', PC.stillLead('mystery').pre === '' && PC.stillLead('mystery').post === '');
+ok('stillLead: two models produce different treatment', JSON.stringify(PC.stillLead('gpt')) !== JSON.stringify(PC.stillLead('mj')));
+
 console.log(pass + ' passed, ' + fail + ' failed');
 process.exit(fail ? 1 : 0);

@@ -440,7 +440,7 @@ class Component extends DCLogic {
   }
 
   builderKeys() {
-    return ['stillModel','videoModel','density','lookMode','camMode','dp','comp','shot','angle','lens','move','depth','framing','prefixOverride','subject','action','environment','negative','charRefIds','propRefIds','locRefId','styleRefId','atTags'];
+    return ['stillModel','videoModel','density','lookMode','camMode','dp','comp','shot','angle','lens','move','depth','framing','prefixOverride','subject','action','environment','negative','charRefIds','propRefIds','locRefId','styleRefId','atTags','chips'];
   }
 
   seedFromActive() {
@@ -489,31 +489,59 @@ class Component extends DCLogic {
     const has = (v) => !!(v && String(v).trim());
     let stills = '', video = '';
     if (has(s.subject) || has(s.environment)) {
+      const PC = window.PromptCompile;
+      const chips = s.chips || {};
       const parts = [];
       parts.push('A ' + this.shotLabelShort(s.shot));
       if (has(s.subject)) parts.push('of ' + s.subject.trim().replace(/\.$/, '').replace(/^(A|An|The)\s+/, (m) => m.toLowerCase()));
+      // Action — the "what happens" beat, frozen as the still's captured moment.
+      const act = PC && PC.stillAction ? PC.stillAction(s.action) : '';
+      if (act) parts.push(', ' + act);
       if (has(s.environment)) parts.push('— ' + s.environment.trim().replace(/\.$/, ''));
+      // Time of day (Environment step) now reaches the prompt.
+      const tod = PC ? PC.chipClause('tod', chips.tod) : '';
+      if (tod) parts.push(', ' + tod);
+      // Look: DP note (by-look), or the plain-language feel clause (by-feel).
       if (s.lookMode === 'dp' && has(s.dp)) { const t = this.dpTraits().find((x) => x.id === s.dp); if (t) parts.push(', ' + t.note.replace(/\.$/, '')); }
+      else if (s.lookMode === 'feel' && PC) { const feel = PC.chipClause('feel', chips.feel); if (feel) parts.push(', ' + feel); }
+      // Lighting (multi) and colour grade now reach the prompt.
+      if (PC) PC.chipClauses('light', chips.light).forEach((c) => parts.push(', ' + c));
+      const grade = PC ? PC.chipClause('grade', chips.grade) : '';
+      if (grade) parts.push(', ' + grade);
       if (has(s.lens)) parts.push(', ' + s.lens + 'mm');
       // Dictionary-driven film language: every camera/composition control emits
       // its verified phrase, so angle, depth, placement and framing actually
       // reach the prompt instead of only redrawing the preview.
-      const T = (c, v) => (window.PromptCompile && PromptCompile.term) ? PromptCompile.term(c, v, s.stillModel) : '';
+      const T = (c, v) => (PC && PC.term) ? PC.term(c, v, s.stillModel) : '';
       const film = [T('angle', s.angle), T('comp', s.comp), T('depth', s.depth)]
         .concat((s.framing || []).map((f) => T('framing', f)))
         .concat([(s.density === 'single' || s.density === 'crowd') ? T('density', s.density) : ''])
         .filter(Boolean);
       film.forEach((c) => parts.push(', ' + c));
+      // Realism extras (multi) — texture/physics cues, appended last.
+      if (PC) PC.chipClauses('realism', chips.realism).forEach((c) => parts.push(', ' + c));
       stills = parts.join(' ').replace(/ ,/g, ',') + '.';
-      video = (window.PromptCompile && PromptCompile.compileVideo) ? PromptCompile.compileVideo(s, { scene: stills, model: s.videoModel })
+      // Video reuses the CLEAN scene (before any per-model stills wrapping), so the
+      // image-to-video prompt carries subject/look/lens without the stills lead/flags.
+      video = (PC && PC.compileVideo) ? PC.compileVideo(s, { scene: stills, model: s.videoModel })
         : 'Animate the still: natural ambient motion, hold the framing.';
+      // Project style prefix leads every shot unless this shot overrides it.
+      let pre = '';
+      if (!s.prefixOverride && window.Store && this._ids && this._ids.projectId && Store.getStylePrefix) {
+        const sp = Store.getStylePrefix(this._ids.projectId);
+        if (sp && sp.trim()) pre = sp.trim().replace(/\.$/, '') + '. ';
+      }
+      // Per-model stills lead — model choice now changes the compiled text.
+      const ar = (PC && PC.chipClause('ar', chips.ar)) || '16:9';
+      const lead = PC && PC.stillLead ? PC.stillLead(s.stillModel, { ar }) : { pre: '', post: '' };
+      stills = pre + (lead.pre || '') + stills + (lead.post || '');
     }
     let compiled = { stills: stills, video: video };
     // Weave attached references (characters, props/products, location, style look).
     if (window.PromptCompile && window.Store) {
       const ids = (s.charRefIds || []).concat(s.propRefIds || [], [s.locRefId, s.styleRefId]);
       const refs = ids.filter(Boolean).map((id) => Store.getReference(id)).filter(Boolean);
-      compiled = PromptCompile.weaveReferences(compiled, refs, { atTags: this.usesAtTags() });
+      compiled = PromptCompile.weaveReferences(compiled, refs, { atTags: this.usesAtTags(), videoRefMode: PromptCompile.videoRefMode(s.videoModel) });
     }
     // The negative field promises "applies to both stages" — honor it as a
     // prose tail (no model exposes a negative_prompt param; see RESEARCH-LOG).
@@ -605,8 +633,8 @@ class Component extends DCLogic {
   stillProfiles() {
     return [
       { id:'gpt', label:'GPT Image', tag:'text-to-image',
-        prompt:'A photorealistic wide establishing shot of commuters and pedestrians crossing a modern downtown intersection at golden hour. Warm natural side-light, long shadows, glass storefronts. 24mm wide lens, eye level. Optimistic, lived-in city energy. Output 3:2.',
-        rule:'Conversational full sentences; \u201cphotorealistic\u201d stated plainly. Generates 3:2 \u2014 Studio S queues an upscale to 16:9 automatically.' },
+        prompt:'A photorealistic wide establishing shot of commuters and pedestrians crossing a modern downtown intersection at golden hour. Warm natural side-light, long shadows, glass storefronts. 24mm wide lens, eye level. Optimistic, lived-in city energy. 16:9. No text, no logos.',
+        rule:'Ordered, full-sentence prose; \u201cphotorealistic\u201d stated plainly. Renders 16:9 natively (long edge up to 3840px) \u2014 no upscale needed. State exclusions explicitly (\u201cno logos\u201d); reference multiple inputs by index (\u201cImage 1\u2026\u201d), not @handles.' },
       { id:'nano', label:'Nano Banana Pro', tag:'text-to-image',
         prompt:'Image: photograph. Content: a wide establishing shot of commuters crossing a downtown intersection, glass storefronts, painted crosswalk. Style: warm golden-hour cinematography, 24mm, eye level, natural side-light, optimistic mood. 16:9, 4K.',
         rule:'Reasoning model \u2014 written as an Image / Content / Style brief, not keywords. Native 16:9 at 4K; reference frames attached for character consistency.' },
@@ -649,7 +677,7 @@ class Component extends DCLogic {
   dpPresets() {
     return {
       deakins:    { comp:'mc', body:'ARRI Alexa 35', framing:[],                              depth:'shallow' },
-      lubezki:    { comp:'mc', body:'ARRI Alexa 35', framing:['Leading lines'],               depth:'deep' },
+      lubezki:    { comp:'mc', body:'ARRI Alexa 35', framing:['lead'],                         depth:'deep' },
       hoytema:    { comp:'mc', body:'Sony Venice 2',    framing:['Negative space'],              depth:'deep' },
       fraser:     { comp:'mc', body:'Sony Venice 2', framing:[],                              depth:'shallow' },
       young:      { comp:'ml', body:'ARRI Alexa 35', framing:['Negative space'],              depth:'shallow' },
@@ -810,7 +838,17 @@ class Component extends DCLogic {
           } else {
             chips[name] = idx;
           }
-          this.setState({ chips });
+          const patch = { chips };
+          // Model chips (step 5) drive the primary model compilePrompt reads, so
+          // changing a model here — not just on the Review tabs — updates the prompt.
+          if (name === 'smodel' || name === 'vmodel') {
+            const sel = chips[name];
+            const i = (Array.isArray(sel) && sel.length) ? sel[0] : idx;
+            const profs = name === 'smodel' ? this.stillProfiles() : this.videoProfiles();
+            const prof = profs[i] || profs[0];
+            if (prof) patch[name === 'smodel' ? 'stillModel' : 'videoModel'] = prof.id;
+          }
+          this.setState(patch);
           this.render();
         };
       });
@@ -830,6 +868,13 @@ class Component extends DCLogic {
       control +
       (hint ? '<p style="font-size:12px;color:#9A9AA8;margin-top:8px;">' + hint + '</p>' : '') +
       '</div>';
+  }
+  // Chips whose labels AND compiled clauses live in PromptCompile.OPTS — one
+  // source of truth shared with compilePrompt, so a rendered option can never
+  // drift out of sync with the clause it produces. Labels are HTML-escaped here.
+  phraseChips(name, multi) {
+    const src = (window.PromptCompile && PromptCompile.OPTS && PromptCompile.OPTS[name]) || [];
+    return this.chips(name, src.map((o) => ({ label: this.escHtml(o.label) })), multi);
   }
   chips(name, opts, multi) {
     // Selections live in this.state.chips[name] (single: index; multi: array of
@@ -909,8 +954,8 @@ class Component extends DCLogic {
       return this.eyebrow('Prompt · Environment') +
         this.head('Set the scene', 'Where and when does this take place? Environment and light shape the whole frame.') +
         this.field('Location', this.textarea('environment', this.state.environment, 'Where and when — e.g. A modern downtown intersection, glass storefronts, wide sidewalks.'), '') +
-        this.field('Time of day', this.chips('tod', [{label:'Dawn'},{label:'Golden hour'},{label:'Midday'},{label:'Dusk'},{label:'Night'}]), '') +
-        this.field('Lighting', this.chips('light', [{label:'Natural'},{label:'Soft / diffused'},{label:'Hard / direct'},{label:'Practical'},{label:'Studio'}], true), 'Pick all that apply.') +
+        this.field('Time of day', this.phraseChips('tod'), '') +
+        this.field('Lighting', this.phraseChips('light', true), 'Pick all that apply.') +
         this.field('Location reference &nbsp;<span style="font-weight:400;color:#9A9AA8;">optional</span>', this.attachRef('Lock a recurring location', 'locRefId', ['location'], false), 'Keeps the same space consistent across shots.');
     }
     if (step === 4) {
@@ -967,18 +1012,17 @@ class Component extends DCLogic {
           '</div>';
       } else {
         lookField =
-          this.chips('feel', [{label:'Warm &amp; natural'},{label:'Moody &amp; contrasty'},{label:'Soft &amp; dreamy'},{label:'Bold &amp; saturated'},{label:'Naturalistic doc'},{label:'Clean &amp; commercial'},{label:'Nostalgic film'}]) +
+          this.phraseChips('feel') +
           '<p style="font-size:12px;color:#9A9AA8;margin-top:8px;">Plain-language looks \u2014 no film-school required. Studio S translates each into concrete lighting, colour and composition cues.</p>';
       }
-      const realism = ['Motion blur','Film grain + CA','Lens flare','Visible breath','Dust particles','Bokeh + parallax','Wet ground','Cloth physics','Micro-texture','Natural imperfections','Candid / unposed'];
       return this.eyebrow('Prompt · Style') +
         this.head('Look &amp; cinematography', 'Pick a signature cinematography look, or describe a feel. This drives the lighting, colour and composition language in your prompts.') +
         '<div style="margin-bottom:24px;"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;"><label style="font-size:12px;font-weight:500;color:#16161D;">Cinematography look</label>' +
           this.seg('lookMode', [{val:'dp',label:'By look'},{val:'feel',label:'By feel'}], lm) +
           '</div>' + lookField + '</div>' +
         this.field('Style prefix', this.overrideToggle(), 'In Multi-Shot every shot inherits the project’s global style prefix. Turn this on to let this shot depart from it.') +
-        this.field('Colour grade', this.chips('grade', [{label:'Warm'},{label:'Cool'},{label:'Muted'},{label:'High contrast'},{label:'Teal &amp; orange'},{label:'Pastel'}]), '') +
-        this.field('Realism extras', this.chips('realism', realism.map((r) => ({label:r})), true), 'Optional texture &amp; physics cues for a less \u201cAI\u201d look. Applied where each model supports them.') +
+        this.field('Colour grade', this.phraseChips('grade'), '') +
+        this.field('Realism extras', this.phraseChips('realism', true), 'Optional texture &amp; physics cues for a less \u201cAI\u201d look. Applied where each model supports them.') +
         this.field('Style reference &nbsp;<span style="font-weight:400;color:#9A9AA8;">optional</span>', this.attachRef('Match a look-frame or grade', 'styleRefId', ['look'], false), '');
     }
     if (step === 5) {

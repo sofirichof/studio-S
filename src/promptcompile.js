@@ -133,8 +133,15 @@
     var video = compiled.video;
     if (has(video) && (featured.length || places.length)) {
       var idRefs = featured.concat(places);
-      if (atTags) {
-        // Higgsfield pattern: declare each asset handle up top, then lock it.
+      var vMode = (opts && opts.videoRefMode) || 'array';
+      if (vMode === 'frame') {
+        // Kling / Sora accept ONLY a start/end frame — no reference arrays (T1:
+        // param schemas expose start_image/end_image, no image_references). So the
+        // identity rides on the generated still, not on @-tags or a ref list.
+        video = video.replace(/\.$/, '') + ' The starting frame already establishes ' +
+          idRefs.map(function (r) { return r.name; }).join(', ') + ' — keep them identical for the full shot.';
+      } else if (atTags) {
+        // Higgsfield / Seedance: declare each asset handle up top, then lock it.
         var decls = idRefs.map(function (r) { return summarize(r, true); }).join(' · ');
         video = decls + '. ' + video.replace(/\.$/, '') + '. Each tagged reference stays a 100% match.';
       } else {
@@ -198,6 +205,119 @@
     }
   };
 
+  // Per-model capability profile — how each video model actually takes identity
+  // references (verified from the platform param schemas, RESEARCH-LOG claim 15):
+  //   'array' → ingests image/audio reference arrays (Seedance, Higgsfield/Soul)
+  //   'frame' → start/end frame only, no reference arrays (Kling, Sora)
+  // This is a real capability difference, not phrasing — so it changes the prompt
+  // per model. Standard film vocabulary stays universal (research found no
+  // per-model wording difference).
+  var VIDEO_CAPS = {
+    seedance:   { refs: 'array' },
+    higgsfield: { refs: 'array' },
+    runway:     { refs: 'array' },
+    kling:      { refs: 'frame' },
+    sora:       { refs: 'frame' }
+  };
+  function videoRefMode(model) {
+    return (VIDEO_CAPS[model] && VIDEO_CAPS[model].refs) || 'array';
+  }
+
+  // ── Phase-1 wiring ─────────────────────────────────────────────────────────
+  // Builder controls that were authored but never reached the STILLS prompt.
+  // Each chip selection maps to the exact clause that enters the compiled prompt,
+  // so editing the control visibly changes output (the reported "doesn't respond
+  // to my choices"). Labels are PLAIN text — promptbuilder's phraseChips() renderer
+  // HTML-escapes them; the option ORDER here MUST match the chips rendered there.
+  var OPTS = {
+    tod: [
+      { label: 'Dawn',        clause: 'at dawn' },
+      { label: 'Golden hour', clause: 'at golden hour' },
+      { label: 'Midday',      clause: 'in flat midday light' },
+      { label: 'Dusk',        clause: 'at dusk' },
+      { label: 'Night',       clause: 'at night' }
+    ],
+    light: [
+      { label: 'Natural',        clause: 'natural light' },
+      { label: 'Soft / diffused', clause: 'soft diffused light' },
+      { label: 'Hard / direct',   clause: 'hard directional light' },
+      { label: 'Practical',       clause: 'lit by practical sources' },
+      { label: 'Studio',          clause: 'controlled studio lighting' }
+    ],
+    feel: [
+      { label: 'Warm & natural',    clause: 'warm naturalistic light, soft contrast, honest colour' },
+      { label: 'Moody & contrasty', clause: 'moody low-key lighting, deep shadows, high contrast' },
+      { label: 'Soft & dreamy',     clause: 'soft diffused light, gentle haze, dreamy pastel tones' },
+      { label: 'Bold & saturated',  clause: 'bold saturated colour, punchy contrast, vivid light' },
+      { label: 'Naturalistic doc',  clause: 'naturalistic documentary look, available light, true-to-life skin' },
+      { label: 'Clean & commercial', clause: 'clean commercial lighting, crisp and bright, polished finish' },
+      { label: 'Nostalgic film',    clause: 'nostalgic film look, warm faded grade, fine grain' }
+    ],
+    grade: [
+      { label: 'Warm',          clause: 'warm colour grade' },
+      { label: 'Cool',          clause: 'cool colour grade' },
+      { label: 'Muted',         clause: 'muted, desaturated grade' },
+      { label: 'High contrast', clause: 'high-contrast grade' },
+      { label: 'Teal & orange', clause: 'teal-and-orange grade' },
+      { label: 'Pastel',        clause: 'soft pastel grade' }
+    ],
+    realism: [
+      { label: 'Motion blur',           clause: 'natural motion blur' },
+      { label: 'Film grain + CA',       clause: 'fine film grain and subtle chromatic aberration' },
+      { label: 'Lens flare',            clause: 'gentle lens flare' },
+      { label: 'Visible breath',        clause: 'visible breath in the air' },
+      { label: 'Dust particles',        clause: 'dust particles drifting in the light' },
+      { label: 'Bokeh + parallax',      clause: 'creamy bokeh and layered depth' },
+      { label: 'Wet ground',            clause: 'wet reflective ground' },
+      { label: 'Cloth physics',         clause: 'natural cloth movement' },
+      { label: 'Micro-texture',         clause: 'fine micro-texture on skin and surfaces' },
+      { label: 'Natural imperfections', clause: 'natural imperfections, no plastic sheen' },
+      { label: 'Candid / unposed',      clause: 'candid, unposed framing' }
+    ],
+    // Aspect ratio isn't prose — resolved here only so stillLead() can format it
+    // (Midjourney needs --ar; others append the ratio). Order matches the builder.
+    ar: [
+      { label: '16:9',    clause: '16:9' },
+      { label: '9:16',    clause: '9:16' },
+      { label: '1:1',     clause: '1:1' },
+      { label: '2.39:1',  clause: '2.39:1' }
+    ]
+  };
+  // Single-select chip → its clause (idx into OPTS[name]). '' if unset/unknown.
+  function chipClause(name, idx) {
+    var g = OPTS[name];
+    if (!g || idx === undefined || idx === null || idx < 0 || idx >= g.length) return '';
+    return g[idx].clause || '';
+  }
+  // Multi-select chip → array of clauses (idxs = array of indices).
+  function chipClauses(name, idxs) {
+    if (!Array.isArray(idxs)) return [];
+    return idxs.map(function (i) { return chipClause(name, i); }).filter(Boolean);
+  }
+
+  // The "what happens in the shot" field, frozen as a still's moment. compileVideo
+  // already consumes s.action as motion; the still needs the same beat as a
+  // captured instant. Pure so the builder and tests share it.
+  function stillAction(action) { return has(action) ? clean(action) : ''; }
+
+  // Light per-model stills treatment (Phase 1 goal: make model choice change the
+  // text at all — full quality is Phase 2). Uses only real, verifiable per-model
+  // syntax already documented in the builder's stillProfiles() rules; no invented
+  // wording (the research discipline forbids it). `pre` leads, `post` trails.
+  var STILL_LEADS = {
+    gpt:      { pre: 'Photorealistic. ', post: function (ar) { return ar ? ' ' + ar + '.' : ''; } },
+    nano:     { pre: 'Photograph. ',     post: function (ar) { return (ar ? ' ' + ar + ',' : '') + ' 4K.'; } },
+    seedream: { pre: '',                 post: function (ar) { return ' Ultra-sharp 4K, accurate materials' + (ar ? ', ' + ar : '') + '.'; } },
+    flux:     { pre: '',                 post: function ()   { return ' photorealistic, natural skin and texture.'; } },
+    mj:       { pre: '',                 post: function (ar) { return ' --ar ' + (ar || '16:9') + ' --style raw --v 7'; } }
+  };
+  function stillLead(model, opts) {
+    var e = STILL_LEADS[model];
+    if (!e) return { pre: '', post: '' };
+    var ar = (opts && opts.ar) ? opts.ar : '';
+    return { pre: e.pre || '', post: (e.post ? e.post(ar) : '') };
+  }
+
   // Resolve a control value to its phrase for a model. Per-model override wins
   // when present; otherwise the universal core. Empty string if unmapped.
   function term(control, value, model) {
@@ -233,6 +353,12 @@
     weaveReferences: weaveReferences,
     compileVideo: compileVideo,
     term: term,
-    DICT: DICT
+    DICT: DICT,
+    videoRefMode: videoRefMode,
+    OPTS: OPTS,
+    chipClause: chipClause,
+    chipClauses: chipClauses,
+    stillAction: stillAction,
+    stillLead: stillLead
   };
 })();
