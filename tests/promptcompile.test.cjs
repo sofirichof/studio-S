@@ -187,5 +187,17 @@ ok('camera: carries the real craft (dynamic range + rolloff)', cc.join(', ').ind
 ok('camera: brand/name-free (legal)', !/ARRI|Alexa|RED|Sony|Venice|Blackmagic|Kodak|Fuji|Vision3|Eterna/i.test(cc.join(' ')));
 ok('camera: deterministic', JSON.stringify(PC.cameraCraft()) === JSON.stringify(PC.cameraCraft()));
 
+// ── P. video motion-realism tail — Higgsfield only, Kling untouched ──
+const vhf = PC.compileVideo({ move: 'push', action: 'she waves' }, { model: 'higgsfield' });
+const vkl = PC.compileVideo({ move: 'push', action: 'she waves' }, { model: 'kling' });
+ok('video tail: higgsfield gets performance + physics', vhf.indexOf('pore-level skin realism') !== -1 && vhf.indexOf('mass and inertia') !== -1);
+ok('video tail: kling left alone', vkl.indexOf('pore-level skin realism') === -1);
+ok('video tail: higgsfield and kling now differ', vhf !== vkl);
+ok('video tail: no model -> no tail', PC.compileVideo({ move: 'push' }).indexOf('pore-level') === -1);
+// skill rules: positive phrasing only, and no equipment/DP names
+ok('video tail: positive phrasing (no "no X" prohibitions in the tail)', !/\bno (AI|exaggerated|plastic)\b/i.test(vhf.slice(vhf.indexOf('Performance:'))));
+ok('video tail: brand/name-free (legal + skill rule)', !/ARRI|Alexa|Kodak|Fuji|RED|Sony|Deakins|Lubezki/i.test(vhf));
+ok('video tail: deterministic', PC.compileVideo({ move: 'push', action: 'she waves' }, { model: 'higgsfield' }) === vhf);
+
 console.log(pass + ' passed, ' + fail + ' failed');
 process.exit(fail ? 1 : 0);

@@ -326,6 +326,20 @@
     if (model && entry.perModel && has(entry.perModel[model])) return entry.perModel[model];
     return entry.core || '';
   }
+  // Per-model motion-realism tail. Higgsfield/Cinema Studio only for now — Kling
+  // is deliberately left alone (untested there; see the clicker discipline).
+  // Wording follows the higgsfield-seedance-prompt skill, not the older app's
+  // video line: performance/skin realism + physics (mass, inertia, contact), a
+  // short photoreal STYLE suffix, and POSITIVE phrasing throughout — the skill
+  // forbids prohibitions, so the old "no AI artifacts" is stated as its target
+  // instead. No equipment, film-stock or DP names (skill rule + legal).
+  var VIDEO_TAILS = {
+    higgsfield: 'Performance: pore-level skin realism, living eyes with catch-lights, ' +
+      'naturalistic micro-expressions, visible breath. Physics: cloth and hair move with ' +
+      'real mass and inertia, contact shadows hold where bodies meet surfaces. ' +
+      'Style: photoreal, fine grain.'
+  };
+
   function compileVideo(s, opts) {
     s = s || {};
     opts = opts || {};
@@ -343,6 +357,8 @@
     parts.push('Ambient motion stays subtle and physical — air, light and background life move naturally' + (has(s.environment) ? ' within ' + clean(s.environment).toLowerCase() : '') + '.');
     // Positive continuity locks.
     parts.push('Hold the framing; same subject, wardrobe and lighting for the full shot.');
+    // Motion-realism tail, per model (Higgsfield only; Kling untouched).
+    if (VIDEO_TAILS[opts.model]) parts.push(VIDEO_TAILS[opts.model]);
     return parts.join(' ');
   }
 
