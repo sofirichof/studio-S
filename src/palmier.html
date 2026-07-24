@@ -156,21 +156,6 @@
             <div id="snapshot-mount" style="display:flex; flex-direction:column; gap:10px;"></div>
           </div>
 
-          <!-- Kickoff prompt -->
-          <div style="background:#fff; border:1px solid rgba(16,16,32,0.08); border-radius:12px; padding:20px;">
-            <div style="margin-bottom:12px;">
-              <p style="font-size:14px; font-weight:500; color:#16161D; margin-bottom:4px;">Kickoff prompt</p>
-              <p style="font-size:13px; color:#5A5A6B; line-height:1.5;">Tell Claude what to do with these clips inside Palmier. It reads the full project — concepts, shot order, selects — then edits the timeline accordingly.</p>
-            </div>
-            <textarea style="width:100%; height:110px; background:#F7F5EF; border:1px solid rgba(16,16,32,0.08); border-radius:10px; padding:12px 14px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:14px; color:#16161D; resize:none; line-height:1.6; outline:none;">Assemble a 30-second rough cut in scene order: commute intro → banking office → community outro. Sync the major cuts to the music beat. Use the selects I've marked — don't pull from the rejected takes. Leave handles of at least 4 frames on each clip for grading.</textarea>
-            <div style="display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;">
-              <button style="height:28px; padding:0 12px; background:#fff; border:1px solid rgba(16,16,32,0.12); border-radius:6px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:12px; color:#5A5A6B; cursor:pointer; transition:all 0.12s;" class="action-btn">30s cut</button>
-              <button style="height:28px; padding:0 12px; background:#fff; border:1px solid rgba(16,16,32,0.12); border-radius:6px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:12px; color:#5A5A6B; cursor:pointer; transition:all 0.12s;" class="action-btn">60s cut</button>
-              <button style="height:28px; padding:0 12px; background:#fff; border:1px solid rgba(16,16,32,0.12); border-radius:6px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:12px; color:#5A5A6B; cursor:pointer; transition:all 0.12s;" class="action-btn">Social 9:16</button>
-              <button style="height:28px; padding:0 12px; background:#fff; border:1px solid rgba(16,16,32,0.12); border-radius:6px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:12px; color:#5A5A6B; cursor:pointer; transition:all 0.12s;" class="action-btn">Beat-synced</button>
-            </div>
-          </div>
-
           <!-- Real JSON export of the active project -->
           <div style="background:#fff; border:1px solid rgba(16,16,32,0.08); border-radius:12px; padding:20px;">
             <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
@@ -232,37 +217,6 @@
                 <div>
                   <p style="font-size:12px; font-weight:500; color:#16161D;">NLE XML</p>
                   <p style="font-size:11px; color:#9A9AA8;">Premiere Pro · DaVinci Resolve</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Version history -->
-          <div style="background:#fff; border:1px solid rgba(16,16,32,0.08); border-radius:12px; padding:18px;">
-            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
-              <p style="font-size:12px; font-weight:500; color:#16161D;">Send history</p>
-              <span style="font-size:11px; color:#9A9AA8;">3 sends</span>
-            </div>
-            <div style="display:flex; flex-direction:column; gap:2px;">
-              <div style="display:flex; align-items:center; gap:10px; padding:8px; border-radius:8px; background:#EEF0FF;">
-                <div style="width:6px; height:6px; border-radius:50%; background:#0217D3; flex-shrink:0;"></div>
-                <div style="flex:1; min-width:0;">
-                  <p style="font-size:12px; font-weight:500; color:#0217D3;">v3 — current</p>
-                  <p style="font-size:11px; color:#9A9AA8;">Today, 2:14 pm · 2 concepts</p>
-                </div>
-              </div>
-              <div style="display:flex; align-items:center; gap:10px; padding:8px; border-radius:8px;">
-                <div style="width:6px; height:6px; border-radius:50%; background:#ECEDF0; border:1px solid rgba(16,16,32,0.12); flex-shrink:0;"></div>
-                <div style="flex:1; min-width:0;">
-                  <p style="font-size:12px; color:#16161D;">v2</p>
-                  <p style="font-size:11px; color:#9A9AA8;">Yesterday, 4:51 pm · 3 concepts</p>
-                </div>
-              </div>
-              <div style="display:flex; align-items:center; gap:10px; padding:8px; border-radius:8px;">
-                <div style="width:6px; height:6px; border-radius:50%; background:#ECEDF0; border:1px solid rgba(16,16,32,0.12); flex-shrink:0;"></div>
-                <div style="flex:1; min-width:0;">
-                  <p style="font-size:12px; color:#16161D;">v1</p>
-                  <p style="font-size:11px; color:#9A9AA8;">Mon, 10:22 am · 1 concept</p>
                 </div>
               </div>
             </div>

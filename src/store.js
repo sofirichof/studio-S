@@ -23,12 +23,13 @@
       version: VERSION,
       settings: {
         configured: false,
-        onboarded: false,
         claudeApiKey: '',
         defaultOutputFolder: '',
-        defaultVideoModel: 'kling',
-        defaultModel: '',
-        defaultStillsModel: ''
+        // defaultVideoModel is the only model default with a consumer (the builder's
+        // seedFromActive). 'onboarded', 'defaultModel' and 'defaultStillsModel' were
+        // removed 2026-07-24 — no reader, and their AI-setup controls did nothing.
+        // Existing saved values are preserved by the settings merge in load().
+        defaultVideoModel: 'kling'
       },
       clients: [],
       projects: [],

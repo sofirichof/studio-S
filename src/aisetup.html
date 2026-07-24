@@ -65,10 +65,6 @@
               </div>
               <p style="font-size:12px;color:#9A9AA8;margin-top:6px;">Stored locally on your Mac only. Never sent to Supergood servers.</p>
             </div>
-            <div>
-              <label style="font-size:12px;font-weight:500;color:#16161D;display:block;margin-bottom:6px;">Default model</label>
-              <div style="position:relative;"><select id="default-model" style="width:100%;height:36px;background:#fff;border:1px solid rgba(16,16,32,.12);border-radius:10px;padding:0 28px 0 12px;font-family:'Host Grotesk',system-ui;font-size:13px;color:#16161D;appearance:none;"><option value="opus">Claude Opus 4.8 (recommended)</option><option value="sonnet">Claude Sonnet 5</option><option value="haiku">Claude Haiku 4.5</option></select><svg style="position:absolute;right:10px;top:50%;transform:translateY(-50%);pointer-events:none;" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#9A9AA8" stroke-width="1.5" stroke-linecap="round"><path d="M3 5l3 3 3-3"></path></svg></div>
-            </div>
           </div>
         </div>
 
@@ -82,10 +78,6 @@
                 <div style="flex:1;height:36px;background:#F7F5EF;border:1px solid rgba(16,16,32,.08);border-radius:10px;padding:0 12px;display:flex;align-items:center;gap:8px;"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#9A9AA8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 4.5C1 3.67 1.67 3 2.5 3h2.29a1 1 0 0 1 .7.29L6.71 4.5H11.5c.83 0 1.5.67 1.5 1.5v5c0 .83-.67 1.5-1.5 1.5h-9C1.67 12.5 1 11.83 1 11v-6.5z"></path></svg><span id="output-folder-display" style="font-size:13px;color:#9A9AA8;">No folder selected</span></div>
                 <button onclick="{{ pickOutputFolder }}" style="height:36px;padding:0 14px;background:#fff;border:1px solid rgba(16,16,32,.12);border-radius:8px;font-family:'Host Grotesk',system-ui;font-size:13px;font-weight:500;color:#16161D;cursor:pointer;white-space:nowrap;">Change</button>
               </div>
-            </div>
-            <div>
-              <label style="font-size:12px;font-weight:500;color:#16161D;display:block;margin-bottom:6px;">Default stills model</label>
-              <div style="position:relative;"><select id="stills-model" style="width:100%;height:36px;background:#fff;border:1px solid rgba(16,16,32,.12);border-radius:10px;padding:0 28px 0 12px;font-family:'Host Grotesk',system-ui;font-size:13px;color:#16161D;appearance:none;"><option value="gpt">GPT Image</option><option value="nano">Nano Banana Pro</option><option value="seedream">Seedream 4.5</option></select><svg style="position:absolute;right:10px;top:50%;transform:translateY(-50%);pointer-events:none;" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#9A9AA8" stroke-width="1.5" stroke-linecap="round"><path d="M3 5l3 3 3-3"></path></svg></div>
             </div>
             <div>
               <label style="font-size:12px;font-weight:500;color:#16161D;display:block;margin-bottom:6px;">Default video model</label>
@@ -129,8 +121,6 @@ class Component extends DCLogic {
     if (!window.Store) return;
     const s = Store.getSettings();
     this.setState({ outputFolder: s.defaultOutputFolder || '' });
-    const dm = document.getElementById('default-model'); if (dm && s.defaultModel) dm.value = s.defaultModel;
-    const sm = document.getElementById('stills-model'); if (sm && s.defaultStillsModel) sm.value = s.defaultStillsModel;
     const vm = document.getElementById('video-model'); if (vm && s.defaultVideoModel) vm.value = s.defaultVideoModel;
     // Show a masked placeholder if a key is already saved (never echo the real key).
     const key = document.getElementById('claude-key-input');
@@ -202,8 +192,6 @@ class Component extends DCLogic {
         const patch = {};
         if (key) patch.claudeApiKey = key;
         if (this.state.outputFolder) patch.defaultOutputFolder = this.state.outputFolder;
-        const dm = document.getElementById('default-model'); if (dm) patch.defaultModel = dm.value;
-        const sm = document.getElementById('stills-model'); if (sm) patch.defaultStillsModel = sm.value;
         const vm = document.getElementById('video-model'); if (vm) patch.defaultVideoModel = vm.value;
         Store.setSettings(patch);
         const saved = Store.getSettings();
