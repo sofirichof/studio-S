@@ -19,7 +19,7 @@ function reset(seed) { for (const k in mem) delete mem[k]; if (seed !== undefine
 // ── A. fresh store ──
 reset();
 let d = Store.load();
-ok('fresh: version 2', d.version === 2);
+ok('fresh: version 3', d.version === 3);
 ['clients', 'projects', 'deliverables', 'assets', 'versions', 'people'].forEach(k =>
   ok('fresh: has ' + k + '[]', Array.isArray(d[k]) && d[k].length === 0));
 ok('fresh: ui has activeClientId/activeDeliverableId', 'activeClientId' in d.ui && 'activeDeliverableId' in d.ui);
@@ -43,7 +43,7 @@ const v1 = {
 };
 reset(v1);
 d = Store.load();
-ok('migrate: version → 2', d.version === 2);
+ok('migrate: version → 3', d.version === 3);
 ok('migrate: Unassigned client created', d.clients.length === 1 && d.clients[0].name === 'Unassigned');
 ok('migrate: project got clientId', d.projects[0].clientId === d.clients[0].id);
 ok('migrate: project gained status/brief/timeline/team', d.projects[0].status === 'active' && d.projects[0].brief === '' && !!d.projects[0].timeline && Array.isArray(d.projects[0].team));
@@ -59,10 +59,14 @@ ok('migrate: carried fields', hero && hero.fields && hero.fields.desc === 'd' &&
 ok('migrate: carried prompt', hero && hero.prompt === 'P');
 ok('migrate: carried imagePath', hero && hero.imagePath === '/x.png');
 ok('migrate: reference clientId resolved from project', hero && hero.clientId === d.projects[0].clientId);
-ok('migrate: NON-DESTRUCTIVE — concepts/shots intact', d.projects[0].concepts[0].shots[0].id === 's1' && d.projects[0].concepts[0].shots[0].label === '1A');
+// v3 inserted the concept level: the old flat concepts[] became scenes[] inside one
+// concept, so every shot moved exactly one level deeper and nothing was lost.
+ok('migrate: NON-DESTRUCTIVE — shots intact one level deeper', d.projects[0].concepts[0].scenes[0].shots[0].id === 's1' && d.projects[0].concepts[0].scenes[0].shots[0].label === '1A');
+ok('migrate: legacy concept became a SCENE, wrapped in one concept', d.projects[0].concepts.length === 1 && Array.isArray(d.projects[0].concepts[0].scenes) && d.projects[0].concepts[0].scenes[0].name === 'C1');
+ok('migrate: wrapping concept is a video deliverable', d.projects[0].concepts[0].kind === 'video');
 ok('migrate: NON-DESTRUCTIVE — builder links still resolve', Store.getReference('ref_1') && Store.getReference('ref_2'));
 ok('migrate: todos intact', d.projects[0].todos.length === 1);
-// idempotent: load again (already persisted at v2), assert no duplication
+// idempotent: load again (already persisted at v3), assert no duplication
 d = Store.load();
 ok('idempotent: still 1 client', d.clients.length === 1);
 ok('idempotent: still 2 reference assets', d.assets.filter(a => a.type === 'reference').length === 2);
@@ -94,7 +98,7 @@ reset({
   ui: {}
 });
 d = Store.load();
-var b = d.projects[0].concepts[0].shots[0].builder;
+var b = d.projects[0].concepts[0].scenes[0].shots[0].builder;
 ok('edge: dangling builder link survives migration untouched', b.charRefIds.length === 1 && b.charRefIds[0] === 'ref_missing');
 ok('edge: dangling link resolves to null (no throw on getReference)', Store.getReference('ref_missing') === null);
 
@@ -152,87 +156,110 @@ ok('shim: getReference only returns references', Store.getReference(rHero.id) &&
 Store.updateReference(rHero.id, { prompt: 'edited', imagePath: '/j.png' });
 ok('shim: updateReference persists', Store.getReference(rHero.id).prompt === 'edited' && Store.getReference(rHero.id).imagePath === '/j.png');
 // attach to a shot builder, then delete the reference → link removed
-Store.updateShotBuilder({ projectId: p2.id, conceptId: active.conceptId, shotId: active.shotId }, { charRefIds: [rHero.id], styleRefId: null });
+Store.updateShotBuilder(active.ids, { charRefIds: [rHero.id], styleRefId: null });
 ok('shim: builder holds the ref id', Store.getActive().shot.builder.charRefIds[0] === rHero.id);
 Store.deleteReference(rHero.id);
 ok('shim: deleteReference removes asset', Store.getReference(rHero.id) === null);
 ok('shim: deleteReference un-attached from builder', Store.getActive().shot.builder.charRefIds.length === 0);
 
-// ── G. Phase 4 slice 2 — scene/shot list editing, labels, single source of truth ──
+// ── G. Hierarchy: project → concept → scene → shot ──
 reset();
 const sp = Store.createProject({ name: 'SceneTest' });
-const sc1 = Store.getProject(sp.id).concepts[0];
-ok('scene: default name reads as a scene', /^Scene /.test(sc1.name));
-const sc2 = Store.addConcept(sp.id, { name: 'Bodega exterior' });
-const a1 = Store.addShot(sp.id, sc1.id, {});
-const a2 = Store.addShot(sp.id, sc1.id, { name: 'Man enters' });
-const b1 = Store.addShot(sp.id, sc2.id, {});
-const labels = (pid) => Store.getProject(pid).concepts.map(c => (c.shots || []).map(s => s.label).join(','));
-ok('label: no flat "Shot N" default name', a1.name === '');
-ok('label: derived per scene', labels(sp.id)[1] === '2A' && labels(sp.id)[0].indexOf('1A') === 0);
+const cA = Store.getProject(sp.id).concepts[0];
+ok('hierarchy: a new project has one concept', Store.getProject(sp.id).concepts.length === 1);
+ok('hierarchy: that concept is a video deliverable', cA.kind === 'video' && /^Concept /.test(cA.name));
+ok('hierarchy: it holds one scene holding one shot', cA.scenes.length === 1 && cA.scenes[0].shots.length === 1 && cA.scenes[0].shots[0].label === '1A');
 
-// rename
-Store.renameConcept(sp.id, sc2.id, 'Bodega interior');
-ok('rename: scene persists', Store.getProject(sp.id).concepts[1].name === 'Bodega interior');
-Store.renameShot(sp.id, sc1.id, a2.id, 'Man enters the bodega');
-ok('rename: shot persists', Store.getProject(sp.id).concepts[0].shots.filter(s => s.id === a2.id)[0].name === 'Man enters the bodega');
+// a client wanting several videos = several concepts in one project
+const cB = Store.addConcept(sp.id, { name: 'Social cutdown', kind: 'still' });
+ok('concept: added alongside the first', Store.getProject(sp.id).concepts.length === 2);
+ok('concept: kind honoured', Store.getProject(sp.id).concepts[1].kind === 'still');
+Store.setConceptKind(sp.id, cB.id, 'video');
+ok('concept: kind editable', Store.getProject(sp.id).concepts[1].kind === 'video');
+Store.renameConcept(sp.id, cB.id, 'Hero film');
+ok('concept: rename persists', Store.getProject(sp.id).concepts[1].name === 'Hero film');
 
-// descriptive fields — written through store, read back off the SAME builder object
-Store.updateShotFields({ projectId: sp.id, conceptId: sc1.id, shotId: a1.id },
-  { subject: 'a man, 40s', action: 'pushes the door open', environment: 'corner bodega, dusk', cameraIntent: 'low 35mm dolly-in' });
-const fb = Store.getProject(sp.id).concepts[0].shots.filter(s => s.id === a1.id)[0].builder;
-ok('fields: all four persist onto shot.builder', fb.subject === 'a man, 40s' && fb.action === 'pushes the door open' &&
-   fb.environment === 'corner bodega, dusk' && fb.cameraIntent === 'low 35mm dolly-in');
-ok('fields: unknown keys rejected', Store.updateShotFields({ projectId: sp.id, conceptId: sc1.id, shotId: a1.id }, { videoModel: 'sora' }) === null &&
-   Store.getProject(sp.id).concepts[0].shots.filter(s => s.id === a1.id)[0].builder.videoModel !== 'sora');
-// single source of truth: updateShotBuilder and updateShotFields hit one object
-Store.updateShotBuilder({ projectId: sp.id, conceptId: sc1.id, shotId: a1.id }, { lens: '85' });
-const fb2 = Store.getProject(sp.id).concepts[0].shots.filter(s => s.id === a1.id)[0].builder;
-ok('fields: builder edit does not clobber descriptive fields', fb2.lens === '85' && fb2.subject === 'a man, 40s');
+// scenes live inside a concept
+const s1 = Store.addScene(sp.id, cB.id, { name: 'Festival grounds' });
+const s2 = Store.addScene(sp.id, cB.id, { name: 'Hotel room' });
+ok('scene: added under the concept, not the project', Store.getProject(sp.id).concepts[1].scenes.length === 2);
+Store.renameScene(sp.id, cB.id, s2.id, 'Hotel room, night before');
+ok('scene: rename persists', Store.getProject(sp.id).concepts[1].scenes[1].name === 'Hotel room, night before');
 
-// reorder — labels re-derive
-Store.reorderShot(sp.id, sc1.id, a1.id, 1);
-const sh = Store.getProject(sp.id).concepts[0].shots;
-ok('reorder: shot moved', sh[1].id === a1.id);
-ok('reorder: labels re-derived, not stale', sh[0].label === '1A' && sh[1].label === '1B');
-Store.reorderConcept(sp.id, sc2.id, 0);
-ok('reorder: scene moved and shots relabelled', Store.getProject(sp.id).concepts[0].id === sc2.id &&
-   Store.getProject(sp.id).concepts[0].shots[0].label === '1A' &&
-   Store.getProject(sp.id).concepts[1].shots[0].label === '2A');
-ok('reorder: out-of-range index clamps', Store.reorderShot(sp.id, sc1.id, a1.id, 99) &&
-   Store.getProject(sp.id).concepts[1].shots.map(s => s.label).join(',') === '2A,2B,2C');
+// shots live inside a scene, labelled <scene><letter> within their concept
+const ids = (shotId, sceneId) => ({ projectId: sp.id, conceptId: cB.id, sceneId: sceneId || s1.id, shotId: shotId });
+const h1 = Store.addShot(sp.id, cB.id, s1.id, {});
+const h2 = Store.addShot(sp.id, cB.id, s1.id, { name: 'Man enters' });
+const h3 = Store.addShot(sp.id, cB.id, s2.id, {});
+const conc = () => Store.getProject(sp.id).concepts[1];
+const labelsOf = () => conc().scenes.map(sc => (sc.shots || []).map(x => x.label).join(','));
+ok('shot: no flat "Shot N" default name', h1.name === '');
+ok('shot: labels are scene-number + letter', labelsOf()[0] === '1A,1B' && labelsOf()[1] === '2A');
+// labels restart per concept — 1A exists in BOTH concepts, scoped to each
+ok('label: scoped to its concept, so 1A repeats across concepts',
+   Store.getProject(sp.id).concepts[0].scenes[0].shots[0].label === '1A' && conc().scenes[0].shots[0].label === '1A');
+Store.renameShot(ids(h2.id), 'Man enters the bodega');
+ok('shot: rename persists', conc().scenes[0].shots[1].name === 'Man enters the bodega');
 
-// remove — labels re-derive and the active pointer never dangles
-Store.setActive({ projectId: sp.id, conceptId: sc1.id, shotId: a1.id });
-Store.removeShot(sp.id, sc1.id, a1.id);
-ok('remove: shot gone', Store.getProject(sp.id).concepts[1].shots.filter(s => s.id === a1.id).length === 0);
-ok('remove: active shot pointer moved, not dangling', Store.getActive().shotId !== a1.id && Store.getActive().shot !== null);
-const c3 = Store.addConcept(sp.id, { name: 'Doomed' });
-Store.addShot(sp.id, c3.id, {});
-Store.setActive({ projectId: sp.id, conceptId: c3.id, shotId: Store.getProject(sp.id).concepts[2].shots[0].id });
-Store.removeConcept(sp.id, c3.id);
-ok('remove: scene gone', Store.getProject(sp.id).concepts.length === 2);
-ok('remove: active concept pointer moved', Store.getActive().conceptId !== c3.id && Store.getActive().conceptId !== '');
-ok('remove: labels still contiguous', labels(sp.id).join(' | ').indexOf('2A') !== -1);
-// bad ids are inert, not throwing
-ok('guard: bad ids return null', Store.renameConcept(sp.id, 'nope', 'x') === null &&
-   Store.removeShot(sp.id, 'nope', 'nope') === null &&
-   Store.reorderShot('nope', 'nope', 'nope', 0) === null &&
+// descriptive fields, still one data model on shot.builder
+Store.updateShotFields(ids(h1.id), { subject: 'a man, 40s', action: 'pushes the door', environment: 'corner bodega', cameraIntent: 'low 35mm dolly-in' });
+const fb = () => conc().scenes[0].shots.filter(x => x.id === h1.id)[0].builder;
+ok('fields: all four persist onto shot.builder', fb().subject === 'a man, 40s' && fb().action === 'pushes the door' && fb().environment === 'corner bodega' && fb().cameraIntent === 'low 35mm dolly-in');
+ok('fields: unknown keys rejected', Store.updateShotFields(ids(h1.id), { videoModel: 'sora' }) === null && fb().videoModel !== 'sora');
+Store.updateShotBuilder(ids(h1.id), { lens: '85' });
+ok('fields: builder edit does not clobber descriptive fields', fb().lens === '85' && fb().subject === 'a man, 40s');
+
+// reorder
+Store.reorderShot(ids(h1.id), 1);
+ok('reorder: shot moved and relabelled', conc().scenes[0].shots[1].id === h1.id && labelsOf()[0] === '1A,1B');
+Store.reorderScene(sp.id, cB.id, s2.id, 0);
+ok('reorder: scene moved', conc().scenes[0].id === s2.id);
+ok('reorder: scene order IS the label prefix', labelsOf()[0] === '1A' && labelsOf()[1] === '2A,2B');
+Store.reorderConcept(sp.id, cB.id, 0);
+ok('reorder: concept moved', Store.getProject(sp.id).concepts[0].id === cB.id);
+ok('reorder: concept order does NOT change labels', Store.getProject(sp.id).concepts[0].scenes[0].shots[0].label === '1A');
+ok('reorder: out-of-range clamps', !!Store.reorderShot(ids(h1.id, s1.id), 99));
+
+// remove, with the active pointer re-seated rather than dangling
+Store.setActive({ projectId: sp.id, conceptId: cB.id, sceneId: s1.id, shotId: h1.id });
+Store.removeShot(ids(h1.id, s1.id));
+ok('remove: shot gone', Store.getProject(sp.id).concepts[0].scenes.filter(sc => sc.id === s1.id)[0].shots.filter(x => x.id === h1.id).length === 0);
+ok('remove: active shot re-seated, not dangling', Store.getActive().shotId !== h1.id && Store.getActive().shot !== null);
+Store.setActive({ projectId: sp.id, conceptId: cB.id, sceneId: s1.id });
+Store.removeScene(sp.id, cB.id, s1.id);
+ok('remove: scene gone', Store.getProject(sp.id).concepts[0].scenes.filter(sc => sc.id === s1.id).length === 0);
+ok('remove: active scene re-seated', Store.getActive().sceneId !== s1.id && Store.getActive().sceneId !== '');
+Store.removeConcept(sp.id, cB.id);
+ok('remove: concept gone', Store.getProject(sp.id).concepts.length === 1);
+ok('remove: active concept re-seated', Store.getActive().conceptId !== cB.id && Store.getActive().conceptId !== '');
+
+// bad ids are inert at every level
+ok('guard: bad ids return null',
+   Store.renameConcept(sp.id, 'nope', 'x') === null &&
+   Store.renameScene(sp.id, 'nope', 'nope', 'x') === null &&
+   Store.addScene(sp.id, 'nope', {}) === null &&
+   Store.addShot(sp.id, 'nope', 'nope', {}) === null &&
+   Store.removeShot({ projectId: sp.id, conceptId: 'nope', sceneId: 'nope', shotId: 'nope' }) === null &&
+   Store.removeScene('nope', 'nope', 'nope') === null &&
    Store.removeConcept('nope', 'nope') === null);
+// getActive exposes a ready-made ids bundle for the editors above
+const ga = Store.getActive();
+ok('getActive: returns concept, scene and shot', !!ga.concept && !!ga.scene && !!ga.shot);
+ok('getActive: ids bundle carries all four keys', ['projectId','conceptId','sceneId','shotId'].every(k => k in ga.ids));
 
-// ── H. Phase 4 slice 3 — locked prompts persist per shot ──
+// ── H. Locked prompts persist per shot ──
 reset();
 const lp = Store.createProject({ name: 'LockTest' });
 const lc = Store.getProject(lp.id).concepts[0];
-const ls = lc.shots[0];
-const lids = { projectId: lp.id, conceptId: lc.id, shotId: ls.id };
+const lsc = lc.scenes[0];
+const ls = lsc.shots[0];
+const lids = { projectId: lp.id, conceptId: lc.id, sceneId: lsc.id, shotId: ls.id };
 ok('lock: refuses an empty prompt', Store.lockShotPrompt(lids, { prompt: '   ' }) === null);
 Store.lockShotPrompt(lids, { prompt: 'A photorealistic wide shot.', video: 'Slow push in.', stillModel: 'gpt', videoModel: 'higgsfield' });
-const lshot = () => Store.getProject(lp.id).concepts[0].shots[0];
+const lshot = () => Store.getProject(lp.id).concepts[0].scenes[0].shots.filter(x => x.id === ls.id)[0];
 ok('lock: prompt + video persist on the shot', lshot().locked.prompt === 'A photorealistic wide shot.' && lshot().locked.video === 'Slow push in.');
 ok('lock: records the models it was composed for', lshot().locked.stillModel === 'gpt' && lshot().locked.videoModel === 'higgsfield');
 ok('lock: stamps a time and marks the shot prompted', typeof lshot().locked.at === 'number' && lshot().status === 'prompted');
-// editing fields afterwards must NOT silently rewrite the locked snapshot
 Store.updateShotFields(lids, { subject: 'changed after locking' });
 ok('lock: snapshot is immune to later field edits', lshot().locked.prompt === 'A photorealistic wide shot.');
 Store.lockShotPrompt(lids, { prompt: 'Re-locked text.' });
@@ -240,56 +267,83 @@ ok('lock: re-locking overwrites', lshot().locked.prompt === 'Re-locked text.' &&
 Store.unlockShotPrompt(lids);
 ok('lock: unlock clears it and resets status', !lshot().locked && lshot().status === 'draft');
 ok('lock: unlocking twice is inert', Store.unlockShotPrompt(lids) === null);
-ok('lock: bad ids return null', Store.lockShotPrompt({ projectId: 'x', conceptId: 'y', shotId: 'z' }, { prompt: 'p' }) === null);
-// a locked shot survives a reorder (labels change, the snapshot doesn't)
+ok('lock: bad ids return null', Store.lockShotPrompt({ projectId: 'x', conceptId: 'y', sceneId: 'z', shotId: 'w' }, { prompt: 'p' }) === null);
+// a locked shot survives a reorder (its label changes, the snapshot doesn't)
 Store.lockShotPrompt(lids, { prompt: 'Keep me.' });
-const ls2 = Store.addShot(lp.id, lc.id, {});
-Store.reorderShot(lp.id, lc.id, ls.id, 1);
-const moved = Store.getProject(lp.id).concepts[0].shots.filter(s => s.id === ls.id)[0];
-ok('lock: survives reorder with a new label', moved.locked.prompt === 'Keep me.' && moved.label === '1B');
+Store.addShot(lp.id, lc.id, lsc.id, {});
+Store.reorderShot(lids, 1);
+ok('lock: survives reorder with a new label', lshot().locked.prompt === 'Keep me.' && lshot().label === '1B');
 
-// ── I. Phase 4 slice 5 — handoff imports into the scene/shot model ──
+// ── I. Handoff import into the concept → scene → shot model ──
 reset();
 const hp = Store.createProject({ name: 'HandoffTest' });
 Store.scaffoldFromPlan(hp.id, JSON.stringify({
+  project: 'US Bank festival film',
   scenes: [
     { name: 'Bodega exterior — dusk, wet street', shots: [
       { label: '1A', name: '1A · Man enters the bodega', subject: 'a man, 40s', action: 'pushes the door',
-        environment: 'corner bodega, dusk', cameraIntent: 'low 35mm dolly-in', breakdown: 'Marco, bodega exterior, paper bag' },
+        environment: 'corner bodega, dusk', cameraIntent: 'low 35mm dolly-in', breakdown: 'Marco, bodega exterior' },
       { name: '1B · Hand on the handle' }
     ] },
     { name: 'Bodega interior', shots: [{ name: '2A · Clerk looks up' }] }
   ],
   descriptions: [
-    { kind: 'character', name: 'Marco (lead)', description: '40s, worn canvas jacket, three-day stubble.' },
-    { kind: 'location', name: 'Corner bodega', description: 'Neon sign, steel shutters, wet asphalt.' }
+    { kind: 'character', name: 'Marco (lead)', description: '40s, worn canvas jacket.' },
+    { kind: 'location', name: 'Corner bodega', description: 'Neon sign, wet asphalt.' }
   ],
   todos: ['Create Marco character sheet', 'Create bodega location plate']
 }));
-const hpr = Store.getProject(hp.id);
-ok('plan: scenes key imported as concepts', hpr.concepts.length === 2 && hpr.concepts[0].name === 'Bodega exterior');
-ok('plan: trailing description split off the scene name', hpr.concepts[0].desc === 'dusk, wet street');
-ok('plan: labels honored and derived', hpr.concepts[0].shots[0].label === '1A' &&
-   hpr.concepts[0].shots[1].label === '1B' && hpr.concepts[1].shots[0].label === '2A');
-ok('plan: label-led names kept as given', hpr.concepts[0].shots[0].name === '1A · Man enters the bodega');
-ok('plan: no flat "Shot N" fallback', hpr.concepts[0].shots[1].name === '1B · Hand on the handle');
-const pb = hpr.concepts[0].shots[0].builder;
-ok('plan: four descriptive fields land on the builder as data', pb.subject === 'a man, 40s' &&
-   pb.action === 'pushes the door' && pb.environment === 'corner bodega, dusk' && pb.cameraIntent === 'low 35mm dolly-in');
-ok('plan: per-shot breakdown carried', hpr.concepts[0].shots[0].breakdown === 'Marco, bodega exterior, paper bag');
+const hc = Store.getProject(hp.id).concepts;
+ok('plan: a scenes-only plan becomes ONE concept', hc.length === 1);
+ok('plan: concept named from the plan', hc[0].name === 'US Bank festival film');
+ok('plan: its scenes are scenes, not concepts', hc[0].scenes.length === 2 && hc[0].scenes[0].name === 'Bodega exterior');
+ok('plan: trailing description split off the scene name', hc[0].scenes[0].desc === 'dusk, wet street');
+ok('plan: labels honored and derived', hc[0].scenes[0].shots[0].label === '1A' && hc[0].scenes[0].shots[1].label === '1B' && hc[0].scenes[1].shots[0].label === '2A');
+ok('plan: label-led names kept as given', hc[0].scenes[0].shots[0].name === '1A · Man enters the bodega');
+ok('plan: no flat "Shot N" fallback', hc[0].scenes[0].shots[1].name === '1B · Hand on the handle');
+const pbf = hc[0].scenes[0].shots[0].builder;
+ok('plan: four descriptive fields land as data', pbf.subject === 'a man, 40s' && pbf.action === 'pushes the door' && pbf.environment === 'corner bodega, dusk' && pbf.cameraIntent === 'low 35mm dolly-in');
+ok('plan: per-shot breakdown carried', hc[0].scenes[0].shots[0].breakdown === 'Marco, bodega exterior');
 ok('plan: todos imported', Store.listTodos(hp.id).length === 2);
 const hrefs = Store.listReferences(hp.id);
-ok('plan: locked descriptions become typed references', hrefs.length === 2 &&
-   hrefs.filter(r => r.kind === 'location').length === 1);
+ok('plan: locked descriptions become typed references', hrefs.length === 2 && hrefs.filter(r => r.kind === 'location').length === 1);
 ok('plan: descriptions carry facts, never a prompt', hrefs[0].fields.desc.indexOf('canvas jacket') !== -1 && hrefs[0].prompt === '');
 ok('plan: nothing is marked generated', hrefs.every(r => !r.imagePath));
-// old plans using "concepts" must still import
+ok('plan: active pointer lands on concept/scene/shot', Store.getActive().conceptId === hc[0].id && Store.getActive().sceneId === hc[0].scenes[0].id);
+
+// a multi-concept plan: the client asked for two videos
+reset();
+const mp = Store.createProject({ name: 'MultiTest' });
+Store.scaffoldFromPlan(mp.id, JSON.stringify({ concepts: [
+  { name: 'Hero film', kind: 'video', scenes: [{ name: 'Opening', shots: [{ name: '1A · Wide' }] }] },
+  { name: 'Product still', kind: 'still', scenes: [{ name: 'Tabletop', shots: [{ name: '1A · Pack shot' }] }] }
+] }));
+const mc = Store.getProject(mp.id).concepts;
+ok('plan: multi-concept plan imports both concepts', mc.length === 2 && mc[0].name === 'Hero film' && mc[1].name === 'Product still');
+ok('plan: per-concept kind honoured', mc[0].kind === 'video' && mc[1].kind === 'still');
+ok('plan: each concept keeps its own scenes and 1A', mc[0].scenes[0].shots[0].label === '1A' && mc[1].scenes[0].shots[0].label === '1A');
+
+// legacy plans (scenes directly under "concepts") still import
 reset();
 const op = Store.createProject({ name: 'OldPlan' });
 Store.scaffoldFromPlan(op.id, JSON.stringify({ concepts: [{ name: 'Legacy', shots: [{ name: 'a' }] }] }));
-ok('plan: legacy "concepts" key still accepted', Store.getProject(op.id).concepts[0].name === 'Legacy');
-ok('plan: malformed JSON is inert', Store.scaffoldFromPlan(op.id, '{not json') !== null &&
-   Store.getProject(op.id).concepts.length === 1);
+const oc = Store.getProject(op.id).concepts;
+ok('plan: legacy scenes-under-concepts still import', oc.length === 1 && oc[0].scenes[0].name === 'Legacy');
+ok('plan: malformed JSON is inert', Store.scaffoldFromPlan(op.id, '{not json') !== null && Store.getProject(op.id).concepts.length === 1);
+
+// ── K. Scene names: a bare "Scene N" head is replaced by the descriptive half ──
+reset();
+const np = Store.createProject({ name: 'NameTest' });
+Store.scaffoldFromPlan(np.id, JSON.stringify({ scenes: [
+  { name: 'Scene 1 — Festival grounds, golden hour: we land inside the weekend', shots: [{ name: 'a' }] },
+  { name: 'Hotel room, night before — the outfit is laid out', shots: [{ name: 'b' }] },
+  { name: 'Just a plain name', shots: [{ name: 'c' }] }
+] }));
+const ns = Store.getProject(np.id).concepts[0].scenes;
+ok('scene name: generic "Scene 1" head replaced by its description', ns[0].name === 'Festival grounds, golden hour');
+ok('scene name: remainder kept as desc', ns[0].desc === 'we land inside the weekend');
+ok('scene name: a real name is left alone', ns[1].name === 'Hotel room, night before' && ns[1].desc === 'the outfit is laid out');
+ok('scene name: no em-dash means no desc', ns[2].name === 'Just a plain name' && ns[2].desc === '');
 
 // ── J. Regression: the Rust scan gate must accept every key the importer does ──
 // 0.3.93 shipped a template emitting "scenes" while scan_plan_folder in
@@ -302,20 +356,6 @@ ok('plan: malformed JSON is inert', Store.scaffoldFromPlan(op.id, '{not json') !
   ['scenes', 'concepts', 'tasks'].forEach((k) =>
     ok('scan gate accepts "' + k + '"', gate.indexOf('\\"' + k + '\\"') !== -1));
 }
-
-// ── K. Scene names: a bare "Scene N" head is replaced by the descriptive half ──
-reset();
-const np = Store.createProject({ name: 'NameTest' });
-Store.scaffoldFromPlan(np.id, JSON.stringify({ scenes: [
-  { name: 'Scene 1 — Festival grounds, golden hour: we land inside the weekend', shots: [{ name: 'a' }] },
-  { name: 'Hotel room, night before — the outfit is laid out', shots: [{ name: 'b' }] },
-  { name: 'Just a plain name', shots: [{ name: 'c' }] }
-] }));
-const nc = Store.getProject(np.id).concepts;
-ok('scene name: generic "Scene 1" head replaced by its description', nc[0].name === 'Festival grounds, golden hour');
-ok('scene name: remainder kept as desc', nc[0].desc === 'we land inside the weekend');
-ok('scene name: a real name is left alone', nc[1].name === 'Hotel room, night before' && nc[1].desc === 'the outfit is laid out');
-ok('scene name: no em-dash means no desc', nc[2].name === 'Just a plain name' && nc[2].desc === '');
 
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail ? 1 : 0);

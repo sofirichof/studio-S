@@ -2,15 +2,26 @@
 // Loaded before nav.js on every page. Exposes window.Store.
 // Single localStorage document under KEY; one read/parse, one write/serialize.
 //
-// Schema v2 (agency spine): clients → projects → deliverables + typed assets +
-// versions + people. v1 (projects → concepts → shots + flat references) migrates
-// forward, non-destructively: concepts/shots are PRESERVED on the project (the
-// prompt-builder still reads them); flat references fold into typed reference
-// assets (with the wizard's fields/prompt/imagePath carried through). No UI reads
-// the new objects yet — later slices build on them.
+// THE HIERARCHY (v3):
+//   project  — one client's job (the project IS the client's engagement)
+//     concept — ONE deliverable the client asked for: a video or a still.
+//               A client wanting 5 videos means 5 concepts.
+//       scene — a place/moment inside that video
+//         shot — labelled <scene><letter> within the concept: 1A, 1B, 2A …
+//
+// Stored as project.concepts[].scenes[].shots[]. Before v3, `concepts[]` held what
+// were really SCENES and there was no concept level at all, so a project couldn't
+// hold more than one deliverable; migrateConceptLevel() wraps that legacy shape
+// rather than discarding it. Note the store keys keep their historical names —
+// `concepts` is the concept level, `deliverables` is the separate agency-spine
+// array for delivery tracking (status/specs/versions), NOT the concept level.
+//
+// Also v2 (agency spine): clients → projects → deliverables + typed assets +
+// versions + people. Flat v1 references fold into typed reference assets (with the
+// wizard's fields/prompt/imagePath carried through).
 (function () {
   var KEY = 'aifs.v1';
-  var VERSION = 2;
+  var VERSION = 3;
 
   function now() { try { return Date.now(); } catch (e) { return 0; } }
   function newId(prefix) {
@@ -37,7 +48,7 @@
       assets: [],
       versions: [],
       people: [],
-      ui: { activeProjectId: '', activeConceptId: '', activeShotId: '', activeClientId: '', activeDeliverableId: '' }
+      ui: { activeProjectId: '', activeConceptId: '', activeSceneId: '', activeShotId: '', activeClientId: '', activeDeliverableId: '' }
     };
   }
 
@@ -79,8 +90,57 @@
   // the project. Deliberately does NOT project concepts→deliverables or
   // shots→generated assets (nothing was generated; the Seed slice supplies demo
   // content). Flat references fold into typed reference assets, fields carried.
+  // v2 → v3: insert the missing CONCEPT level.
+  //
+  // Up to v2, `project.concepts[]` held what were really scenes (each with shots
+  // directly on it) and there was no concept level at all — so a project could not
+  // hold the several deliverables a client actually asks for. v3 wraps every
+  // project's existing entries as SCENES inside one concept, which preserves every
+  // scene, shot, builder and locked prompt exactly where it was, one level deeper.
+  // Non-destructive and idempotent: a concept is recognised by having `scenes`.
+  function migrateConceptLevel(doc) {
+    var changed = false;
+    (doc.projects || []).forEach(function (p) {
+      var list = Array.isArray(p.concepts) ? p.concepts : (p.concepts = []);
+      // Already v3 if every entry carries scenes[] (or there's nothing to wrap).
+      var legacy = list.filter(function (c) { return !Array.isArray(c.scenes); });
+      if (!legacy.length) return;
+      var scenes = list.map(function (c) {
+        return Array.isArray(c.scenes)
+          ? c                                  // shouldn't happen in a mixed list, but don't mangle it
+          : { id: c.id || newId('scn'), name: c.name || '', desc: c.desc || '', shots: c.shots || [] };
+      });
+      p.concepts = [{
+        id: newId('cpt'),
+        name: p.name || 'Concept 1',           // the old flat list was one deliverable
+        kind: 'video',
+        scenes: scenes
+      }];
+      changed = true;
+    });
+    // The old ui pointer named a scene; re-seat it at the new concept.
+    if (changed) {
+      doc.ui = doc.ui || {};
+      var p0 = (doc.projects || []).filter(function (x) { return x.id === doc.ui.activeProjectId; })[0] || doc.projects[0];
+      if (p0 && p0.concepts[0]) {
+        var c0 = p0.concepts[0];
+        // activeConceptId used to hold a scene id — move it across if it matches.
+        var wasScene = (c0.scenes || []).filter(function (s) { return s.id === doc.ui.activeConceptId; })[0];
+        doc.ui.activeSceneId = wasScene ? wasScene.id : ((c0.scenes || [])[0] || {}).id || '';
+        doc.ui.activeConceptId = c0.id;
+      }
+    }
+    return changed;
+  }
+
   function migrate(doc) {
-    if ((doc.version || 1) >= 2) return false;
+    if ((doc.version || 1) >= 2) {
+      var wrapped = migrateConceptLevel(doc);
+      // Stamp the version even when there was nothing to wrap, so the doc doesn't
+      // re-enter this path on every load.
+      if (doc.version !== VERSION) { doc.version = VERSION; return true; }
+      return wrapped;
+    }
 
     doc.clients = Array.isArray(doc.clients) ? doc.clients : [];
     doc.deliverables = Array.isArray(doc.deliverables) ? doc.deliverables : [];
@@ -120,7 +180,10 @@
     });
     delete doc.references; // folded into assets; no longer a separate source
 
-    doc.version = 2;
+    // A v1 doc has the flat concepts[]-as-scenes shape too, so it needs the
+    // concept level inserted as well before it's current.
+    migrateConceptLevel(doc);
+    doc.version = VERSION;
     return true;
   }
 
@@ -146,9 +209,11 @@
       var migrated = migrate(doc);
       // Backfill shot labels (1A, 1B…) on data that predates them. Idempotent.
       doc.projects.forEach(function (p) {
-        (p.concepts || []).forEach(function (c, ci) {
-          (c.shots || []).forEach(function (s, si) {
-            if (!s.label) s.label = shotLabel(ci, si);
+        (p.concepts || []).forEach(function (c) {
+          (c.scenes || []).forEach(function (sc, si) {
+            (sc.shots || []).forEach(function (sh, shi) {
+              if (!sh.label) sh.label = shotLabel(si, shi);
+            });
           });
         });
       });
@@ -250,6 +315,7 @@
     opts = opts || {};
     var doc = load();
     var firstConceptId = newId('cpt');
+    var firstSceneId = newId('scn');
     var firstShotId = newId('shot');
     var p = {
       id: newId('prj'),
@@ -263,15 +329,20 @@
       team: opts.team || [],
       createdAt: now(), updatedAt: now(),
       todos: [],
+      // One concept (a deliverable) holding one scene holding one shot. The shot is
+      // identified by its label (1A = scene 1, shot A), not by a "Shot 1" name.
       concepts: [
-        // Scene, not "Concept 1"; the shot is identified by its label, not "Shot 1".
-        { id: firstConceptId, name: 'Scene 1',
-          shots: [ { id: firstShotId, name: '', label: '1A', status: 'draft', builder: defaultBuilder() } ] }
+        { id: firstConceptId, name: 'Concept 1', kind: 'video', scenes: [
+          { id: firstSceneId, name: 'Scene 1', desc: '', shots: [
+            { id: firstShotId, name: '', label: '1A', status: 'draft', builder: defaultBuilder() }
+          ] }
+        ] }
       ]
     };
     doc.projects.push(p);
     doc.ui.activeProjectId = p.id;
     doc.ui.activeConceptId = firstConceptId;
+    doc.ui.activeSceneId = firstSceneId;
     doc.ui.activeShotId = firstShotId;
     save(doc);
     return p;
@@ -302,86 +373,125 @@
     save(doc);
   }
 
+  // ── THE HIERARCHY ───────────────────────────────────────────────────────────
+  // project (one client's job) → concept (one deliverable: a video or a still)
+  //   → scene → shot
+  //
+  // A project holds the several concepts a client asked for ("the client wants 5
+  // videos" = 5 concepts). A concept, being a video, is made of scenes; a scene is
+  // made of shots. Shot labels are scene-number + letter WITHIN their concept, so
+  // 1A means "scene 1, shot A" of that concept.
+  //
+  // Storage note: `project.concepts[]` holds concepts, each with a `scenes[]`
+  // array, each with `shots[]`. Before v3 the `concepts[]` array held what were
+  // really scenes and there was no concept level at all — migrate() wraps that
+  // legacy shape rather than discarding it.
   function addConcept(projectId, opts) {
+    opts = opts || {};
     var doc = load();
     var p = byId(doc.projects, projectId);
     if (!p) return null;
-    // Concepts are SCENES, so the default name reads like one.
-    var c = { id: newId('cpt'), name: (opts && opts.name) || ('Scene ' + (p.concepts.length + 1)), shots: [] };
-    p.concepts.push(c); p.updatedAt = now(); save(doc);
+    var c = {
+      id: newId('cpt'),
+      name: opts.name || ('Concept ' + (p.concepts.length + 1)),
+      kind: opts.kind === 'still' ? 'still' : 'video',   // a concept is one deliverable
+      scenes: []
+    };
+    p.concepts.push(c); p.updatedAt = now();
+    doc.ui.activeConceptId = c.id; doc.ui.activeSceneId = ''; doc.ui.activeShotId = '';
+    save(doc);
     return c;
   }
-  // Shot labels: concept number + letter — 1A, 1B, … 1Z, 1AA, 2A …
+  function addScene(projectId, conceptId, opts) {
+    opts = opts || {};
+    var doc = load();
+    var f = locate(doc, projectId, conceptId);
+    if (!f) return null;
+    var scenes = f.c.scenes || (f.c.scenes = []);
+    var sc = {
+      id: newId('scn'),
+      name: opts.name || ('Scene ' + (scenes.length + 1)),
+      desc: opts.desc || '',
+      shots: []
+    };
+    scenes.push(sc); f.p.updatedAt = now();
+    doc.ui.activeConceptId = f.c.id; doc.ui.activeSceneId = sc.id; doc.ui.activeShotId = '';
+    save(doc);
+    return sc;
+  }
+  // Shot labels: scene number + letter within the concept — 1A, 1B, … 1Z, 1AA, 2A …
   function shotLetter(i) {
     var s = '';
     do { s = String.fromCharCode(65 + (i % 26)) + s; i = Math.floor(i / 26) - 1; } while (i >= 0);
     return s;
   }
-  function shotLabel(conceptIndex, shotIndex) {
-    return (conceptIndex + 1) + shotLetter(shotIndex);
+  function shotLabel(sceneIndex, shotIndex) {
+    return (sceneIndex + 1) + shotLetter(shotIndex);
   }
-  function addShot(projectId, conceptId, opts) {
+  function addShot(projectId, conceptId, sceneId, opts) {
     opts = opts || {};
     var doc = load();
-    var p = byId(doc.projects, projectId);
-    if (!p) return null;
-    var c = p.concepts.filter(function (x) { return x.id === conceptId; })[0];
-    if (!c) return null;
-    var ci = p.concepts.indexOf(c);
-    var s = {
+    var f = locate(doc, projectId, conceptId, sceneId);
+    if (!f) return null;
+    var si = f.c.scenes.indexOf(f.s);
+    var shots = f.s.shots || (f.s.shots = []);
+    var sh = {
       id: newId('shot'),
       // No flat "Shot 3" default — the LABEL (1A/1B) is the scannable identity,
       // and the name is the human beat the user or the plan supplies.
       name: opts.name || '',
-      label: opts.label || shotLabel(ci, c.shots.length),
+      label: opts.label || shotLabel(si, shots.length),
       status: 'draft',
       builder: opts.builder || defaultBuilder()
     };
-    c.shots.push(s); p.updatedAt = now();
-    doc.ui.activeShotId = s.id; doc.ui.activeConceptId = c.id;
+    shots.push(sh); f.p.updatedAt = now();
+    doc.ui.activeConceptId = f.c.id; doc.ui.activeSceneId = f.s.id; doc.ui.activeShotId = sh.id;
     save(doc);
-    return s;
+    return sh;
   }
-  function renameShot(projectId, conceptId, shotId, name) {
+  function renameShot(ids, name) {
     var doc = load();
-    var p = byId(doc.projects, projectId);
-    if (!p) return null;
-    var c = p.concepts.filter(function (x) { return x.id === conceptId; })[0];
-    if (!c) return null;
-    var s = c.shots.filter(function (x) { return x.id === shotId; })[0];
-    if (s) { s.name = name; p.updatedAt = now(); save(doc); }
-    return s || null;
+    var f = locate(doc, ids.projectId, ids.conceptId, ids.sceneId, ids.shotId);
+    if (!f || !f.sh) return null;
+    f.sh.name = String(name == null ? '' : name);
+    f.p.updatedAt = now(); save(doc);
+    return f.sh;
   }
   function updateShotBuilder(ids, builderPatch) {
     ids = ids || {};
     var doc = load();
-    var p = byId(doc.projects, ids.projectId);
-    if (!p) return null;
-    var c = p.concepts.filter(function (x) { return x.id === ids.conceptId; })[0];
-    if (!c) return null;
-    var s = c.shots.filter(function (x) { return x.id === ids.shotId; })[0];
-    if (!s) return null;
-    s.builder = Object.assign(s.builder || defaultBuilder(), builderPatch || {});
-    p.updatedAt = now(); save(doc);
-    return s;
+    var f = locate(doc, ids.projectId, ids.conceptId, ids.sceneId, ids.shotId);
+    if (!f || !f.sh) return null;
+    f.sh.builder = Object.assign(f.sh.builder || defaultBuilder(), builderPatch || {});
+    f.p.updatedAt = now(); save(doc);
+    return f.sh;
   }
 
-  // ── scene/shot list editing (Phase 4 slice 2) ───────────────────────────────
-  // Concepts ARE scenes. Every add/remove/reorder re-derives labels so 1A/1B/2A
-  // never go stale; relabel() is idempotent and matches the load() backfill.
+  // ── concept / scene / shot editing ──────────────────────────────────────────
+  // Every add/remove/reorder re-derives labels so 1A/1B/2A never go stale.
+  // relabel() is idempotent and matches the load() backfill.
   function relabel(p) {
-    (p.concepts || []).forEach(function (c, ci) {
-      (c.shots || []).forEach(function (s, si) { s.label = shotLabel(ci, si); });
+    (p.concepts || []).forEach(function (c) {
+      (c.scenes || []).forEach(function (sc, si) {
+        (sc.shots || []).forEach(function (sh, shi) { sh.label = shotLabel(si, shi); });
+      });
     });
   }
-  // Shared lookup so every editor below fails the same way on a bad id.
-  function locate(doc, projectId, conceptId) {
+  // Shared lookup so every editor fails the same way on a bad id. Walks as deep as
+  // the ids given: {p}, {p,c}, {p,c,s}, {p,c,s,sh}.
+  function locate(doc, projectId, conceptId, sceneId, shotId) {
     var p = byId(doc.projects, projectId);
     if (!p) return null;
     if (conceptId === undefined) return { p: p };
     var c = (p.concepts || []).filter(function (x) { return x.id === conceptId; })[0];
     if (!c) return null;
-    return { p: p, c: c };
+    if (sceneId === undefined) return { p: p, c: c };
+    var s = (c.scenes || []).filter(function (x) { return x.id === sceneId; })[0];
+    if (!s) return null;
+    if (shotId === undefined) return { p: p, c: c, s: s };
+    var sh = (s.shots || []).filter(function (x) { return x.id === shotId; })[0];
+    if (!sh) return null;
+    return { p: p, c: c, s: s, sh: sh };
   }
   // Move an item inside an array to toIndex, clamped. Returns true if it moved.
   function moveWithin(arr, from, toIndex) {
@@ -390,6 +500,15 @@
     if (to === from) return false;
     arr.splice(to, 0, arr.splice(from, 1)[0]);
     return true;
+  }
+  // After removing something, point ui at a surviving sibling instead of a ghost.
+  function reseat(doc, p) {
+    var c = (p.concepts || []).filter(function (x) { return x.id === doc.ui.activeConceptId; })[0];
+    if (!c) { c = p.concepts[0] || null; doc.ui.activeConceptId = c ? c.id : ''; }
+    var s = c ? (c.scenes || []).filter(function (x) { return x.id === doc.ui.activeSceneId; })[0] : null;
+    if (!s) { s = c && c.scenes ? c.scenes[0] : null; doc.ui.activeSceneId = s ? s.id : ''; }
+    var sh = s ? (s.shots || []).filter(function (x) { return x.id === doc.ui.activeShotId; })[0] : null;
+    if (!sh) { sh = s && s.shots ? s.shots[0] : null; doc.ui.activeShotId = sh ? sh.id : ''; }
   }
 
   function renameConcept(projectId, conceptId, name) {
@@ -400,36 +519,47 @@
     f.p.updatedAt = now(); save(doc);
     return f.c;
   }
+  function setConceptKind(projectId, conceptId, kind) {
+    var doc = load();
+    var f = locate(doc, projectId, conceptId);
+    if (!f) return null;
+    f.c.kind = kind === 'still' ? 'still' : 'video';
+    f.p.updatedAt = now(); save(doc);
+    return f.c;
+  }
+  function renameScene(projectId, conceptId, sceneId, name) {
+    var doc = load();
+    var f = locate(doc, projectId, conceptId, sceneId);
+    if (!f) return null;
+    f.s.name = String(name == null ? '' : name);
+    f.p.updatedAt = now(); save(doc);
+    return f.s;
+  }
   function removeConcept(projectId, conceptId) {
     var doc = load();
     var f = locate(doc, projectId, conceptId);
     if (!f) return null;
-    var i = f.p.concepts.indexOf(f.c);
-    f.p.concepts.splice(i, 1);
-    relabel(f.p);
-    // Don't leave the active pointer dangling — fall to the neighbouring scene.
-    if (doc.ui.activeConceptId === conceptId) {
-      var next = f.p.concepts[Math.min(i, f.p.concepts.length - 1)] || null;
-      doc.ui.activeConceptId = next ? next.id : '';
-      doc.ui.activeShotId = (next && next.shots && next.shots[0]) ? next.shots[0].id : '';
-    }
+    f.p.concepts.splice(f.p.concepts.indexOf(f.c), 1);
+    relabel(f.p); reseat(doc, f.p);
     f.p.updatedAt = now(); save(doc);
     return f.p;
   }
-  function removeShot(projectId, conceptId, shotId) {
+  function removeScene(projectId, conceptId, sceneId) {
     var doc = load();
-    var f = locate(doc, projectId, conceptId);
+    var f = locate(doc, projectId, conceptId, sceneId);
     if (!f) return null;
-    var shots = f.c.shots || (f.c.shots = []);
-    var s = shots.filter(function (x) { return x.id === shotId; })[0];
-    if (!s) return null;
-    var i = shots.indexOf(s);
-    shots.splice(i, 1);
-    relabel(f.p);
-    if (doc.ui.activeShotId === shotId) {
-      var next = shots[Math.min(i, shots.length - 1)] || null;
-      doc.ui.activeShotId = next ? next.id : '';
-    }
+    f.c.scenes.splice(f.c.scenes.indexOf(f.s), 1);
+    relabel(f.p); reseat(doc, f.p);
+    f.p.updatedAt = now(); save(doc);
+    return f.p;
+  }
+  function removeShot(ids) {
+    ids = ids || {};
+    var doc = load();
+    var f = locate(doc, ids.projectId, ids.conceptId, ids.sceneId, ids.shotId);
+    if (!f || !f.sh) return null;
+    f.s.shots.splice(f.s.shots.indexOf(f.sh), 1);
+    relabel(f.p); reseat(doc, f.p);
     f.p.updatedAt = now(); save(doc);
     return f.p;
   }
@@ -438,19 +568,26 @@
     var f = locate(doc, projectId, conceptId);
     if (!f) return null;
     if (moveWithin(f.p.concepts, f.p.concepts.indexOf(f.c), toIndex)) {
-      relabel(f.p);
+      f.p.updatedAt = now(); save(doc);   // labels are per-concept; order doesn't change them
+    }
+    return f.p;
+  }
+  function reorderScene(projectId, conceptId, sceneId, toIndex) {
+    var doc = load();
+    var f = locate(doc, projectId, conceptId, sceneId);
+    if (!f) return null;
+    if (moveWithin(f.c.scenes, f.c.scenes.indexOf(f.s), toIndex)) {
+      relabel(f.p);                        // scene order IS the label's first digit
       f.p.updatedAt = now(); save(doc);
     }
     return f.p;
   }
-  function reorderShot(projectId, conceptId, shotId, toIndex) {
+  function reorderShot(ids, toIndex) {
+    ids = ids || {};
     var doc = load();
-    var f = locate(doc, projectId, conceptId);
-    if (!f) return null;
-    var shots = f.c.shots || [];
-    var s = shots.filter(function (x) { return x.id === shotId; })[0];
-    if (!s) return null;
-    if (moveWithin(shots, shots.indexOf(s), toIndex)) {
+    var f = locate(doc, ids.projectId, ids.conceptId, ids.sceneId, ids.shotId);
+    if (!f || !f.sh) return null;
+    if (moveWithin(f.s.shots, f.s.shots.indexOf(f.sh), toIndex)) {
       relabel(f.p);
       f.p.updatedAt = now(); save(doc);
     }
@@ -479,32 +616,28 @@
     var prompt = String(payload.prompt == null ? '' : payload.prompt);
     if (!prompt.trim()) return null; // nothing composed yet — don't lock an empty
     var doc = load();
-    var f = locate(doc, ids.projectId, ids.conceptId);
-    if (!f) return null;
-    var s = (f.c.shots || []).filter(function (x) { return x.id === ids.shotId; })[0];
-    if (!s) return null;
-    s.locked = {
+    var f = locate(doc, ids.projectId, ids.conceptId, ids.sceneId, ids.shotId);
+    if (!f || !f.sh) return null;
+    f.sh.locked = {
       prompt: prompt,
       video: String(payload.video == null ? '' : payload.video),
       stillModel: payload.stillModel || '',
       videoModel: payload.videoModel || '',
       at: now()
     };
-    s.status = 'prompted';
+    f.sh.status = 'prompted';
     f.p.updatedAt = now(); save(doc);
-    return s;
+    return f.sh;
   }
   function unlockShotPrompt(ids) {
     ids = ids || {};
     var doc = load();
-    var f = locate(doc, ids.projectId, ids.conceptId);
-    if (!f) return null;
-    var s = (f.c.shots || []).filter(function (x) { return x.id === ids.shotId; })[0];
-    if (!s || !s.locked) return null;
-    delete s.locked;
-    s.status = 'draft';
+    var f = locate(doc, ids.projectId, ids.conceptId, ids.sceneId, ids.shotId);
+    if (!f || !f.sh || !f.sh.locked) return null;
+    delete f.sh.locked;
+    f.sh.status = 'draft';
     f.p.updatedAt = now(); save(doc);
-    return s;
+    return f.sh;
   }
 
   // ── deliverables ──
@@ -754,7 +887,8 @@
     // Un-attach from any shot builder that points at it.
     doc.projects.forEach(function (p) {
       (p.concepts || []).forEach(function (c) {
-        (c.shots || []).forEach(function (s) {
+        (c.scenes || []).forEach(function (sc) {
+        (sc.shots || []).forEach(function (s) {
           var b = s.builder;
           if (!b) return;
           if (b.locRefId === refId) b.locRefId = null;
@@ -762,6 +896,7 @@
           ['charRefIds', 'propRefIds'].forEach(function (k) {
             if (Array.isArray(b[k])) b[k] = b[k].filter(function (id) { return id !== refId; });
           });
+        });
         });
       });
     });
@@ -772,17 +907,29 @@
   }
 
   // ── active selection (validated against current data) ──
+  // Resolves project → concept → scene → shot, falling back to the first of each
+  // so a stale or empty pointer still lands somewhere real.
   function getActive() {
     var doc = load();
     var p = byId(doc.projects, doc.ui.activeProjectId) || doc.projects[0] || null;
-    var c = null, s = null;
+    var c = null, sc = null, sh = null;
     if (p) {
-      c = p.concepts.filter(function (x) { return x.id === doc.ui.activeConceptId; })[0] || p.concepts[0] || null;
-      if (c) s = c.shots.filter(function (x) { return x.id === doc.ui.activeShotId; })[0] || c.shots[0] || null;
+      var cs = p.concepts || [];
+      c = cs.filter(function (x) { return x.id === doc.ui.activeConceptId; })[0] || cs[0] || null;
+      if (c) {
+        var scs = c.scenes || [];
+        sc = scs.filter(function (x) { return x.id === doc.ui.activeSceneId; })[0] || scs[0] || null;
+        if (sc) {
+          var shs = sc.shots || [];
+          sh = shs.filter(function (x) { return x.id === doc.ui.activeShotId; })[0] || shs[0] || null;
+        }
+      }
     }
     return {
-      projectId: p ? p.id : '', conceptId: c ? c.id : '', shotId: s ? s.id : '',
-      project: p, concept: c, shot: s
+      projectId: p ? p.id : '', conceptId: c ? c.id : '', sceneId: sc ? sc.id : '', shotId: sh ? sh.id : '',
+      project: p, concept: c, scene: sc, shot: sh,
+      // ids bundle for the editors that take an {ids} argument
+      ids: { projectId: p ? p.id : '', conceptId: c ? c.id : '', sceneId: sc ? sc.id : '', shotId: sh ? sh.id : '' }
     };
   }
   function setActive(patch) {
@@ -792,9 +939,11 @@
     // active-prefixed. Map both forms so either works.
     if ('projectId' in patch) doc.ui.activeProjectId = patch.projectId;
     if ('conceptId' in patch) doc.ui.activeConceptId = patch.conceptId;
+    if ('sceneId' in patch) doc.ui.activeSceneId = patch.sceneId;
     if ('shotId' in patch) doc.ui.activeShotId = patch.shotId;
     if ('activeProjectId' in patch) doc.ui.activeProjectId = patch.activeProjectId;
     if ('activeConceptId' in patch) doc.ui.activeConceptId = patch.activeConceptId;
+    if ('activeSceneId' in patch) doc.ui.activeSceneId = patch.activeSceneId;
     if ('activeShotId' in patch) doc.ui.activeShotId = patch.activeShotId;
     if ('clientId' in patch) doc.ui.activeClientId = patch.clientId;
     if ('deliverableId' in patch) doc.ui.activeDeliverableId = patch.deliverableId;
@@ -802,6 +951,12 @@
     // so getActive falls through to that project's first concept/shot.
     if (('projectId' in patch || 'activeProjectId' in patch) && !('conceptId' in patch) && !('activeConceptId' in patch)) {
       doc.ui.activeConceptId = '';
+      doc.ui.activeSceneId = '';
+      doc.ui.activeShotId = '';
+    }
+    // Likewise, naming a concept without a scene clears the stale scene/shot.
+    if (('conceptId' in patch || 'activeConceptId' in patch) && !('sceneId' in patch) && !('activeSceneId' in patch)) {
+      doc.ui.activeSceneId = '';
       doc.ui.activeShotId = '';
     }
     save(doc);
@@ -894,10 +1049,32 @@
         return { label: String(t || ''), done: false };
       }).filter(function (t) { return t.label; });
     }
-    // "scenes" is the current key; "concepts"/"tasks" stay accepted for old plans.
-    var concepts = plan.scenes || plan.concepts || plan.tasks || [];
-    if (!Array.isArray(concepts) || !concepts.length) { p.updatedAt = now(); save(doc); return p; }
-    p.concepts = concepts.map(function (c, i) {
+    // A plan describes ONE concept (one deliverable) as a list of scenes. Newer
+    // plans may nest several concepts; both shapes land in the same place.
+    //   { concepts: [ { name, kind, scenes: [...] } ] }   ← multi-concept
+    //   { scenes: [...] }                                  ← one concept
+    // "concepts"/"tasks" holding scenes directly is the pre-0.3.95 shape.
+    var planConcepts;
+    if (Array.isArray(plan.concepts) && plan.concepts.length && Array.isArray(plan.concepts[0].scenes)) {
+      planConcepts = plan.concepts;
+    } else {
+      var flat = plan.scenes || plan.concepts || plan.tasks || [];
+      if (!Array.isArray(flat) || !flat.length) { p.updatedAt = now(); save(doc); return p; }
+      planConcepts = [{ name: plan.project || p.name, kind: plan.kind, scenes: flat }];
+    }
+    p.concepts = planConcepts.map(function (pc, pci) {
+      pc = (pc && typeof pc === 'object') ? pc : {};
+      var planScenes = Array.isArray(pc.scenes) ? pc.scenes : [];
+      return {
+        id: newId('cpt'),
+        name: String(pc.name || pc.title || ('Concept ' + (pci + 1))),
+        kind: pc.kind === 'still' ? 'still' : 'video',
+        scenes: mapScenes(planScenes)
+      };
+    });
+
+    function mapScenes(list) {
+      return list.map(function (c, i) {
       c = (c && typeof c === 'object') ? c : {};
       var shots = (c.shots || []);
       // Plan scene names may carry a one-line description after " — ".
@@ -915,7 +1092,7 @@
         tail = bits.slice(1).join('. ').trim();
       }
       return {
-        id: newId('cpt'),
+        id: newId('scn'),
         name: head,
         desc: c.desc || c.description || tail || '',
         shots: (Array.isArray(shots) && shots.length ? shots : [{}]).map(function (sh, j) {
@@ -940,11 +1117,16 @@
           };
         })
       };
-    });
-    if (p.concepts[0]) {
+      });
+    }
+
+    var c0 = p.concepts[0];
+    if (c0) {
       doc.ui.activeProjectId = p.id;
-      doc.ui.activeConceptId = p.concepts[0].id;
-      doc.ui.activeShotId = p.concepts[0].shots[0] ? p.concepts[0].shots[0].id : '';
+      doc.ui.activeConceptId = c0.id;
+      var s0 = (c0.scenes || [])[0] || null;
+      doc.ui.activeSceneId = s0 ? s0.id : '';
+      doc.ui.activeShotId = (s0 && s0.shots && s0.shots[0]) ? s0.shots[0].id : '';
     }
     p.updatedAt = now(); save(doc);
     return p;
@@ -961,10 +1143,11 @@
     // projects / concepts / shots
     listProjects: listProjects, getProject: getProject,
     createProject: createProject, updateProject: updateProject, deleteProject: deleteProject,
-    addConcept: addConcept, addShot: addShot, renameShot: renameShot,
-    updateShotBuilder: updateShotBuilder,
-    renameConcept: renameConcept, removeConcept: removeConcept, removeShot: removeShot,
-    reorderConcept: reorderConcept, reorderShot: reorderShot,
+    addConcept: addConcept, addScene: addScene, addShot: addShot,
+    renameShot: renameShot, updateShotBuilder: updateShotBuilder,
+    renameConcept: renameConcept, setConceptKind: setConceptKind, renameScene: renameScene,
+    removeConcept: removeConcept, removeScene: removeScene, removeShot: removeShot,
+    reorderConcept: reorderConcept, reorderScene: reorderScene, reorderShot: reorderShot,
     updateShotFields: updateShotFields, shotFields: function () { return SHOT_FIELDS.slice(); },
     lockShotPrompt: lockShotPrompt, unlockShotPrompt: unlockShotPrompt,
     // deliverables
