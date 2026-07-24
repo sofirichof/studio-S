@@ -291,5 +291,31 @@ ok('plan: legacy "concepts" key still accepted', Store.getProject(op.id).concept
 ok('plan: malformed JSON is inert', Store.scaffoldFromPlan(op.id, '{not json') !== null &&
    Store.getProject(op.id).concepts.length === 1);
 
+// ── J. Regression: the Rust scan gate must accept every key the importer does ──
+// 0.3.93 shipped a template emitting "scenes" while scan_plan_folder in
+// src-tauri/src/lib.rs still only looked for "concepts", so real plans were skipped
+// before the importer saw them and the UI said "no plan file found". This test fails
+// if the two ever drift apart again.
+{
+  const rust = fs.readFileSync(path.join(__dirname, '..', 'src-tauri', 'src', 'lib.rs'), 'utf8');
+  const gate = (rust.split('fn scan_plan_folder')[1] || '').split('\n}')[0];
+  ['scenes', 'concepts', 'tasks'].forEach((k) =>
+    ok('scan gate accepts "' + k + '"', gate.indexOf('\\"' + k + '\\"') !== -1));
+}
+
+// ── K. Scene names: a bare "Scene N" head is replaced by the descriptive half ──
+reset();
+const np = Store.createProject({ name: 'NameTest' });
+Store.scaffoldFromPlan(np.id, JSON.stringify({ scenes: [
+  { name: 'Scene 1 — Festival grounds, golden hour: we land inside the weekend', shots: [{ name: 'a' }] },
+  { name: 'Hotel room, night before — the outfit is laid out', shots: [{ name: 'b' }] },
+  { name: 'Just a plain name', shots: [{ name: 'c' }] }
+] }));
+const nc = Store.getProject(np.id).concepts;
+ok('scene name: generic "Scene 1" head replaced by its description', nc[0].name === 'Festival grounds, golden hour');
+ok('scene name: remainder kept as desc', nc[0].desc === 'we land inside the weekend');
+ok('scene name: a real name is left alone', nc[1].name === 'Hotel room, night before' && nc[1].desc === 'the outfit is laid out');
+ok('scene name: no em-dash means no desc', nc[2].name === 'Just a plain name' && nc[2].desc === '');
+
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail ? 1 : 0);

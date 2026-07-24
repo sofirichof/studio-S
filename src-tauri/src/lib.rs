@@ -38,8 +38,15 @@ struct PlanFile {
     modified: u64,
 }
 
-// Scan a folder's top-level *.json files for a project plan (one containing
-// "concepts" or "tasks") and return the most-recently-modified match, if any.
+// Scan a folder's top-level *.json files for a project plan and return the
+// most-recently-modified match, if any.
+//
+// The recognised container key is "scenes" (current), with "concepts"/"tasks"
+// still accepted for plans written by older handoffs. This gate MUST stay in
+// step with scaffoldFromPlan() in src/store.js — 0.3.93 shipped a template
+// emitting "scenes" while this function still only looked for "concepts", so
+// every new plan was skipped here and the UI reported "no plan file found"
+// before the importer ever saw it.
 #[tauri::command]
 fn scan_plan_folder(dir: String) -> Result<Option<PlanFile>, String> {
     let entries = std::fs::read_dir(&dir).map_err(|e| format!("Can't read that folder: {e}"))?;
@@ -53,7 +60,10 @@ fn scan_plan_folder(dir: String) -> Result<Option<PlanFile>, String> {
             Ok(c) => c,
             Err(_) => continue,
         };
-        if !(content.contains("\"concepts\"") || content.contains("\"tasks\"")) {
+        if !(content.contains("\"scenes\"")
+            || content.contains("\"concepts\"")
+            || content.contains("\"tasks\""))
+        {
             continue;
         }
         let modified = entry

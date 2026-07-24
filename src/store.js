@@ -903,10 +903,21 @@
       // Plan scene names may carry a one-line description after " — ".
       var rawName = c.name || c.title || ('Scene ' + (i + 1));
       var parts = String(rawName).split(' — ');
+      var head = parts[0].trim();
+      var tail = parts.slice(1).join(' — ').trim();
+      // Claude often follows the template's "Scene name — description" shape
+      // literally and writes "Scene 1 — Festival grounds, golden hour: …". A bare
+      // "Scene 1" is a useless card title (the card already numbers the scene), so
+      // promote the descriptive half: its first clause becomes the name.
+      if (/^scene\s*\d+$/i.test(head) && tail) {
+        var bits = tail.split(/:\s+|\.\s+/);
+        head = bits[0].trim();
+        tail = bits.slice(1).join('. ').trim();
+      }
       return {
         id: newId('cpt'),
-        name: parts[0],
-        desc: c.desc || c.description || parts.slice(1).join(' — ') || '',
+        name: head,
+        desc: c.desc || c.description || tail || '',
         shots: (Array.isArray(shots) && shots.length ? shots : [{}]).map(function (sh, j) {
           sh = (sh && typeof sh === 'object') ? sh : {};
           // Honor the plan's label ("1A", "2C"…) when well-formed; else generate.
