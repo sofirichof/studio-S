@@ -112,77 +112,81 @@ class Component extends DCLogic {
     return typed || (this._assetsFolder || '').split('/').filter(Boolean).pop() || 'Untitled project';
   }
 
-  generatorGuide(model) {
-    // Per-generator prompt-engineering craft so each shot "name" is written in the
-    // native prompt language of the tool the user actually generates in.
-    var guides = {
-      seedance: `GENERATOR: Seedance 2.0 — write each shot as a Seedance prompt (English only).
-Structure each shot's text in this order:
-  Characters: short, specific, vivid anchors — only the characters in this shot; carry their state forward (wet hair, bloodied knuckle, same wardrobe).
-  Scene: 1–2 sentences, geo-spatial — where each person is relative to the location and each other.
-  CUT 1 — [shot type, lens feel, movement]: acting beat, eye-line, breath, what the camera does, what the light does.
-  CUT 2 / CUT 3 as needed.
-Each shot targets ~15s; a held single shot or a 3-cut sequence are both valid — design it to fill the 15s. Photoreal, natural light, 24fps, environmental sound only, no on-screen text.`,
-      higgsfield: `GENERATOR: Cinema Studio — write each shot as a Cinema Studio image-to-video prompt (English).
-Cinema Studio leads with a CAMERA-MOTION preset, so name the move first, then describe subject motion concisely:
-  • Open with the camera motion (e.g. "Crash Zoom in", "Bullet Time orbit", "Robo-arm push", "FPV drone", "Dolly-in", "Whip-pan").
-  • Then the subject's motion/action in one or two clear clauses.
-  • Keep it tight — Cinema Studio rewards a strong single move + clear subject action over dense paragraphs.
-  • Note the start-frame intent (what the first still shows) since these are image-to-video.`,
-      kling: `GENERATOR: Kling 3.0 — camera instruction FIRST, the still is the anchor. "Slow push-in. Subject: … Scene: … Camera: smooth dolly-in, eye level. Preserve source framing." Keep environmental events minimal; Kling spends its budget on subject + camera motion.`,
-      mixed: `GENERATOR: Mixed tools — write cinematic, tool-agnostic shot descriptions (shot type, lens, blocking, acting beat, light, camera move) that translate cleanly into Seedance, Kling, or Cinema Studio.`
-    };
-    return guides[model] || guides.mixed;
-  }
 
   buildClaudeInstructions(folderPath) {
-    const settings = window.Store && Store.getSettings ? Store.getSettings() : {};
-    const model = settings.defaultVideoModel || 'mixed';
-    return `You are a top-tier film director and cinematographer building a production plan for the Studio S app (Supergood). You turn briefs and scripts into a shot-by-shot plan the studio scaffolds into concepts and shots.
+    // SETUP ONLY. Studio S is the prompt generator — it composes every generation
+    // prompt itself, per model, from the fields below. If this instruction ever
+    // asks for prompt text again, it has re-broken the thing Phase 4 fixed.
+    return `You are a top-tier film director and cinematographer setting up a project in the Studio S app (Supergood). You read a folder of materials and produce the SETUP the app needs: a scene-by-scene shot list, a breakdown, a to-do list, and locked descriptions.
 
 Assets folder: ${folderPath}
 
-${this.generatorGuide(model)}
+DO NOT WRITE GENERATION PROMPTS. Studio S composes every image and video prompt itself, tailored per model. Your job is the facts and the plan — never prompt text, never per-tool phrasing, never camera syntax for a specific generator. A shot "name" is a short human beat, not a paragraph.
 
 STEP 1 — Read everything in the folder: brief, storyboard, references, mood boards, and especially any SCRIPT, treatment, or scene breakdown.
 
-STEP 2 — Build the shot list, writing every shot's prompt in the GENERATOR convention above.
+STEP 2 — Build the shot list, scene by scene.
 
 ▸ IF THERE IS A SCRIPT (or treatment / scene breakdown):
 Act as a shotlist director — this is cinema, not a clip. Don't transcribe the script into beats; block, light, and pace it. For each scene:
   • Block the mise-en-scène — where each character stands/moves, geo-spatial position, what hands are doing.
   • Pace dramatically — give heavy moments their own shots; compress action into short ones.
   • Direct the acting specifically — not "she looks sad" but "eyes drop, jaw tightens, swallows once before answering."
-  • Specify the camera — lens, height, movement, and its motivation ("low-angle 35mm slow dolly-in as she realizes").
+  • Motivate the camera — what the move is FOR ("low 35mm slow dolly-in as she realizes"). Intent, not generator syntax.
   • Hold continuity in your head — character state, wardrobe, props, emotional carry across shots.
-Split a long scene into multiple shots. Each shot "name" is the full prompt-ready text in the generator's convention (English).
+Split a long scene into multiple shots. Record that craft in the four descriptive FIELDS below, not in the shot name.
 
 ▸ IF THERE IS NO SCRIPT (brief only):
-Derive 2–5 concepts from the brief (e.g. "Hero product reveal", "Lifestyle sequence", "Testimonial cut"), each with 3–8 specific shots, each written in the generator convention.
+Derive 2–5 scenes from the brief (e.g. "Hero product reveal", "Lifestyle sequence", "Testimonial cut"), each with 3–8 specific shots.
 
 STEP 3 — Write the plan as JSON to: ${folderPath}/studio-s-plan.json
 
 Exact format:
 {
-  "concepts": [
+  "scenes": [
     {
-      "name": "Concept / scene name — one-line description of what happens",
+      "name": "Scene name — one-line description of what happens",
       "shots": [
-        { "label": "1A", "name": "Full prompt-ready shot text in the generator's convention" },
-        { "label": "1B", "name": "Next shot — same craft and convention" }
+        {
+          "label": "1A",
+          "name": "1A · Man enters the bodega",
+          "subject": "who or what is in frame, with continuity anchors",
+          "action": "what happens across the shot — subject motion only",
+          "environment": "where it is, the time of day, how it's dressed",
+          "cameraIntent": "the move and WHY — e.g. low 35mm slow dolly-in as he hesitates",
+          "breakdown": "what this shot needs on the day: which characters, location, props, any VFX or continuity note"
+        },
+        { "label": "1B", "name": "1B · Hand on the door handle" }
       ]
     }
   ],
+  "descriptions": [
+    {
+      "kind": "character",
+      "name": "Marco (lead)",
+      "description": "FACTS ONLY — face, build, hair, wardrobe, continuity anchors. No prompt phrasing, no camera, no style."
+    },
+    { "kind": "location", "name": "Corner bodega", "description": "Dressing, signage, materials, light sources." },
+    { "kind": "prop", "name": "Paper bag", "description": "Colour, condition, branding." }
+  ],
   "todos": [
-    "Production step, e.g. Generate stills for all shots",
-    "Next step, e.g. Test hero shots in motion",
-    "Next step, e.g. Review selects with client"
+    "Production step, e.g. Create the character sheet for Marco",
+    "Next step, e.g. Create the corner bodega location plate",
+    "Next step, e.g. Generate stills for scene 1"
   ]
 }
 
-LABELS ARE REQUIRED: every shot carries a "label" — the concept number plus a sequential letter. Concept 1's shots are "1A", "1B", "1C"…; concept 2's are "2A", "2B"…. Never skip or reuse a label; they are how the team calls shots on the board.
+SHOT NAMES ARE SHORT AND LABEL-LED: "1A · Man enters the bodega". A label, a middle dot, a handful of words. Never a paragraph, never prompt text — the app's shot picker shows these, and prose there makes it unreadable.
 
-One scene = one concept; split long scenes into multiple shots under it. "todos" is this project's ordered production checklist — the concrete steps from here to delivery (generation, motion tests, review, handoff); 4–8 items.`;
+LABELS ARE REQUIRED: every shot carries a "label" — the scene number plus a sequential letter. Scene 1's shots are "1A", "1B", "1C"…; scene 2's are "2A", "2B"…. Never skip or reuse a label; they are how the team calls shots on the board.
+
+FIELDS ARE DATA, NOT PROSE TO BE PASTED: subject / action / environment / cameraIntent are model-agnostic facts. Studio S turns them into prompts for whichever model the user picks. Keep each to a phrase or two.
+
+"descriptions" is the consistency bible — the facts that must hold across every shot. Facts only.
+
+"todos" is this project's ordered production checklist — what the USER must produce from here to delivery (which character sheets, which locations, which shots to generate, review, handoff); 4–8 items.
+
+STEP 4 — Also write the human-facing documents (breakdown, shot list, locked descriptions) as PDF in the same folder. PDF, not markdown — no .md-only deliverables.`;
   }
 
   finish(projectId) {

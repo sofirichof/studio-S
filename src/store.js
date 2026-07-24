@@ -866,6 +866,26 @@
     var plan = null;
     try { plan = JSON.parse(planContent); } catch (e) { return p; }
     if (!plan || typeof plan !== 'object') return p;
+    // Locked descriptions (the consistency bible) arrive as typed reference assets
+    // with facts only — the handoff is forbidden from writing prompt text.
+    // This runs FIRST because addReference saves and we then re-read the doc; doing
+    // it after the in-memory edits below would silently drop them.
+    if (Array.isArray(plan.descriptions)) {
+      plan.descriptions.forEach(function (d) {
+        if (!d || typeof d !== 'object') return;
+        var name = String(d.name || '').trim();
+        if (!name) return;
+        addReference(p.id, {
+          name: name,
+          kind: d.kind || 'character',
+          fields: { desc: String(d.description || d.desc || '') },
+          prompt: '',       // Claude never authors prompts; the app composes them
+          imagePath: ''     // nothing generated yet — the breakdown flags this
+        });
+      });
+      doc = load(); p = byId(doc.projects, projectId);   // addReference re-saved
+      if (!p) return null;
+    }
     // Optional "todos" from the AI handoff plan — strings or {label, done}.
     if (Array.isArray(plan.todos)) {
       p.todos = plan.todos.map(function (t) {
@@ -873,13 +893,14 @@
         return { label: String(t || ''), done: false };
       }).filter(function (t) { return t.label; });
     }
-    var concepts = plan.concepts || plan.tasks || [];
-    if (!Array.isArray(concepts) || !concepts.length) return p;
+    // "scenes" is the current key; "concepts"/"tasks" stay accepted for old plans.
+    var concepts = plan.scenes || plan.concepts || plan.tasks || [];
+    if (!Array.isArray(concepts) || !concepts.length) { p.updatedAt = now(); save(doc); return p; }
     p.concepts = concepts.map(function (c, i) {
       c = (c && typeof c === 'object') ? c : {};
       var shots = (c.shots || []);
-      // Plan concept names may carry a one-line description after " — ".
-      var rawName = c.name || c.title || ('Concept ' + (i + 1));
+      // Plan scene names may carry a one-line description after " — ".
+      var rawName = c.name || c.title || ('Scene ' + (i + 1));
       var parts = String(rawName).split(' — ');
       return {
         id: newId('cpt'),
@@ -890,12 +911,20 @@
           // Honor the plan's label ("1A", "2C"…) when well-formed; else generate.
           var lbl = String(sh.label || '').trim().toUpperCase();
           if (!/^\d+[A-Z]+$/.test(lbl)) lbl = shotLabel(i, j);
+          // Descriptive fields land as DATA on the builder — the same fields the
+          // project view and builder edit. No flat "Shot N" fallback name.
+          var b = defaultBuilder();
+          b.subject = String(sh.subject || '');
+          b.action = String(sh.action || '');
+          b.environment = String(sh.environment || '');
+          b.cameraIntent = String(sh.cameraIntent || sh.camera || '');
           return {
             id: newId('shot'),
-            name: sh.name || sh.title || ('Shot ' + (j + 1)),
+            name: sh.name || sh.title || '',
             label: lbl,
             status: 'draft',
-            builder: defaultBuilder()
+            breakdown: String(sh.breakdown || ''),
+            builder: b
           };
         })
       };

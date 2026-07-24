@@ -354,6 +354,13 @@ class Component extends DCLogic {
                 '<textarea data-field="' + c.id + '|' + s.id + '|' + k + '" rows="2" placeholder="' + ph + '" ' +
                   'style="width:100%;background:#fff;border:1px solid rgba(16,16,32,0.10);border-radius:6px;padding:6px 8px;font-family:inherit;font-size:12px;line-height:1.5;color:#16161D;resize:vertical;outline:none;">' + esc(b[k] || '') + '</textarea>' +
               '</div>').join('') +
+            // Imported from the handoff plan — what this shot needs on the day.
+            (s.breakdown
+              ? '<div style="margin-bottom:8px;">' +
+                  '<label style="display:block;font-size:10px;font-weight:500;color:#9A9AA8;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;">Breakdown</label>' +
+                  '<p style="font-size:12px;color:#5A5A6B;line-height:1.5;">' + esc(s.breakdown) + '</p>' +
+                '</div>'
+              : '') +
             (lock && lock.prompt
               ? '<div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(16,16,32,0.08);">' +
                   '<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;">' + lockIco +

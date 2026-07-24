@@ -248,5 +248,48 @@ Store.reorderShot(lp.id, lc.id, ls.id, 1);
 const moved = Store.getProject(lp.id).concepts[0].shots.filter(s => s.id === ls.id)[0];
 ok('lock: survives reorder with a new label', moved.locked.prompt === 'Keep me.' && moved.label === '1B');
 
+// ── I. Phase 4 slice 5 — handoff imports into the scene/shot model ──
+reset();
+const hp = Store.createProject({ name: 'HandoffTest' });
+Store.scaffoldFromPlan(hp.id, JSON.stringify({
+  scenes: [
+    { name: 'Bodega exterior — dusk, wet street', shots: [
+      { label: '1A', name: '1A · Man enters the bodega', subject: 'a man, 40s', action: 'pushes the door',
+        environment: 'corner bodega, dusk', cameraIntent: 'low 35mm dolly-in', breakdown: 'Marco, bodega exterior, paper bag' },
+      { name: '1B · Hand on the handle' }
+    ] },
+    { name: 'Bodega interior', shots: [{ name: '2A · Clerk looks up' }] }
+  ],
+  descriptions: [
+    { kind: 'character', name: 'Marco (lead)', description: '40s, worn canvas jacket, three-day stubble.' },
+    { kind: 'location', name: 'Corner bodega', description: 'Neon sign, steel shutters, wet asphalt.' }
+  ],
+  todos: ['Create Marco character sheet', 'Create bodega location plate']
+}));
+const hpr = Store.getProject(hp.id);
+ok('plan: scenes key imported as concepts', hpr.concepts.length === 2 && hpr.concepts[0].name === 'Bodega exterior');
+ok('plan: trailing description split off the scene name', hpr.concepts[0].desc === 'dusk, wet street');
+ok('plan: labels honored and derived', hpr.concepts[0].shots[0].label === '1A' &&
+   hpr.concepts[0].shots[1].label === '1B' && hpr.concepts[1].shots[0].label === '2A');
+ok('plan: label-led names kept as given', hpr.concepts[0].shots[0].name === '1A · Man enters the bodega');
+ok('plan: no flat "Shot N" fallback', hpr.concepts[0].shots[1].name === '1B · Hand on the handle');
+const pb = hpr.concepts[0].shots[0].builder;
+ok('plan: four descriptive fields land on the builder as data', pb.subject === 'a man, 40s' &&
+   pb.action === 'pushes the door' && pb.environment === 'corner bodega, dusk' && pb.cameraIntent === 'low 35mm dolly-in');
+ok('plan: per-shot breakdown carried', hpr.concepts[0].shots[0].breakdown === 'Marco, bodega exterior, paper bag');
+ok('plan: todos imported', Store.listTodos(hp.id).length === 2);
+const hrefs = Store.listReferences(hp.id);
+ok('plan: locked descriptions become typed references', hrefs.length === 2 &&
+   hrefs.filter(r => r.kind === 'location').length === 1);
+ok('plan: descriptions carry facts, never a prompt', hrefs[0].fields.desc.indexOf('canvas jacket') !== -1 && hrefs[0].prompt === '');
+ok('plan: nothing is marked generated', hrefs.every(r => !r.imagePath));
+// old plans using "concepts" must still import
+reset();
+const op = Store.createProject({ name: 'OldPlan' });
+Store.scaffoldFromPlan(op.id, JSON.stringify({ concepts: [{ name: 'Legacy', shots: [{ name: 'a' }] }] }));
+ok('plan: legacy "concepts" key still accepted', Store.getProject(op.id).concepts[0].name === 'Legacy');
+ok('plan: malformed JSON is inert', Store.scaffoldFromPlan(op.id, '{not json') !== null &&
+   Store.getProject(op.id).concepts.length === 1);
+
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail ? 1 : 0);
