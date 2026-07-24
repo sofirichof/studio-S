@@ -1,7 +1,8 @@
 # Phase 4 — Scene/shot list system, breakdown view, locked prompts, pruned models, handoff
 
 Date: 2026-07-24 (expanded from the original handoff-only scope)
-Status: ready to implement
+Status: IMPLEMENTED 2026-07-24 — slices 1-5 on `main` (9696ca8, 1e01e5c, c1b8a37, a27610b).
+Browser-verified, `npm test` green, reviewed. **Not shipped** — no release cut.
 Baseline: `15f357f` (v0.3.92) on `main` — Phase 1 (`941ea7c`) + Phase 2 (`e8b8043`) +
 v0.3.91 (`be988b4`) + the v0.3.92 Higgsfield motion tail (`4adc4a0`) are all in.
 
