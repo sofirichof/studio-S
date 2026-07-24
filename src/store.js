@@ -48,7 +48,10 @@
       lookMode: 'dp', camMode: 'specific', dp: 'deakins',
       comp: 'mc', shot: 'wide', angle: 'eye', lens: '24',
       move: 'push', depth: 'shallow', framing: [],
-      subject: '', environment: '', look: '', notes: '', negative: '',
+      // Descriptive shot fields — model-agnostic DATA the app composes from.
+      // Editable from both the builder and the project view (Phase 4 slice 2).
+      subject: '', action: '', environment: '', cameraIntent: '',
+      look: '', notes: '', negative: '',
       prefixOverride: false,
       charRefIds: [], propRefIds: [], locRefId: null, styleRefId: null
     };
@@ -260,8 +263,9 @@
       createdAt: now(), updatedAt: now(),
       todos: [],
       concepts: [
-        { id: firstConceptId, name: 'Concept 1',
-          shots: [ { id: firstShotId, name: 'Shot 1', label: '1A', status: 'draft', builder: defaultBuilder() } ] }
+        // Scene, not "Concept 1"; the shot is identified by its label, not "Shot 1".
+        { id: firstConceptId, name: 'Scene 1',
+          shots: [ { id: firstShotId, name: '', label: '1A', status: 'draft', builder: defaultBuilder() } ] }
       ]
     };
     doc.projects.push(p);
@@ -301,7 +305,8 @@
     var doc = load();
     var p = byId(doc.projects, projectId);
     if (!p) return null;
-    var c = { id: newId('cpt'), name: (opts && opts.name) || ('Concept ' + (p.concepts.length + 1)), shots: [] };
+    // Concepts are SCENES, so the default name reads like one.
+    var c = { id: newId('cpt'), name: (opts && opts.name) || ('Scene ' + (p.concepts.length + 1)), shots: [] };
     p.concepts.push(c); p.updatedAt = now(); save(doc);
     return c;
   }
@@ -324,7 +329,9 @@
     var ci = p.concepts.indexOf(c);
     var s = {
       id: newId('shot'),
-      name: opts.name || ('Shot ' + (c.shots.length + 1)),
+      // No flat "Shot 3" default — the LABEL (1A/1B) is the scannable identity,
+      // and the name is the human beat the user or the plan supplies.
+      name: opts.name || '',
       label: opts.label || shotLabel(ci, c.shots.length),
       status: 'draft',
       builder: opts.builder || defaultBuilder()
@@ -356,6 +363,110 @@
     s.builder = Object.assign(s.builder || defaultBuilder(), builderPatch || {});
     p.updatedAt = now(); save(doc);
     return s;
+  }
+
+  // ── scene/shot list editing (Phase 4 slice 2) ───────────────────────────────
+  // Concepts ARE scenes. Every add/remove/reorder re-derives labels so 1A/1B/2A
+  // never go stale; relabel() is idempotent and matches the load() backfill.
+  function relabel(p) {
+    (p.concepts || []).forEach(function (c, ci) {
+      (c.shots || []).forEach(function (s, si) { s.label = shotLabel(ci, si); });
+    });
+  }
+  // Shared lookup so every editor below fails the same way on a bad id.
+  function locate(doc, projectId, conceptId) {
+    var p = byId(doc.projects, projectId);
+    if (!p) return null;
+    if (conceptId === undefined) return { p: p };
+    var c = (p.concepts || []).filter(function (x) { return x.id === conceptId; })[0];
+    if (!c) return null;
+    return { p: p, c: c };
+  }
+  // Move an item inside an array to toIndex, clamped. Returns true if it moved.
+  function moveWithin(arr, from, toIndex) {
+    if (from < 0) return false;
+    var to = Math.max(0, Math.min(arr.length - 1, toIndex));
+    if (to === from) return false;
+    arr.splice(to, 0, arr.splice(from, 1)[0]);
+    return true;
+  }
+
+  function renameConcept(projectId, conceptId, name) {
+    var doc = load();
+    var f = locate(doc, projectId, conceptId);
+    if (!f) return null;
+    f.c.name = String(name == null ? '' : name);
+    f.p.updatedAt = now(); save(doc);
+    return f.c;
+  }
+  function removeConcept(projectId, conceptId) {
+    var doc = load();
+    var f = locate(doc, projectId, conceptId);
+    if (!f) return null;
+    var i = f.p.concepts.indexOf(f.c);
+    f.p.concepts.splice(i, 1);
+    relabel(f.p);
+    // Don't leave the active pointer dangling — fall to the neighbouring scene.
+    if (doc.ui.activeConceptId === conceptId) {
+      var next = f.p.concepts[Math.min(i, f.p.concepts.length - 1)] || null;
+      doc.ui.activeConceptId = next ? next.id : '';
+      doc.ui.activeShotId = (next && next.shots && next.shots[0]) ? next.shots[0].id : '';
+    }
+    f.p.updatedAt = now(); save(doc);
+    return f.p;
+  }
+  function removeShot(projectId, conceptId, shotId) {
+    var doc = load();
+    var f = locate(doc, projectId, conceptId);
+    if (!f) return null;
+    var shots = f.c.shots || (f.c.shots = []);
+    var s = shots.filter(function (x) { return x.id === shotId; })[0];
+    if (!s) return null;
+    var i = shots.indexOf(s);
+    shots.splice(i, 1);
+    relabel(f.p);
+    if (doc.ui.activeShotId === shotId) {
+      var next = shots[Math.min(i, shots.length - 1)] || null;
+      doc.ui.activeShotId = next ? next.id : '';
+    }
+    f.p.updatedAt = now(); save(doc);
+    return f.p;
+  }
+  function reorderConcept(projectId, conceptId, toIndex) {
+    var doc = load();
+    var f = locate(doc, projectId, conceptId);
+    if (!f) return null;
+    if (moveWithin(f.p.concepts, f.p.concepts.indexOf(f.c), toIndex)) {
+      relabel(f.p);
+      f.p.updatedAt = now(); save(doc);
+    }
+    return f.p;
+  }
+  function reorderShot(projectId, conceptId, shotId, toIndex) {
+    var doc = load();
+    var f = locate(doc, projectId, conceptId);
+    if (!f) return null;
+    var shots = f.c.shots || [];
+    var s = shots.filter(function (x) { return x.id === shotId; })[0];
+    if (!s) return null;
+    if (moveWithin(shots, shots.indexOf(s), toIndex)) {
+      relabel(f.p);
+      f.p.updatedAt = now(); save(doc);
+    }
+    return f.p;
+  }
+  // Descriptive fields live IN shot.builder — the same object the builder edits,
+  // so there is exactly one data model and no copy to drift. Unknown keys are
+  // rejected so the project view can't quietly write composition state.
+  var SHOT_FIELDS = ['subject', 'action', 'environment', 'cameraIntent'];
+  function updateShotFields(ids, patch) {
+    ids = ids || {};
+    var clean = {};
+    Object.keys(patch || {}).forEach(function (k) {
+      if (SHOT_FIELDS.indexOf(k) !== -1) clean[k] = String(patch[k] == null ? '' : patch[k]);
+    });
+    if (!Object.keys(clean).length) return null;
+    return updateShotBuilder(ids, clean);
   }
 
   // ── deliverables ──
@@ -774,6 +885,9 @@
     createProject: createProject, updateProject: updateProject, deleteProject: deleteProject,
     addConcept: addConcept, addShot: addShot, renameShot: renameShot,
     updateShotBuilder: updateShotBuilder,
+    renameConcept: renameConcept, removeConcept: removeConcept, removeShot: removeShot,
+    reorderConcept: reorderConcept, reorderShot: reorderShot,
+    updateShotFields: updateShotFields, shotFields: function () { return SHOT_FIELDS.slice(); },
     // deliverables
     listDeliverables: listDeliverables, getDeliverable: getDeliverable,
     createDeliverable: createDeliverable, updateDeliverable: updateDeliverable, deleteDeliverable: deleteDeliverable,

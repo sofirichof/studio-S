@@ -158,5 +158,67 @@ Store.deleteReference(rHero.id);
 ok('shim: deleteReference removes asset', Store.getReference(rHero.id) === null);
 ok('shim: deleteReference un-attached from builder', Store.getActive().shot.builder.charRefIds.length === 0);
 
+// ── G. Phase 4 slice 2 — scene/shot list editing, labels, single source of truth ──
+reset();
+const sp = Store.createProject({ name: 'SceneTest' });
+const sc1 = Store.getProject(sp.id).concepts[0];
+ok('scene: default name reads as a scene', /^Scene /.test(sc1.name));
+const sc2 = Store.addConcept(sp.id, { name: 'Bodega exterior' });
+const a1 = Store.addShot(sp.id, sc1.id, {});
+const a2 = Store.addShot(sp.id, sc1.id, { name: 'Man enters' });
+const b1 = Store.addShot(sp.id, sc2.id, {});
+const labels = (pid) => Store.getProject(pid).concepts.map(c => (c.shots || []).map(s => s.label).join(','));
+ok('label: no flat "Shot N" default name', a1.name === '');
+ok('label: derived per scene', labels(sp.id)[1] === '2A' && labels(sp.id)[0].indexOf('1A') === 0);
+
+// rename
+Store.renameConcept(sp.id, sc2.id, 'Bodega interior');
+ok('rename: scene persists', Store.getProject(sp.id).concepts[1].name === 'Bodega interior');
+Store.renameShot(sp.id, sc1.id, a2.id, 'Man enters the bodega');
+ok('rename: shot persists', Store.getProject(sp.id).concepts[0].shots.filter(s => s.id === a2.id)[0].name === 'Man enters the bodega');
+
+// descriptive fields — written through store, read back off the SAME builder object
+Store.updateShotFields({ projectId: sp.id, conceptId: sc1.id, shotId: a1.id },
+  { subject: 'a man, 40s', action: 'pushes the door open', environment: 'corner bodega, dusk', cameraIntent: 'low 35mm dolly-in' });
+const fb = Store.getProject(sp.id).concepts[0].shots.filter(s => s.id === a1.id)[0].builder;
+ok('fields: all four persist onto shot.builder', fb.subject === 'a man, 40s' && fb.action === 'pushes the door open' &&
+   fb.environment === 'corner bodega, dusk' && fb.cameraIntent === 'low 35mm dolly-in');
+ok('fields: unknown keys rejected', Store.updateShotFields({ projectId: sp.id, conceptId: sc1.id, shotId: a1.id }, { videoModel: 'sora' }) === null &&
+   Store.getProject(sp.id).concepts[0].shots.filter(s => s.id === a1.id)[0].builder.videoModel !== 'sora');
+// single source of truth: updateShotBuilder and updateShotFields hit one object
+Store.updateShotBuilder({ projectId: sp.id, conceptId: sc1.id, shotId: a1.id }, { lens: '85' });
+const fb2 = Store.getProject(sp.id).concepts[0].shots.filter(s => s.id === a1.id)[0].builder;
+ok('fields: builder edit does not clobber descriptive fields', fb2.lens === '85' && fb2.subject === 'a man, 40s');
+
+// reorder — labels re-derive
+Store.reorderShot(sp.id, sc1.id, a1.id, 1);
+const sh = Store.getProject(sp.id).concepts[0].shots;
+ok('reorder: shot moved', sh[1].id === a1.id);
+ok('reorder: labels re-derived, not stale', sh[0].label === '1A' && sh[1].label === '1B');
+Store.reorderConcept(sp.id, sc2.id, 0);
+ok('reorder: scene moved and shots relabelled', Store.getProject(sp.id).concepts[0].id === sc2.id &&
+   Store.getProject(sp.id).concepts[0].shots[0].label === '1A' &&
+   Store.getProject(sp.id).concepts[1].shots[0].label === '2A');
+ok('reorder: out-of-range index clamps', Store.reorderShot(sp.id, sc1.id, a1.id, 99) &&
+   Store.getProject(sp.id).concepts[1].shots.map(s => s.label).join(',') === '2A,2B,2C');
+
+// remove — labels re-derive and the active pointer never dangles
+Store.setActive({ projectId: sp.id, conceptId: sc1.id, shotId: a1.id });
+Store.removeShot(sp.id, sc1.id, a1.id);
+ok('remove: shot gone', Store.getProject(sp.id).concepts[1].shots.filter(s => s.id === a1.id).length === 0);
+ok('remove: active shot pointer moved, not dangling', Store.getActive().shotId !== a1.id && Store.getActive().shot !== null);
+const c3 = Store.addConcept(sp.id, { name: 'Doomed' });
+Store.addShot(sp.id, c3.id, {});
+Store.setActive({ projectId: sp.id, conceptId: c3.id, shotId: Store.getProject(sp.id).concepts[2].shots[0].id });
+Store.removeConcept(sp.id, c3.id);
+ok('remove: scene gone', Store.getProject(sp.id).concepts.length === 2);
+ok('remove: active concept pointer moved', Store.getActive().conceptId !== c3.id && Store.getActive().conceptId !== '');
+ok('remove: labels still contiguous', labels(sp.id).join(' | ').indexOf('2A') !== -1);
+// bad ids are inert, not throwing
+ok('guard: bad ids return null', Store.renameConcept(sp.id, 'nope', 'x') === null &&
+   Store.removeShot(sp.id, 'nope', 'nope') === null &&
+   Store.reorderShot('nope', 'nope', 'nope', 0) === null &&
+   Store.removeConcept('nope', 'nope') === null);
+
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail ? 1 : 0);
