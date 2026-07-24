@@ -110,7 +110,13 @@
             <select id="concept-select" onchange="{{ switchConcept }}" title="Scene" style="height:30px; background:#fff; border:1px solid rgba(16,16,32,0.12); border-radius:8px; padding:0 26px 0 10px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:12px; color:#5A5A6B; appearance:none; cursor:pointer; outline:none; max-width:190px;"></select>
             <svg style="position:absolute; right:9px; top:50%; transform:translateY(-50%); pointer-events:none;" width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="#9A9AA8" stroke-width="1.5" stroke-linecap="round"><path d="M3 5l3 3 3-3"/></svg>
           </div>
-          <button onclick="{{ addConcept }}" title="Add scene" style="width:28px; height:28px; background:#fff; border:1px solid rgba(16,16,32,0.12); border-radius:7px; cursor:pointer; display:flex; align-items:center; justify-content:center; color:#5A5A6B; font-size:11px;">S+</button>
+          <button onclick="{{ addConcept }}" title="Add concept (another deliverable)" style="width:28px; height:28px; background:#fff; border:1px solid rgba(16,16,32,0.12); border-radius:7px; cursor:pointer; display:flex; align-items:center; justify-content:center; color:#5A5A6B; font-size:11px;">C+</button>
+          <span style="font-size:12px; color:rgba(16,16,32,0.2);">›</span>
+          <div style="position:relative;">
+            <select id="scene-select" onchange="{{ switchScene }}" title="Scene" style="height:30px; background:#fff; border:1px solid rgba(16,16,32,0.12); border-radius:8px; padding:0 26px 0 10px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:12px; color:#5A5A6B; appearance:none; cursor:pointer; outline:none; max-width:180px;"></select>
+            <svg style="position:absolute; right:9px; top:50%; transform:translateY(-50%); pointer-events:none;" width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="#9A9AA8" stroke-width="1.5" stroke-linecap="round"><path d="M3 5l3 3 3-3"/></svg>
+          </div>
+          <button onclick="{{ addScene }}" title="Add scene" style="width:28px; height:28px; background:#fff; border:1px solid rgba(16,16,32,0.12); border-radius:7px; cursor:pointer; display:flex; align-items:center; justify-content:center; color:#5A5A6B; font-size:11px;">S+</button>
           <span style="font-size:12px; color:rgba(16,16,32,0.2);">›</span>
           <div style="position:relative;">
             <select id="shot-select" onchange="{{ switchShot }}" style="height:30px; background:#fff; border:1px solid rgba(16,16,32,0.12); border-radius:8px; padding:0 28px 0 10px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:14px; font-weight:500; color:#16161D; appearance:none; cursor:pointer; outline:none;"></select>
@@ -453,7 +459,7 @@ class Component extends DCLogic {
   seedFromActive() {
     if (!window.Store) return;
     const a = Store.getActive();
-    this._ids = { projectId: a.projectId, conceptId: a.conceptId, shotId: a.shotId };
+    this._ids = { projectId: a.projectId, conceptId: a.conceptId, sceneId: a.sceneId, shotId: a.shotId };
     const b = (a.shot && a.shot.builder) || null;
     if (b) {
       this.builderKeys().forEach((k) => {
@@ -618,7 +624,14 @@ class Component extends DCLogic {
     const a = window.Store ? Store.getActive() : null;
     const shotStatus = a && a.shot ? ('<div style="border-top:1px solid rgba(16,16,32,0.08);padding-top:18px;">' +
         '<p style="font-size:12px;font-weight:500;color:#16161D;margin-bottom:8px;">This shot</p>' +
-        '<p style="font-size:12px;color:#5A5A6B;line-height:1.6;">' + (a.shot.label ? esc(a.shot.label) + ' · ' : '') + esc(a.shot.name) + ' · ' + (a.concept ? esc(a.concept.name) : '') + '<br>Status: ' + esc(a.shot.status || 'draft') + '</p>' +
+        // label · beat, then the scene and concept it sits in. The beat has its
+        // leading label stripped so this doesn't read "1A · 1A · Pack shot".
+        '<p style="font-size:12px;color:#5A5A6B;line-height:1.6;">' +
+          (a.shot.label ? esc(a.shot.label) + ' · ' : '') +
+          esc(String(a.shot.name || '').replace(/^\s*\d+[A-Za-z]+\s*[·\-—:]\s*/, '')) +
+          (a.scene ? '<br>' + esc(a.scene.name || 'Untitled scene') : '') +
+          (a.concept ? ' · ' + esc(a.concept.name || '') : '') +
+          '<br>Status: ' + esc(a.shot.status || 'draft') + '</p>' +
       '</div>') : '';
 
     el.innerHTML =
@@ -640,16 +653,27 @@ class Component extends DCLogic {
     if (csel) {
       const cs = (project && project.concepts) || [];
       csel.innerHTML = cs.map((c) =>
-        '<option value="' + c.id + '"' + (c.id === a.conceptId ? ' selected' : '') + '>' + esc(c.name || 'Untitled scene') + '</option>'
+        '<option value="' + c.id + '"' + (c.id === a.conceptId ? ' selected' : '') + '>' + esc(c.name || 'Untitled concept') + '</option>'
+      ).join('') || '<option value="">No concept</option>';
+    }
+    // Scene picker — scenes belong to the active concept.
+    const scsel = document.getElementById('scene-select');
+    if (scsel) {
+      const scs = (a.concept && a.concept.scenes) || [];
+      scsel.innerHTML = scs.map((sc, i) =>
+        '<option value="' + sc.id + '"' + (sc.id === a.sceneId ? ' selected' : '') + '>' + (i + 1) + '. ' + esc(sc.name || 'Untitled scene') + '</option>'
       ).join('') || '<option value="">No scene</option>';
     }
     const sel = document.getElementById('shot-select');
-    if (sel && a.concept) {
-      const shots = a.concept.shots || [];
+    if (sel && a.scene) {
+      const shots = a.scene.shots || [];
       // Label leads, so the picker stays scannable even when names are long.
       sel.innerHTML = shots.map((sh) => {
         const on = sh.id === a.shotId ? ' selected' : '';
-        const txt = (sh.label || '—') + (sh.name ? ' · ' + sh.name : '') + (sh.locked && sh.locked.prompt ? ' 🔒' : '');
+        // Plan-authored names already lead with the label ("1A · Man enters"), so
+        // strip it before prepending ours — otherwise it reads "1A · 1A · …".
+        const bare = String(sh.name || '').replace(/^\s*\d+[A-Za-z]+\s*[·\-—:]\s*/, '');
+        const txt = (sh.label || '—') + (bare ? ' · ' + bare : '') + (sh.locked && sh.locked.prompt ? ' 🔒' : '');
         return '<option value="' + sh.id + '"' + on + '>' + esc(txt) + '</option>';
       }).join('') || '<option value="">No shots</option>';
     }
@@ -1181,25 +1205,32 @@ class Component extends DCLogic {
       },
       addShot: () => {
         if (!window.Store) return;
-        const a = Store.getActive();
+        let a = Store.getActive();
         if (!a.projectId || !a.conceptId) { window.alert('Open a project first (Projects).'); return; }
         this.persistBuilder();
-        const s = Store.addShot(a.projectId, a.conceptId, { builder: Store.defaultBuilder() });
-        Store.setActive({ shotId: s.id });
+        // A shot needs a scene; make one if this concept has none yet.
+        if (!a.sceneId) { Store.addScene(a.projectId, a.conceptId, {}); a = Store.getActive(); }
+        const s = Store.addShot(a.projectId, a.conceptId, a.sceneId, { builder: Store.defaultBuilder() });
+        if (s) Store.setActive({ shotId: s.id });
         this.seedFromActive();
         this.render();
         this.renderToolbar();
       },
-      // ── Scene/shot editing from the builder (Phase 4 slice 2) ──
+      // ── Concept / scene / shot editing from the builder ──
       // Same Store calls the project view uses, so the two surfaces cannot diverge.
       switchConcept: (e) => {
         if (!window.Store) return;
         this.persistBuilder();
-        const cid = e.currentTarget.value;
-        const a = Store.getActive();
-        const p = Store.getProject(a.projectId);
-        const c = ((p && p.concepts) || []).filter((x) => x.id === cid)[0];
-        Store.setActive({ conceptId: cid, shotId: (c && c.shots && c.shots[0]) ? c.shots[0].id : '' });
+        // Clearing scene+shot lets getActive fall through to the concept's first.
+        Store.setActive({ conceptId: e.currentTarget.value, sceneId: '', shotId: '' });
+        this.seedFromActive();
+        this.render();
+        this.renderToolbar();
+      },
+      switchScene: (e) => {
+        if (!window.Store) return;
+        this.persistBuilder();
+        Store.setActive({ sceneId: e.currentTarget.value, shotId: '' });
         this.seedFromActive();
         this.render();
         this.renderToolbar();
@@ -1209,9 +1240,23 @@ class Component extends DCLogic {
         const a = Store.getActive();
         if (!a.projectId) { window.alert('Open a project first (Projects).'); return; }
         this.persistBuilder();
+        // A new concept (another deliverable) starts with one scene and one shot.
         const c = Store.addConcept(a.projectId, {});
-        const s = c ? Store.addShot(a.projectId, c.id, { builder: Store.defaultBuilder() }) : null;
-        if (c) Store.setActive({ conceptId: c.id, shotId: s ? s.id : '' });
+        if (c) {
+          const sc = Store.addScene(a.projectId, c.id, {});
+          if (sc) Store.addShot(a.projectId, c.id, sc.id, { builder: Store.defaultBuilder() });
+        }
+        this.seedFromActive();
+        this.render();
+        this.renderToolbar();
+      },
+      addScene: () => {
+        if (!window.Store) return;
+        const a = Store.getActive();
+        if (!a.projectId || !a.conceptId) { window.alert('Open a project first (Projects).'); return; }
+        this.persistBuilder();
+        const sc = Store.addScene(a.projectId, a.conceptId, {});
+        if (sc) Store.addShot(a.projectId, a.conceptId, sc.id, { builder: Store.defaultBuilder() });
         this.seedFromActive();
         this.render();
         this.renderToolbar();
@@ -1224,7 +1269,7 @@ class Component extends DCLogic {
         if (!a.shot) return;
         const what = (a.shot.label || 'this shot') + (a.shot.name ? ' · ' + a.shot.name : '');
         if (!window.confirm('Delete shot ' + what + '? Its prompt and fields go with it.')) return;
-        Store.removeShot(this._ids.projectId, this._ids.conceptId, this._ids.shotId);
+        Store.removeShot(this._ids);
         this.seedFromActive();
         this.render();
         this.renderToolbar();
@@ -1252,7 +1297,7 @@ class Component extends DCLogic {
         if (!window.Store || !this._ids) return;
         const name = ((document.getElementById('rename-input') || {}).value || '').trim();
         if (!name) return;
-        Store.renameShot(this._ids.projectId, this._ids.conceptId, this._ids.shotId, name);
+        Store.renameShot(this._ids, name);
         const m = document.getElementById('rename-modal'); if (m) m.style.display = 'none';
         this.renderToolbar();
       }
@@ -1263,11 +1308,11 @@ class Component extends DCLogic {
   moveShot(delta) {
     if (!window.Store || !this._ids || !this._ids.shotId) return;
     const a = Store.getActive();
-    const shots = (a.concept && a.concept.shots) || [];
+    const shots = (a.scene && a.scene.shots) || [];
     const i = shots.findIndex((s) => s.id === this._ids.shotId);
     if (i < 0 || i + delta < 0 || i + delta > shots.length - 1) return;
     this.persistBuilder();
-    Store.reorderShot(this._ids.projectId, this._ids.conceptId, this._ids.shotId, i + delta);
+    Store.reorderShot(this._ids, i + delta);
     this.seedFromActive();
     this.render();
     this.renderToolbar();
@@ -1304,7 +1349,8 @@ class Component extends DCLogic {
       const p = doc.projects.filter((x) => x.id === this._ids.projectId)[0];
       if (p) {
         const c = (p.concepts || []).filter((x) => x.id === this._ids.conceptId)[0];
-        const sh = c && (c.shots || []).filter((x) => x.id === this._ids.shotId)[0];
+        const sc = c && (c.scenes || []).filter((x) => x.id === this._ids.sceneId)[0];
+        const sh = sc && (sc.shots || []).filter((x) => x.id === this._ids.shotId)[0];
         if (sh) { sh.status = 'prompted'; Store.save(doc); }
       }
     }

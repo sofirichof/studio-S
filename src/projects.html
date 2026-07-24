@@ -154,7 +154,9 @@ class Component extends DCLogic {
   }
 
   shotCount(p) {
-    return (p.concepts || []).reduce(function (n, c) { return n + (c.shots || []).length; }, 0);
+    return (p.concepts || []).reduce(function (n, c) {
+      return n + (c.scenes || []).reduce(function (m, sc) { return m + (sc.shots || []).length; }, 0);
+    }, 0);
   }
 
   renderSelector() {
@@ -203,7 +205,7 @@ class Component extends DCLogic {
               '<div style="height:96px;background:repeating-linear-gradient(45deg,#e8eaf0 0,#e8eaf0 1px,#F0F1F4 1px,#F0F1F4 10px);"></div>' +
               '<div style="padding:14px 16px 16px;">' +
                 '<p style="font-size:14px;font-weight:500;color:#16161D;margin-bottom:4px;">' + esc(p.name) + '</p>' +
-                '<p style="font-size:12px;color:#5A5A6B;">' + concepts + ' scene' + (concepts === 1 ? '' : 's') + ' · ' + shots + ' shot' + (shots === 1 ? '' : 's') + '</p>' +
+                '<p style="font-size:12px;color:#5A5A6B;">' + concepts + ' concept' + (concepts === 1 ? '' : 's') + ' · ' + shots + ' shot' + (shots === 1 ? '' : 's') + '</p>' +
               '</div>' +
             '</div>' +
           '</div>';
@@ -219,7 +221,7 @@ class Component extends DCLogic {
         const id = el.getAttribute('data-delete');
         const proj = Store.listProjects().filter((x) => x.id === id)[0];
         const label = proj ? proj.name : 'this project';
-        if (!window.confirm('Delete “' + label + '”? This removes its scenes and shots. This cannot be undone.')) return;
+        if (!window.confirm('Delete “' + label + '”? This removes its concepts, scenes and shots. This cannot be undone.')) return;
         Store.deleteProject(id);
         this.renderProjects();
         this.renderSelector();
@@ -270,7 +272,7 @@ class Component extends DCLogic {
         '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">' +
           '<div>' +
             '<p style="font-size:14px;font-weight:500;color:#16161D;margin-bottom:2px;">Production progress</p>' +
-            '<p style="font-size:12px;color:#9A9AA8;">' + esc(p.name) + ' · ' + concepts.length + ' scene' + (concepts.length === 1 ? '' : 's') + ' · ' + this.shotCount(p) + ' shot' + (this.shotCount(p) === 1 ? '' : 's') + '</p>' +
+            '<p style="font-size:12px;color:#9A9AA8;">' + esc(p.name) + ' · ' + concepts.length + ' concept' + (concepts.length === 1 ? '' : 's') + ' · ' + this.shotCount(p) + ' shot' + (this.shotCount(p) === 1 ? '' : 's') + '</p>' +
           '</div>' +
           (todos.length ? '<span style="font-size:13px;font-weight:500;color:#0217D3;">' + pct + '%</span>' : '') +
         '</div>' +
@@ -314,9 +316,13 @@ class Component extends DCLogic {
       ['cameraIntent', 'Camera intent', 'e.g. low 35mm slow dolly-in as she realizes']
     ];
 
+    // concept (a deliverable) → scenes → shots
     const conceptCards = concepts.map((c, ci) => {
-      const shots = c.shots || [];
+      const scenes = c.scenes || [];
       const isActive = c.id === activeC;
+      const conceptShots = scenes.reduce((n, sc) => n + (sc.shots || []).length, 0);
+      const sceneBlocks = scenes.map((sceneObj, sceneIdx) => {
+      const shots = sceneObj.shots || [];
       const shotRows = shots.map((s, si) => {
         const open = this._openShot === s.id;
         const b = s.builder || {};
@@ -326,7 +332,7 @@ class Component extends DCLogic {
             FIELDS.map(([k, lbl, ph]) =>
               '<div style="margin-bottom:8px;">' +
                 '<label style="display:block;font-size:10px;font-weight:500;color:#9A9AA8;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;">' + lbl + '</label>' +
-                '<textarea data-field="' + c.id + '|' + s.id + '|' + k + '" rows="2" placeholder="' + ph + '" ' +
+                '<textarea data-field="' + c.id + '|' + sceneObj.id + '|' + s.id + '|' + k + '" rows="2" placeholder="' + ph + '" ' +
                   'style="width:100%;background:#fff;border:1px solid rgba(16,16,32,0.10);border-radius:6px;padding:6px 8px;font-family:inherit;font-size:12px;line-height:1.5;color:#16161D;resize:vertical;outline:none;">' + esc(b[k] || '') + '</textarea>' +
               '</div>').join('') +
             // Imported from the handoff plan — what this shot needs on the day.
@@ -341,42 +347,62 @@ class Component extends DCLogic {
                   '<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;">' + lockIco +
                     '<span style="font-size:10px;font-weight:500;color:#1D9E75;text-transform:uppercase;letter-spacing:.04em;">Locked prompt</span>' +
                     '<span style="flex:1;"></span>' +
-                    iBtn('data-unlock="' + c.id + '|' + s.id + '"', 'Unlock this prompt', '&#x2715;') +
+                    iBtn('data-unlock="' + c.id + '|' + sceneObj.id + '|' + s.id + '"', 'Unlock this prompt', '&#x2715;') +
                   '</div>' +
                   '<pre style="margin:0;white-space:pre-wrap;word-break:break-word;font-family:inherit;font-size:11.5px;line-height:1.55;color:#5A5A6B;background:#fff;border:1px solid rgba(16,16,32,0.08);border-radius:6px;padding:8px;max-height:180px;overflow:auto;">' + esc(lock.prompt) + '</pre>' +
                   (lock.video ? '<pre style="margin:6px 0 0;white-space:pre-wrap;word-break:break-word;font-family:inherit;font-size:11.5px;line-height:1.55;color:#5A5A6B;background:#fff;border:1px solid rgba(16,16,32,0.08);border-radius:6px;padding:8px;max-height:140px;overflow:auto;">' + esc(lock.video) + '</pre>' : '') +
                 '</div>'
               : '<p style="font-size:11px;color:#9A9AA8;margin-top:8px;line-height:1.5;">No locked prompt yet — open this shot in the builder and lock it there.</p>') +
-            '<button data-open-shot="' + c.id + '|' + s.id + '" style="margin-top:10px;height:28px;padding:0 12px;background:#fff;border:1px solid rgba(16,16,32,0.12);border-radius:6px;font-family:inherit;font-size:12px;font-weight:500;color:#16161D;cursor:pointer;">Open in builder</button>' +
+            '<button data-open-shot="' + c.id + '|' + sceneObj.id + '|' + s.id + '" style="margin-top:10px;height:28px;padding:0 12px;background:#fff;border:1px solid rgba(16,16,32,0.12);border-radius:6px;font-family:inherit;font-size:12px;font-weight:500;color:#16161D;cursor:pointer;">Open in builder</button>' +
           '</div>';
         return '<div>' +
           '<div style="display:flex;align-items:center;gap:6px;padding:3px 0;">' +
             iBtn('data-shot-open="' + s.id + '"', open ? 'Collapse shot' : 'Expand shot', open ? '&#x25BE;' : '&#x25B8;') +
             '<span style="font-size:10px;font-weight:500;color:#0217D3;background:#EEF0FF;border-radius:5px;padding:2px 6px;flex-shrink:0;">' + esc(s.label || '—') + '</span>' +
-            nameInput('data-shot-name="' + c.id + '|' + s.id + '"', s.name || '', 'Name this beat — e.g. Man enters the bodega') +
+            nameInput('data-shot-name="' + c.id + '|' + sceneObj.id + '|' + s.id + '"', String(s.name || '').replace(/^\s*\d+[A-Za-z]+\s*[·\-—:]\s*/, ''), 'Name this beat — e.g. Man enters the bodega') +
             (s.locked && s.locked.prompt ? '<span title="Prompt locked" style="flex-shrink:0;display:flex;">' + lockIco + '</span>' : '') +
             '<span style="font-size:10px;font-weight:500;color:#9A9AA8;background:#F0F1F4;border-radius:999px;padding:1px 7px;flex-shrink:0;">' + esc(s.status || 'draft') + '</span>' +
-            iBtn('data-shot-up="' + c.id + '|' + s.id + '|' + (si - 1) + '"' + (si === 0 ? ' disabled' : ''), 'Move shot up', '&#x2191;') +
-            iBtn('data-shot-down="' + c.id + '|' + s.id + '|' + (si + 1) + '"' + (si === shots.length - 1 ? ' disabled' : ''), 'Move shot down', '&#x2193;') +
-            iBtn('data-shot-del="' + c.id + '|' + s.id + '"', 'Delete shot', '&#x2715;', true) +
+            iBtn('data-shot-up="' + c.id + '|' + sceneObj.id + '|' + s.id + '|' + (si - 1) + '"' + (si === 0 ? ' disabled' : ''), 'Move shot up', '&#x2191;') +
+            iBtn('data-shot-down="' + c.id + '|' + sceneObj.id + '|' + s.id + '|' + (si + 1) + '"' + (si === shots.length - 1 ? ' disabled' : ''), 'Move shot down', '&#x2193;') +
+            iBtn('data-shot-del="' + c.id + '|' + sceneObj.id + '|' + s.id + '"', 'Delete shot', '&#x2715;', true) +
           '</div>' + detail +
         '</div>';
       }).join('');
 
-      return '<div class="concept-card" style="background:#fff;border:1px solid ' + (isActive ? 'rgba(2,23,211,0.35)' : 'rgba(16,16,32,0.08)') + ';border-radius:12px;padding:14px 16px 16px;box-shadow:0 1px 2px rgba(16,16,32,0.04);cursor:default;">' +
-        '<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">' +
-          '<span style="font-size:10px;font-weight:500;color:#5A5A6B;background:#F0F1F4;border-radius:5px;padding:2px 7px;flex-shrink:0;">Scene ' + (ci + 1) + '</span>' +
-          nameInput('data-concept-name="' + c.id + '"', c.name || '', 'Name this scene', true) +
-          iBtn('data-concept-up="' + c.id + '|' + (ci - 1) + '"' + (ci === 0 ? ' disabled' : ''), 'Move scene up', '&#x2191;') +
-          iBtn('data-concept-down="' + c.id + '|' + (ci + 1) + '"' + (ci === concepts.length - 1 ? ' disabled' : ''), 'Move scene down', '&#x2193;') +
-          iBtn('data-concept-del="' + c.id + '"', 'Delete scene', '&#x2715;', true) +
+      // ── one SCENE inside this concept ──
+      return '<div style="border-left:2px solid rgba(16,16,32,0.08);padding:0 0 0 12px;margin-bottom:12px;">' +
+        '<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">' +
+          '<span style="font-size:10px;font-weight:500;color:#5A5A6B;background:#F0F1F4;border-radius:5px;padding:2px 7px;flex-shrink:0;">Scene ' + (sceneIdx + 1) + '</span>' +
+          nameInput('data-scene-name="' + c.id + '|' + sceneObj.id + '"', sceneObj.name || '', 'Name this scene — e.g. Festival grounds, golden hour', true) +
+          iBtn('data-scene-up="' + c.id + '|' + sceneObj.id + '|' + (sceneIdx - 1) + '"' + (sceneIdx === 0 ? ' disabled' : ''), 'Move scene up', '&#x2191;') +
+          iBtn('data-scene-down="' + c.id + '|' + sceneObj.id + '|' + (sceneIdx + 1) + '"' + (sceneIdx === scenes.length - 1 ? ' disabled' : ''), 'Move scene down', '&#x2193;') +
+          iBtn('data-scene-del="' + c.id + '|' + sceneObj.id + '"', 'Delete scene', '&#x2715;', true) +
         '</div>' +
-        (c.desc ? '<p style="font-size:12px;color:#5A5A6B;margin-bottom:10px;line-height:1.5;">' + esc(c.desc) + '</p>' : '') +
-        (shotRows ? '<div style="display:flex;flex-direction:column;margin-bottom:10px;">' + shotRows + '</div>' : '<p style="font-size:12px;color:#9A9AA8;margin-bottom:10px;">No shots yet.</p>') +
-        '<div style="display:flex;align-items:center;justify-content:space-between;">' +
-          '<span style="font-size:12px;color:#9A9AA8;display:flex;align-items:center;gap:4px;">' + gridIco + ' ' + shots.length + ' shot' + (shots.length === 1 ? '' : 's') + '</span>' +
+        (sceneObj.desc ? '<p style="font-size:12px;color:#5A5A6B;margin-bottom:8px;line-height:1.5;">' + esc(sceneObj.desc) + '</p>' : '') +
+        (shotRows ? '<div style="display:flex;flex-direction:column;margin-bottom:8px;">' + shotRows + '</div>' : '<p style="font-size:12px;color:#9A9AA8;margin-bottom:8px;">No shots yet.</p>') +
+        '<button data-add-shot="' + c.id + '|' + sceneObj.id + '" style="height:26px;padding:0 10px;background:#fff;border:1px solid rgba(16,16,32,0.12);border-radius:6px;font-family:inherit;font-size:11px;font-weight:500;color:#16161D;cursor:pointer;">Add shot</button>' +
+      '</div>';
+      }).join('');
+
+      // ── the CONCEPT: one deliverable the client asked for ──
+      return '<div class="concept-card" style="background:#fff;border:1px solid ' + (isActive ? 'rgba(2,23,211,0.35)' : 'rgba(16,16,32,0.08)') + ';border-radius:12px;padding:14px 16px 16px;box-shadow:0 1px 2px rgba(16,16,32,0.04);cursor:default;">' +
+        '<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">' +
+          '<span style="font-size:10px;font-weight:500;color:#0217D3;background:#EEF0FF;border-radius:5px;padding:2px 7px;flex-shrink:0;">Concept ' + (ci + 1) + '</span>' +
+          nameInput('data-concept-name="' + c.id + '"', c.name || '', 'Name this deliverable — e.g. Hero film', true) +
+          '<select data-concept-kind="' + c.id + '" title="Deliverable type" style="height:26px;background:#fff;border:1px solid rgba(16,16,32,0.12);border-radius:6px;font-family:inherit;font-size:11px;color:#5A5A6B;cursor:pointer;flex-shrink:0;">' +
+            '<option value="video"' + ((c.kind || 'video') === 'video' ? ' selected' : '') + '>Video</option>' +
+            '<option value="still"' + (c.kind === 'still' ? ' selected' : '') + '>Still</option>' +
+          '</select>' +
+          iBtn('data-concept-up="' + c.id + '|' + (ci - 1) + '"' + (ci === 0 ? ' disabled' : ''), 'Move concept up', '&#x2191;') +
+          iBtn('data-concept-down="' + c.id + '|' + (ci + 1) + '"' + (ci === concepts.length - 1 ? ' disabled' : ''), 'Move concept down', '&#x2193;') +
+          iBtn('data-concept-del="' + c.id + '"', 'Delete concept', '&#x2715;', true) +
+        '</div>' +
+        '<p style="font-size:11px;color:#9A9AA8;margin-bottom:12px;">' + scenes.length + ' scene' + (scenes.length === 1 ? '' : 's') + ' · ' + conceptShots + ' shot' + (conceptShots === 1 ? '' : 's') + '</p>' +
+        (sceneBlocks || '<p style="font-size:12px;color:#9A9AA8;margin-bottom:10px;">No scenes yet.</p>') +
+        '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;">' +
+          '<span style="font-size:12px;color:#9A9AA8;display:flex;align-items:center;gap:4px;">' + gridIco + ' ' + (c.kind || 'video') + '</span>' +
           '<div style="display:flex;gap:8px;">' +
-            '<button data-add-shot="' + c.id + '" style="height:28px;padding:0 12px;background:#fff;border:1px solid rgba(16,16,32,0.12);border-radius:6px;font-family:inherit;font-size:12px;font-weight:500;color:#16161D;cursor:pointer;">Add shot</button>' +
+            '<button data-add-scene="' + c.id + '" style="height:28px;padding:0 12px;background:#fff;border:1px solid rgba(16,16,32,0.12);border-radius:6px;font-family:inherit;font-size:12px;font-weight:500;color:#16161D;cursor:pointer;">Add scene</button>' +
             '<button data-open-concept="' + c.id + '" style="height:28px;padding:0 12px;background:' + (isActive ? '#0217D3;border:none;color:#fff' : '#fff;border:1px solid rgba(16,16,32,0.12);color:#16161D') + ';border-radius:6px;font-family:inherit;font-size:12px;font-weight:500;cursor:pointer;">Open</button>' +
           '</div>' +
         '</div>' +
@@ -386,7 +412,7 @@ class Component extends DCLogic {
     const addCard =
       '<div id="ov-add-concept" class="concept-card" style="background:#F7F5EF;border:1px dashed rgba(16,16,32,0.16);border-radius:12px;display:flex;align-items:center;justify-content:center;gap:10px;padding:16px;cursor:pointer;">' +
         '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#9A9AA8" stroke-width="1.5" stroke-linecap="round"><line x1="8" y1="3" x2="8" y2="13"/><line x1="3" y1="8" x2="13" y2="8"/></svg>' +
-        '<p style="font-size:13px;font-weight:500;color:#5A5A6B;">New scene</p>' +
+        '<p style="font-size:13px;font-weight:500;color:#5A5A6B;">New concept</p>' +
       '</div>';
 
     html +=
@@ -400,7 +426,7 @@ class Component extends DCLogic {
         '</div>' +
         '<div>' +
           '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">' +
-            '<p style="font-size:14px;font-weight:500;color:#16161D;">Scenes &amp; shots</p>' +
+            '<p style="font-size:14px;font-weight:500;color:#16161D;">Concepts, scenes &amp; shots</p>' +
             '<button id="ov-breakdown" style="height:28px;padding:0 12px;background:#fff;border:1px solid rgba(16,16,32,0.12);border-radius:6px;font-family:inherit;font-size:12px;font-weight:500;color:#16161D;cursor:pointer;">Breakdown</button>' +
           '</div>' +
           '<div style="display:flex;flex-direction:column;gap:12px;">' + conceptCards + addCard + '</div>' +
@@ -422,8 +448,9 @@ class Component extends DCLogic {
       el.onclick = () => {
         const cid = el.getAttribute('data-open-concept');
         const c = (Store.getProject(id).concepts || []).filter((x) => x.id === cid)[0];
-        const sid = c && c.shots && c.shots[0] ? c.shots[0].id : '';
-        Store.setActive({ projectId: id, conceptId: cid, shotId: sid });
+        const sc = c && c.scenes && c.scenes[0] ? c.scenes[0] : null;
+        Store.setActive({ projectId: id, conceptId: cid, sceneId: sc ? sc.id : '',
+                          shotId: (sc && sc.shots && sc.shots[0]) ? sc.shots[0].id : '' });
         window.location.href = 'promptbuilder.html';
       };
     });
@@ -432,22 +459,65 @@ class Component extends DCLogic {
     // survives; only structural edits re-render. Every write goes through Store,
     // which is the same object the builder reads — that's what keeps them in sync.
     const parts = (el, attr) => el.getAttribute(attr).split('|');
-    const openShot = (cid, sid) => {
-      Store.setActive({ projectId: id, conceptId: cid, shotId: sid });
+    const openShot = (cid, scnid, sid) => {
+      Store.setActive({ projectId: id, conceptId: cid, sceneId: scnid, shotId: sid });
       window.location.href = 'promptbuilder.html';
     };
 
     mount.querySelectorAll('[data-concept-name]').forEach((el) => {
       el.onchange = () => Store.renameConcept(id, el.getAttribute('data-concept-name'), el.value);
     });
+    // ids bundle for a shot-level control: cid|scnid|shotid
+    const shotIds = (el, attr) => {
+      const [cid, scnid, shotid] = parts(el, attr);
+      return { projectId: id, conceptId: cid, sceneId: scnid, shotId: shotid };
+    };
+    mount.querySelectorAll('[data-concept-kind]').forEach((el) => {
+      el.onchange = () => {
+        Store.setConceptKind(id, el.getAttribute('data-concept-kind'), el.value);
+        this.renderOverview(id);
+      };
+    });
+    mount.querySelectorAll('[data-scene-name]').forEach((el) => {
+      const [cid, scnid] = parts(el, 'data-scene-name');
+      el.onchange = () => Store.renameScene(id, cid, scnid, el.value);
+    });
     mount.querySelectorAll('[data-shot-name]').forEach((el) => {
-      const [cid, sid] = parts(el, 'data-shot-name');
-      el.onchange = () => Store.renameShot(id, cid, sid, el.value);
+      el.onchange = () => Store.renameShot(shotIds(el, 'data-shot-name'), el.value);
     });
     mount.querySelectorAll('[data-field]').forEach((el) => {
-      const [cid, sid, key] = parts(el, 'data-field');
+      const [cid, scnid, shotid, key] = parts(el, 'data-field');
       el.onchange = () => {
-        Store.updateShotFields({ projectId: id, conceptId: cid, shotId: sid }, { [key]: el.value });
+        Store.updateShotFields({ projectId: id, conceptId: cid, sceneId: scnid, shotId: shotid }, { [key]: el.value });
+      };
+    });
+    mount.querySelectorAll('[data-add-scene]').forEach((el) => {
+      el.onclick = () => {
+        const cid = el.getAttribute('data-add-scene');
+        const sc = Store.addScene(id, cid, {});
+        if (sc) Store.addShot(id, cid, sc.id, {});
+        this.renderOverview(id);
+      };
+    });
+    mount.querySelectorAll('[data-scene-up],[data-scene-down]').forEach((el) => {
+      el.onclick = () => {
+        const attr = el.hasAttribute('data-scene-up') ? 'data-scene-up' : 'data-scene-down';
+        const [cid, scnid, to] = parts(el, attr);
+        Store.reorderScene(id, cid, scnid, parseInt(to, 10));
+        this.renderOverview(id);
+      };
+    });
+    mount.querySelectorAll('[data-scene-del]').forEach((el) => {
+      el.onclick = () => {
+        const [cid, scnid] = parts(el, 'data-scene-del');
+        const c = (Store.getProject(id).concepts || []).filter((x) => x.id === cid)[0];
+        const sc = c && (c.scenes || []).filter((x) => x.id === scnid)[0];
+        if (!sc) return;
+        const n = (sc.shots || []).length;
+        if (!window.confirm('Delete scene “' + (sc.name || 'Untitled') + '”' +
+            (n ? ' and its ' + n + ' shot' + (n === 1 ? '' : 's') : '') + '? This cannot be undone.')) return;
+        Store.removeScene(id, cid, scnid);
+        this.renderOverview(id);
       };
     });
     mount.querySelectorAll('[data-shot-open]').forEach((el) => {
@@ -458,11 +528,12 @@ class Component extends DCLogic {
       };
     });
     mount.querySelectorAll('[data-open-shot]').forEach((el) => {
-      el.onclick = () => { const [cid, sid] = parts(el, 'data-open-shot'); openShot(cid, sid); };
+      el.onclick = () => { const [cid, scnid, sid] = parts(el, 'data-open-shot'); openShot(cid, scnid, sid); };
     });
     mount.querySelectorAll('[data-add-shot]').forEach((el) => {
       el.onclick = () => {
-        const s = Store.addShot(id, el.getAttribute('data-add-shot'), {});
+        const [cid, scnid] = parts(el, 'data-add-shot');
+        const s = Store.addShot(id, cid, scnid, {});
         if (s) this._openShot = s.id;
         this.renderOverview(id);
       };
@@ -470,8 +541,8 @@ class Component extends DCLogic {
     mount.querySelectorAll('[data-shot-up],[data-shot-down]').forEach((el) => {
       el.onclick = () => {
         const attr = el.hasAttribute('data-shot-up') ? 'data-shot-up' : 'data-shot-down';
-        const [cid, sid, to] = parts(el, attr);
-        Store.reorderShot(id, cid, sid, parseInt(to, 10));
+        const to = parts(el, attr)[3];
+        Store.reorderShot(shotIds(el, attr), parseInt(to, 10));
         this.renderOverview(id);
       };
     });
@@ -485,15 +556,16 @@ class Component extends DCLogic {
     });
     mount.querySelectorAll('[data-shot-del]').forEach((el) => {
       el.onclick = () => {
-        const [cid, sid] = parts(el, 'data-shot-del');
+        const [cid, scnid, sid] = parts(el, 'data-shot-del');
         const p2 = Store.getProject(id);
         const c = (p2.concepts || []).filter((x) => x.id === cid)[0];
-        const s = c && (c.shots || []).filter((x) => x.id === sid)[0];
+        const sc = c && (c.scenes || []).filter((x) => x.id === scnid)[0];
+        const s = sc && (sc.shots || []).filter((x) => x.id === sid)[0];
         if (!s) return;
         const what = (s.label || 'this shot') + (s.name ? ' · ' + s.name : '');
         if (!window.confirm('Delete shot ' + what + '? Its prompt and fields go with it.')) return;
         if (this._openShot === sid) this._openShot = null;
-        Store.removeShot(id, cid, sid);
+        Store.removeShot({ projectId: id, conceptId: cid, sceneId: scnid, shotId: sid });
         this.renderOverview(id);
       };
     });
@@ -502,8 +574,8 @@ class Component extends DCLogic {
         const cid = el.getAttribute('data-concept-del');
         const c = (Store.getProject(id).concepts || []).filter((x) => x.id === cid)[0];
         if (!c) return;
-        const n = (c.shots || []).length;
-        if (!window.confirm('Delete scene “' + (c.name || 'Untitled') + '”' +
+        const n = (c.scenes || []).reduce((m, sc) => m + (sc.shots || []).length, 0);
+        if (!window.confirm('Delete concept “' + (c.name || 'Untitled') + '”, its scenes' +
             (n ? ' and its ' + n + ' shot' + (n === 1 ? '' : 's') : '') + '? This cannot be undone.')) return;
         Store.removeConcept(id, cid);
         this.renderOverview(id);
@@ -511,8 +583,7 @@ class Component extends DCLogic {
     });
     mount.querySelectorAll('[data-unlock]').forEach((el) => {
       el.onclick = () => {
-        const [cid, sid] = parts(el, 'data-unlock');
-        Store.unlockShotPrompt({ projectId: id, conceptId: cid, shotId: sid });
+        Store.unlockShotPrompt(shotIds(el, 'data-unlock'));
         this.renderOverview(id);
       };
     });
@@ -554,8 +625,10 @@ class Component extends DCLogic {
       '<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:500;color:' + fg + ';background:' + bg + ';border-radius:999px;padding:2px 9px;">' + text + '</span>';
 
     let gaps = 0;
+    // One table per SCENE, grouped under its concept.
     const sceneBlocks = (p.concepts || []).map((c) => {
-      const rows = (c.shots || []).map((s) => {
+      const inner = (c.scenes || []).map((sceneObj) => {
+      const rows = (sceneObj.shots || []).map((s) => {
         const b = s.builder || {};
         const cells = SLOTS.map((slot) => {
           const raw = b[slot.key];
@@ -584,9 +657,9 @@ class Component extends DCLogic {
           cells.map((h) => '<td style="padding:9px 10px;border-top:1px solid rgba(16,16,32,0.06);vertical-align:top;line-height:1.9;">' + h + '</td>').join('') +
         '</tr>';
       }).join('');
-      return '<div style="background:#fff;border:1px solid rgba(16,16,32,0.08);border-radius:12px;overflow:hidden;margin-bottom:14px;">' +
-        '<div style="padding:12px 14px;border-bottom:1px solid rgba(16,16,32,0.06);">' +
-          '<p style="font-size:13px;font-weight:500;color:#16161D;">' + esc(c.name || 'Untitled scene') + '</p>' +
+      return '<div style="background:#fff;border:1px solid rgba(16,16,32,0.08);border-radius:12px;overflow:hidden;margin-bottom:10px;">' +
+        '<div style="padding:10px 14px;border-bottom:1px solid rgba(16,16,32,0.06);">' +
+          '<p style="font-size:13px;font-weight:500;color:#16161D;">' + esc(sceneObj.name || 'Untitled scene') + '</p>' +
         '</div>' +
         (rows
           ? '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;">' +
@@ -596,6 +669,15 @@ class Component extends DCLogic {
                 SLOTS.map((s) => '<th style="text-align:left;padding:8px 10px;font-size:10px;font-weight:500;color:#9A9AA8;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;">' + s.label + '</th>').join('') +
               '</tr></thead><tbody>' + rows + '</tbody></table></div>'
           : '<p style="padding:12px 14px;font-size:12px;color:#9A9AA8;">No shots in this scene yet.</p>') +
+      '</div>';
+      }).join('');
+      // concept header above its scenes
+      return '<div style="margin-bottom:18px;">' +
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">' +
+          '<span style="font-size:10px;font-weight:500;color:#0217D3;background:#EEF0FF;border-radius:5px;padding:2px 7px;">' + esc(c.kind || 'video') + '</span>' +
+          '<p style="font-size:14px;font-weight:500;color:#16161D;">' + esc(c.name || 'Untitled concept') + '</p>' +
+        '</div>' +
+        (inner || '<p style="font-size:12px;color:#9A9AA8;">No scenes yet.</p>') +
       '</div>';
     }).join('');
 
@@ -609,7 +691,7 @@ class Component extends DCLogic {
           ? '<strong style="color:#FF002E;">' + gaps + ' gap' + (gaps === 1 ? '' : 's') + '</strong> to close — anything marked MISSING or “not generated” has no usable reference yet.'
           : '<strong style="color:#1D9E75;">Every shot has its references.</strong>') +
       '</p>' +
-      (sceneBlocks || '<p style="font-size:13px;color:#9A9AA8;">No scenes yet.</p>') +
+      (sceneBlocks || '<p style="font-size:13px;color:#9A9AA8;">No concepts yet.</p>') +
       '<p style="font-size:12px;color:#9A9AA8;margin-top:6px;line-height:1.6;">Create the missing ones in References, then attach them to the shot in the builder.</p>';
 
     const back = document.getElementById('bd-back');

@@ -99,35 +99,42 @@ class Component extends DCLogic {
 
     const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
     const concepts = a.project.concepts || [];
-    const allShots = concepts.reduce((n,c)=>n+(c.shots||[]).length,0);
-    const count = (st)=>{ let n=0; concepts.forEach(c=>(c.shots||[]).forEach(s=>{ if((s.status||'draft')===st)n++; })); return n; };
+    // Shots live under concept → scene, so flatten before counting.
+    const shotsOf = (c)=>(c.scenes||[]).reduce((all,sc)=>all.concat(sc.shots||[]),[]);
+    const allShots = concepts.reduce((n,c)=>n+shotsOf(c).length,0);
+    const count = (st)=>{ let n=0; concepts.forEach(c=>shotsOf(c).forEach(s=>{ if((s.status||'draft')===st)n++; })); return n; };
 
     const modelUse = {};
-    concepts.forEach(c=>(c.shots||[]).forEach(s=>{ const b=s.builder||{}; [b.stillModel,b.videoModel].forEach(m=>{ if(m) modelUse[m]=(modelUse[m]||0)+1; }); }));
+    concepts.forEach(c=>shotsOf(c).forEach(s=>{ const b=s.builder||{}; [b.stillModel,b.videoModel].forEach(m=>{ if(m) modelUse[m]=(modelUse[m]||0)+1; }); }));
     // 'higgsfield' is the surface key kept for saved data; it reads as Cinema Studio.
     const modelName = { gpt:'GPT Image', nano:'Nano Banana Pro', seedream:'Seedream 4.5', kling:'Kling 3.0', seedance:'Seedance', higgsfield:'Cinema Studio' };
 
     const conceptHtml = concepts.map((c)=>{
-      const rows = (c.shots||[]).map((s)=>{
+      const rows = (c.scenes||[]).map((sc)=>{
+      const sceneHead = '<div style="padding:7px 16px;background:#fff;border-bottom:1px solid rgba(16,16,32,.05);display:flex;align-items:center;gap:8px;">' +
+          '<span style="font-size:11px;font-weight:500;color:#5A5A6B;">'+esc(sc.name||'Untitled scene')+'</span>' +
+          '<button data-addto="'+c.id+'" data-addscene="'+sc.id+'" style="margin-left:auto;font-size:11px;background:none;border:none;color:#0217D3;cursor:pointer;font-family:inherit;font-weight:500;">+ Add shot</button>' +
+        '</div>';
+      return sceneHead + (sc.shots||[]).map((s)=>{
         const b = s.builder || {};
         const summary = [this.shotLabel(b.shot), b.lens?b.lens+'mm':'', this.dpLabel(b.dp), b.depth].filter(Boolean).join(' · ');
         const looktags = [this.dpLabel(b.dp), b.lens?b.lens+'mm':'', this.shotLabel(b.shot)].filter(Boolean).map((t)=>this.tag(t)).join('');
         const models = [b.stillModel,b.videoModel].filter(Boolean).map((m)=>this.tag((modelName[m]||m).split(' ')[0],'#EEF0FF','#0217D3')).join('');
         const override = b.prefixOverride ? this.tag('Prefix override','#FFECEE','#FF002E') : '';
-        return '<div class="shot-row" data-shot="'+s.id+'" data-concept="'+c.id+'" style="display:grid;grid-template-columns:2fr 1.2fr 1fr 80px;gap:12px;padding:12px 16px;border-bottom:1px solid rgba(16,16,32,.05);align-items:center;">' +
+        return '<div class="shot-row" data-shot="'+s.id+'" data-concept="'+c.id+'" data-scene="'+sc.id+'" style="display:grid;grid-template-columns:2fr 1.2fr 1fr 80px;gap:12px;padding:12px 16px;border-bottom:1px solid rgba(16,16,32,.05);align-items:center;">' +
             '<div><p style="font-size:13px;font-weight:500;color:#16161D;margin-bottom:2px;">'+(s.label ? '<span style="font-size:10px;font-weight:500;color:#0217D3;background:#EEF0FF;border-radius:5px;padding:1px 6px;margin-right:6px;vertical-align:middle;">'+esc(s.label)+'</span>' : '')+esc(s.name)+'</p><p style="font-size:11px;color:#9A9AA8;font-family:ui-monospace,monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+(summary||'no settings yet')+'</p></div>' +
             '<div style="display:flex;flex-wrap:wrap;gap:4px;">'+looktags+override+'</div>' +
             '<div style="display:flex;flex-wrap:wrap;gap:4px;">'+(models||'<span style="font-size:11px;color:#9A9AA8;">—</span>')+'</div>' +
             this.statusPill(s.status) +
           '</div>';
       }).join('');
+      }).join('');
       return '<div style="background:#fff;border:1px solid rgba(16,16,32,.08);border-radius:12px;overflow:hidden;margin-bottom:12px;">' +
         '<div style="padding:10px 16px;background:#F7F5EF;border-bottom:1px solid rgba(16,16,32,.06);display:flex;align-items:center;gap:8px;">' +
           '<div style="width:8px;height:8px;border-radius:50%;background:#1D9E75;flex-shrink:0;"></div>' +
           '<span style="font-size:12px;font-weight:500;color:#16161D;">'+esc(c.name)+'</span>' +
-          '<span style="font-size:11px;color:#9A9AA8;">'+(c.shots||[]).length+' shot'+((c.shots||[]).length===1?'':'s')+'</span>' +
-          '<button data-addto="'+c.id+'" style="margin-left:auto;font-size:11px;background:none;border:none;color:#0217D3;cursor:pointer;font-family:inherit;font-weight:500;">+ Add shot</button>' +
-        '</div>' + (rows || '<div style="padding:14px 16px;font-size:12px;color:#9A9AA8;">No shots yet.</div>') +
+          '<span style="font-size:11px;color:#9A9AA8;">'+(c.kind||'video')+' · '+(c.scenes||[]).length+' scene'+((c.scenes||[]).length===1?'':'s')+' · '+shotsOf(c).length+' shot'+(shotsOf(c).length===1?'':'s')+'</span>' +
+        '</div>' + (rows || '<div style="padding:14px 16px;font-size:12px;color:#9A9AA8;">No scenes yet.</div>') +
       '</div>';
     }).join('');
 
@@ -167,12 +174,12 @@ class Component extends DCLogic {
     if (prefix) prefix.addEventListener('change', ()=>{ Store.setStylePrefix(a.projectId, prefix.value); });
     mount.querySelectorAll('[data-shot]').forEach((row)=>{
       row.addEventListener('click', ()=>{
-        Store.setActive({ conceptId: row.getAttribute('data-concept'), shotId: row.getAttribute('data-shot') });
+        Store.setActive({ conceptId: row.getAttribute('data-concept'), sceneId: row.getAttribute('data-scene'), shotId: row.getAttribute('data-shot') });
         window.location.href = 'promptbuilder.html';
       });
     });
     mount.querySelectorAll('[data-addto]').forEach((b)=>{
-      b.addEventListener('click', (e)=>{ e.stopPropagation(); Store.addShot(a.projectId, b.getAttribute('data-addto'), { builder: Store.defaultBuilder() }); this.renderAll(); });
+      b.addEventListener('click', (e)=>{ e.stopPropagation(); Store.addShot(a.projectId, b.getAttribute('data-addto'), b.getAttribute('data-addscene'), { builder: Store.defaultBuilder() }); this.renderAll(); });
     });
   }
 
@@ -184,12 +191,12 @@ class Component extends DCLogic {
     return {
       addShot: () => {
         if (!window.Store) return;
-        const a = Store.getActive();
+        let a = Store.getActive();
         if (!a.project) { window.alert('Open a project first.'); return; }
-        const cid = a.conceptId || (a.project.concepts[0] && a.project.concepts[0].id);
-        if (!cid) Store.addConcept(a.projectId, {});
-        const c2 = Store.getActive();
-        Store.addShot(a.projectId, c2.conceptId || cid, { builder: Store.defaultBuilder() });
+        // Ensure there's a concept and a scene to hang the shot off.
+        if (!a.conceptId) { Store.addConcept(a.projectId, {}); a = Store.getActive(); }
+        if (!a.sceneId) { Store.addScene(a.projectId, a.conceptId, {}); a = Store.getActive(); }
+        Store.addShot(a.projectId, a.conceptId, a.sceneId, { builder: Store.defaultBuilder() });
         this.renderAll();
       },
       generateAll: () => {
@@ -198,7 +205,7 @@ class Component extends DCLogic {
         const a = Store.getActive();
         const p = doc.projects.filter((x)=>x.id===a.projectId)[0];
         if (!p) return;
-        (p.concepts||[]).forEach((c)=>(c.shots||[]).forEach((s)=>{ s.status='prompted'; }));
+        (p.concepts||[]).forEach((c)=>(c.scenes||[]).forEach((sc)=>(sc.shots||[]).forEach((s)=>{ s.status='prompted'; })));
         Store.save(doc);
         this.renderAll();
       }

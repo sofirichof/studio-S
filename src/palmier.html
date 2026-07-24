@@ -258,7 +258,7 @@ class Component extends DCLogic {
       return;
     }
     mount.innerHTML = concepts.map(function (c) {
-      const shots = c.shots || [];
+      const shots = (c.scenes || []).reduce(function (all, sc) { return all.concat(sc.shots || []); }, []);
       const drafted = shots.filter(function (s) { return (s.status || 'draft') !== 'draft'; }).length;
       const locked = shots.length && drafted === shots.length;
       const badge = locked
@@ -282,16 +282,23 @@ class Component extends DCLogic {
     return {
       project: p.name,
       stylePrefix: Store.getStylePrefix(p.id) || '',
+      // Payload mirrors the real hierarchy: concept → scenes → shots.
       concepts: (p.concepts || []).map(function (c) {
         return {
           name: c.name,
-          shots: (c.shots || []).map(function (s) {
-            const b = s.builder || {};
+          kind: c.kind || 'video',
+          scenes: (c.scenes || []).map(function (sc) {
             return {
-              name: s.name, status: s.status || 'draft',
-              shotSize: b.shot, lens: b.lens, look: b.dp, depth: b.depth,
-              movement: b.move, stillModel: b.stillModel, videoModel: b.videoModel,
-              prefixOverride: !!b.prefixOverride
+              name: sc.name,
+              shots: (sc.shots || []).map(function (s) {
+                const b = s.builder || {};
+                return {
+                  label: s.label || '', name: s.name, status: s.status || 'draft',
+                  shotSize: b.shot, lens: b.lens, look: b.dp, depth: b.depth,
+                  movement: b.move, stillModel: b.stillModel, videoModel: b.videoModel,
+                  prefixOverride: !!b.prefixOverride
+                };
+              })
             };
           })
         };

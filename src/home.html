@@ -75,10 +75,10 @@ class Component extends DCLogic {
 
   shotStats(p) {
     let total = 0, prompted = 0;
-    (p.concepts || []).forEach((c) => (c.shots || []).forEach((s) => {
+    (p.concepts || []).forEach((c) => (c.scenes || []).forEach((sc) => (sc.shots || []).forEach((s) => {
       total++;
       if (s.status && s.status !== 'draft') prompted++;
-    }));
+    })));
     return { total, prompted };
   }
 
