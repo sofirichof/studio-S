@@ -161,12 +161,13 @@ ok('OPTS: every wired clause is non-empty', ['tod','light','feel','grade','reali
 // per-model stills lead — model choice now changes the compiled text
 ok('stillLead: gpt leads photorealistic', PC.stillLead('gpt').pre.indexOf('Photorealistic') !== -1);
 ok('stillLead: nano leads photograph + 4K', PC.stillLead('nano').pre.indexOf('Photograph') !== -1 && PC.stillLead('nano').post.indexOf('4K') !== -1);
-ok('stillLead: flux holds back sharpness words', PC.stillLead('flux').post.indexOf('natural skin') !== -1 && PC.stillLead('flux').post.toLowerCase().indexOf('sharp') === -1);
-ok('stillLead: midjourney emits real flags', (() => { const p = PC.stillLead('mj', { ar: '9:16' }).post; return p.indexOf('--ar 9:16') !== -1 && p.indexOf('--style raw') !== -1 && p.indexOf('--v 7') !== -1; })());
-ok('stillLead: mj defaults ar to 16:9', PC.stillLead('mj').post.indexOf('--ar 16:9') !== -1);
 ok('stillLead: ar formatted into gpt/nano/seedream', PC.stillLead('gpt', { ar: '1:1' }).post.indexOf('1:1') !== -1 && PC.stillLead('seedream', { ar: '1:1' }).post.indexOf('1:1') !== -1);
 ok('stillLead: unknown model -> no lead', PC.stillLead('mystery').pre === '' && PC.stillLead('mystery').post === '');
-ok('stillLead: two models produce different treatment', JSON.stringify(PC.stillLead('gpt')) !== JSON.stringify(PC.stillLead('mj')));
+ok('stillLead: two models produce different treatment', JSON.stringify(PC.stillLead('gpt')) !== JSON.stringify(PC.stillLead('seedream')));
+// Phase 4 slice 1 — pruned model set. Retired ids must carry no treatment, while
+// 'higgsfield' (the SURFACE key behind the "Cinema Studio" label) keeps its behavior.
+ok('pruned: retired still models have no lead', ['flux', 'mj'].every((m) => PC.stillLead(m).pre === '' && PC.stillLead(m).post === ''));
+ok('pruned: cinema studio surface key still takes ref arrays', PC.videoRefMode('higgsfield') === 'array');
 
 // ── N. realism baseline — the always-on "real photo, not AI" craft stack ──
 const rb = PC.realismBaseline();

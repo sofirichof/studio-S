@@ -135,7 +135,7 @@
       var idRefs = featured.concat(places);
       var vMode = (opts && opts.videoRefMode) || 'array';
       if (vMode === 'frame') {
-        // Kling / Sora accept ONLY a start/end frame — no reference arrays (T1:
+        // Kling accepts ONLY a start/end frame — no reference arrays (T1:
         // param schemas expose start_image/end_image, no image_references). So the
         // identity rides on the generated still, not on @-tags or a ref list.
         video = video.replace(/\.$/, '') + ' The starting frame already establishes ' +
@@ -208,16 +208,14 @@
   // Per-model capability profile — how each video model actually takes identity
   // references (verified from the platform param schemas, RESEARCH-LOG claim 15):
   //   'array' → ingests image/audio reference arrays (Seedance, Higgsfield/Soul)
-  //   'frame' → start/end frame only, no reference arrays (Kling, Sora)
+  //   'frame' → start/end frame only, no reference arrays (Kling)
   // This is a real capability difference, not phrasing — so it changes the prompt
   // per model. Standard film vocabulary stays universal (research found no
   // per-model wording difference).
   var VIDEO_CAPS = {
     seedance:   { refs: 'array' },
     higgsfield: { refs: 'array' },
-    runway:     { refs: 'array' },
-    kling:      { refs: 'frame' },
-    sora:       { refs: 'frame' }
+    kling:      { refs: 'frame' }
   };
   function videoRefMode(model) {
     return (VIDEO_CAPS[model] && VIDEO_CAPS[model].refs) || 'array';
@@ -275,7 +273,7 @@
       { label: 'Candid / unposed',      clause: 'candid, unposed framing' }
     ],
     // Aspect ratio isn't prose — resolved here only so stillLead() can format it
-    // (Midjourney needs --ar; others append the ratio). Order matches the builder.
+    // (stillLead() appends the ratio per model). Order matches the builder.
     ar: [
       { label: '16:9',    clause: '16:9' },
       { label: '9:16',    clause: '9:16' },
@@ -307,9 +305,7 @@
   var STILL_LEADS = {
     gpt:      { pre: 'Photorealistic. ', post: function (ar) { return ar ? ' ' + ar + '.' : ''; } },
     nano:     { pre: 'Photograph. ',     post: function (ar) { return (ar ? ' ' + ar + ',' : '') + ' 4K.'; } },
-    seedream: { pre: '',                 post: function (ar) { return ' Ultra-sharp 4K, accurate materials' + (ar ? ', ' + ar : '') + '.'; } },
-    flux:     { pre: '',                 post: function ()   { return ' photorealistic, natural skin and texture.'; } },
-    mj:       { pre: '',                 post: function (ar) { return ' --ar ' + (ar || '16:9') + ' --style raw --v 7'; } }
+    seedream: { pre: '',                 post: function (ar) { return ' Ultra-sharp 4K, accurate materials' + (ar ? ', ' + ar : '') + '.'; } }
   };
   function stillLead(model, opts) {
     var e = STILL_LEADS[model];

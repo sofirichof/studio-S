@@ -104,7 +104,8 @@ class Component extends DCLogic {
 
     const modelUse = {};
     concepts.forEach(c=>(c.shots||[]).forEach(s=>{ const b=s.builder||{}; [b.stillModel,b.videoModel].forEach(m=>{ if(m) modelUse[m]=(modelUse[m]||0)+1; }); }));
-    const modelName = { gpt:'GPT Image', nano:'Nano Banana Pro', seedream:'Seedream 4.5', flux:'FLUX.2', mj:'Midjourney v7', kling:'Kling 3.0', seedance:'Seedance', runway:'Runway Gen-4', sora:'Sora' };
+    // 'higgsfield' is the surface key kept for saved data; it reads as Cinema Studio.
+    const modelName = { gpt:'GPT Image', nano:'Nano Banana Pro', seedream:'Seedream 4.5', kling:'Kling 3.0', seedance:'Seedance', higgsfield:'Cinema Studio' };
 
     const conceptHtml = concepts.map((c)=>{
       const rows = (c.shots||[]).map((s)=>{

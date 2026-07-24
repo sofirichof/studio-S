@@ -453,12 +453,23 @@ class Component extends DCLogic {
         if (b[k] !== undefined) this.state[k] = Array.isArray(b[k]) ? b[k].slice() : b[k];
       });
     }
+    // Shots saved before the model list was pruned can still carry a retired id.
+    // Coerce to the nearest surviving model so the chips aren't all-off and
+    // compileVideo/videoRefMode never get a key they don't know.
+    this.state.stillModel = this.normalizeModel(this.state.stillModel, this.stillProfiles(), 'gpt');
+    this.state.videoModel = this.normalizeModel(this.state.videoModel, this.videoProfiles(), 'kling');
     // BUG-05: honor the onboarding "Default video model" when nothing else set it.
     const settings = Store.getSettings ? Store.getSettings() : null;
     if (settings && settings.defaultVideoModel && (!b || b.videoModel === undefined)
         && this.videoProfiles().some((p) => p.id === settings.defaultVideoModel)) {
       this.state.videoModel = settings.defaultVideoModel;
     }
+  }
+
+  // Retired model ids (Sora, Runway, FLUX, Midjourney) → nearest surviving model.
+  normalizeModel(id, profiles, fallback) {
+    if (id && profiles.some((p) => p.id === id)) return id;
+    return ({ sora: 'kling', runway: 'kling', flux: 'gpt', mj: 'gpt' })[id] || fallback;
   }
 
   persistBuilder() {
@@ -645,12 +656,6 @@ class Component extends DCLogic {
       { id:'seedream', label:'Seedream 4.5', tag:'text-to-image',
         prompt:'Wide establishing shot, downtown intersection at golden hour, commuters crossing, warm natural light, 24mm, eye level. Ultra-sharp 4K, accurate materials \u2014 glass, asphalt, fabric. References: brand look-frames 1\u20133.',
         rule:'Leans on 4K material fidelity and multi-reference composition (up to ~10 frames) to lock the brand look.' },
-      { id:'flux', label:'FLUX.2', tag:'text-to-image',
-        prompt:'wide establishing photograph, downtown intersection, golden hour, commuters crossing, warm natural light, 24mm lens, eye level, photorealistic, natural skin and texture',
-        rule:'Concise photoreal phrasing; sharpness keywords held back on purpose \u2014 FLUX tends to over-crisp.' },
-      { id:'mj', label:'Midjourney v7', tag:'text-to-image',
-        prompt:'wide establishing shot, downtown intersection at golden hour, commuters crossing, warm natural light, warm portrait film stock, fine grain --ar 16:9 --style raw --stylize 250 --v 7',
-        rule:'Film-stock color science plus --ar / --style raw / --stylize flags. Expect aesthetic interpretation over literal accuracy.' },
     ];
   }
 
@@ -662,15 +667,12 @@ class Component extends DCLogic {
       { id:'seedance', label:'Seedance', tag:'image-to-video',
         prompt:'Commuters cross the intersection at an easy pace. Camera: slow, smooth push-in, then a subtle rise. Warm golden-hour grade, ultra-sharp 4K detail. Gentle, calm rhythm throughout.',
         rule:'Rhythmic language (\u201cslow, smooth, gentle\u201d) instead of lens specs; one primary camera move, secondary move described after.' },
-      { id:'runway', label:'Runway Gen-4', tag:'image-to-video',
-        prompt:'Slow push-in on commuters crossing at golden hour. Subtle parallax, consistent warm lighting, stable camera motion, no distortion. 4-second clip.',
-        rule:'Concise motion brief; \u201cstable / consistent / no distortion\u201d emphasised to avoid drift.' },
-      { id:'sora', label:'Sora', tag:'image-to-video',
-        prompt:'A four-second shot: commuters cross a downtown intersection in warm golden-hour light as the camera eases slowly inward. Natural movement, cinematic, continuous take.',
-        rule:'Described as a short filmed scene \u2014 narrative phrasing over parameters.' },
-      { id:'higgsfield', label:'Higgsfield', tag:'image-to-video',
+      // id stays 'higgsfield' on purpose \u2014 it is the SURFACE key that usesAtTags(),
+      // PromptCompile.videoRefMode() and the motion-realism tail all read. Only the
+      // user-facing label is "Cinema Studio". See the Phase 4 spec.
+      { id:'higgsfield', label:'Cinema Studio', tag:'image-to-video',
         prompt:'Slow Push In. @Commuters cross the intersection at an easy pace, coats moving in the wind. Golden-hour light holds on the signage behind them.',
-        rule:'Camera-motion preset first, then one clear subject action \u2014 Higgsfield rewards a single strong move over dense paragraphs. Saved elements are addressed by @handle.' },
+        rule:'Camera-motion preset first, then one clear subject action \u2014 Cinema Studio rewards a single strong move over dense paragraphs. Saved elements are addressed by @handle.' },
     ];
   }
 
@@ -1032,8 +1034,8 @@ class Component extends DCLogic {
     if (step === 5) {
       return this.eyebrow('Prompt · Output') +
         this.head('Models &amp; output', 'Studio S writes a stills prompt and an image-to-video prompt from the same brief. Pick one or more models for each stage \u2014 prompts are tailored to each.') +
-        this.field('Stills model \u2014 text-to-image', this.chips('smodel', [{label:'GPT Image', on:true},{label:'Nano Banana Pro', on:true},{label:'Seedream 4.5'},{label:'FLUX.2'},{label:'Midjourney v7'}], true), 'GPT Image (ChatGPT) for prompt accuracy &amp; world knowledge, Nano Banana Pro for character consistency, Seedream for text &amp; product, FLUX.2 for photoreal, Midjourney for art direction.') +
-        this.field('Video model \u2014 image-to-video', this.chips('vmodel', [{label:'Kling 3.0', on:true},{label:'Seedance'},{label:'Runway Gen-4'},{label:'Sora'},{label:'Higgsfield'}], true), 'The stills you pick are animated with these. Kling, Seedance and Nano Banana Pro run natively in Palmier too.') +
+        this.field('Stills model \u2014 text-to-image', this.chips('smodel', [{label:'GPT Image', on:true},{label:'Nano Banana Pro', on:true},{label:'Seedream 4.5'}], true), 'GPT Image (ChatGPT) for prompt accuracy &amp; world knowledge, Nano Banana Pro for character consistency, Seedream for text &amp; product.') +
+        this.field('Video model \u2014 image-to-video', this.chips('vmodel', [{label:'Kling 3.0', on:true},{label:'Cinema Studio'},{label:'Seedance'}], true), 'The stills you pick are animated with these. Kling, Seedance and Nano Banana Pro run natively in Palmier too.') +
         this.field('Aspect ratio', this.chips('ar', [{label:'16:9', on:true},{label:'9:16'},{label:'1:1'},{label:'2.39:1'}]), '') +
         this.field('Stills per model', this.chips('count', [{label:'2'},{label:'4', on:true},{label:'6'},{label:'8'}]), '') +
         this.field('Negative prompt', this.textarea('negative', this.state.negative, 'Optional \u2014 what to avoid. e.g. blurry, distorted hands, text artifacts, oversaturated'), 'Optional \u2014 applies to both stages.');
@@ -1064,7 +1066,7 @@ class Component extends DCLogic {
       '<div style="padding:12px 18px;border-top:1px solid rgba(16,16,32,0.06);display:flex;align-items:center;justify-content:space-between;gap:12px;">' +
         '<div>' +
           '<p style="font-size:12px;font-weight:500;color:#16161D;">@ asset tags</p>' +
-          '<p style="font-size:11px;color:#9A9AA8;line-height:1.5;">Address attached references by their Higgsfield @handle, keeping the description alongside.</p>' +
+          '<p style="font-size:11px;color:#9A9AA8;line-height:1.5;">Address attached references by their Cinema Studio @handle, keeping the description alongside.</p>' +
         '</div>' +
         '<button data-attags="1" role="switch" aria-checked="' + (atOn ? 'true' : 'false') + '" style="flex-shrink:0;width:40px;height:23px;border:none;border-radius:999px;padding:0;cursor:pointer;background:' + (atOn ? '#0217D3' : 'rgba(16,16,32,0.16)') + ';position:relative;transition:background .15s;">' +
           '<span style="position:absolute;top:2px;left:' + (atOn ? '19px' : '2px') + ';width:19px;height:19px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(16,16,32,0.2);transition:left .15s;"></span>' +

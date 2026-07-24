@@ -123,16 +123,14 @@ Structure each shot's text in this order:
   CUT 1 — [shot type, lens feel, movement]: acting beat, eye-line, breath, what the camera does, what the light does.
   CUT 2 / CUT 3 as needed.
 Each shot targets ~15s; a held single shot or a 3-cut sequence are both valid — design it to fill the 15s. Photoreal, natural light, 24fps, environmental sound only, no on-screen text.`,
-      higgsfield: `GENERATOR: Higgsfield — write each shot as a Higgsfield image-to-video prompt (English).
-Higgsfield leads with a CAMERA-MOTION preset, so name the move first, then describe subject motion concisely:
+      higgsfield: `GENERATOR: Cinema Studio — write each shot as a Cinema Studio image-to-video prompt (English).
+Cinema Studio leads with a CAMERA-MOTION preset, so name the move first, then describe subject motion concisely:
   • Open with the camera motion (e.g. "Crash Zoom in", "Bullet Time orbit", "Robo-arm push", "FPV drone", "Dolly-in", "Whip-pan").
   • Then the subject's motion/action in one or two clear clauses.
-  • Keep it tight — Higgsfield rewards a strong single move + clear subject action over dense paragraphs.
+  • Keep it tight — Cinema Studio rewards a strong single move + clear subject action over dense paragraphs.
   • Note the start-frame intent (what the first still shows) since these are image-to-video.`,
       kling: `GENERATOR: Kling 3.0 — camera instruction FIRST, the still is the anchor. "Slow push-in. Subject: … Scene: … Camera: smooth dolly-in, eye level. Preserve source framing." Keep environmental events minimal; Kling spends its budget on subject + camera motion.`,
-      runway: `GENERATOR: Runway Gen-4 — concise motion brief. State the camera move + subject action, and emphasise "stable / consistent / no distortion" to avoid drift. Short clip (~4s).`,
-      sora: `GENERATOR: Sora — describe each shot as a short filmed scene in natural narrative prose ("A four-second shot: … as the camera eases slowly inward. Continuous take."), not parameters.`,
-      mixed: `GENERATOR: Mixed tools — write cinematic, tool-agnostic shot descriptions (shot type, lens, blocking, acting beat, light, camera move) that translate cleanly into Seedance, Kling, Runway, Higgsfield, or Sora.`
+      mixed: `GENERATOR: Mixed tools — write cinematic, tool-agnostic shot descriptions (shot type, lens, blocking, acting beat, light, camera move) that translate cleanly into Seedance, Kling, or Cinema Studio.`
     };
     return guides[model] || guides.mixed;
   }
