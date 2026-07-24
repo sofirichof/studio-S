@@ -469,6 +469,43 @@
     return updateShotBuilder(ids, clean);
   }
 
+  // ── locked prompts (Phase 4 slice 3) ────────────────────────────────────────
+  // A SNAPSHOT of what the builder already composed — locking never re-composes
+  // anything. Stored on the shot so the project view can show the prompts the
+  // user has actually created, and so a later edit can't silently change them.
+  function lockShotPrompt(ids, payload) {
+    ids = ids || {}; payload = payload || {};
+    var prompt = String(payload.prompt == null ? '' : payload.prompt);
+    if (!prompt.trim()) return null; // nothing composed yet — don't lock an empty
+    var doc = load();
+    var f = locate(doc, ids.projectId, ids.conceptId);
+    if (!f) return null;
+    var s = (f.c.shots || []).filter(function (x) { return x.id === ids.shotId; })[0];
+    if (!s) return null;
+    s.locked = {
+      prompt: prompt,
+      video: String(payload.video == null ? '' : payload.video),
+      stillModel: payload.stillModel || '',
+      videoModel: payload.videoModel || '',
+      at: now()
+    };
+    s.status = 'prompted';
+    f.p.updatedAt = now(); save(doc);
+    return s;
+  }
+  function unlockShotPrompt(ids) {
+    ids = ids || {};
+    var doc = load();
+    var f = locate(doc, ids.projectId, ids.conceptId);
+    if (!f) return null;
+    var s = (f.c.shots || []).filter(function (x) { return x.id === ids.shotId; })[0];
+    if (!s || !s.locked) return null;
+    delete s.locked;
+    s.status = 'draft';
+    f.p.updatedAt = now(); save(doc);
+    return s;
+  }
+
   // ── deliverables ──
   function listDeliverables(projectId) {
     return load().deliverables.filter(function (d) { return projectId ? d.projectId === projectId : true; });
@@ -888,6 +925,7 @@
     renameConcept: renameConcept, removeConcept: removeConcept, removeShot: removeShot,
     reorderConcept: reorderConcept, reorderShot: reorderShot,
     updateShotFields: updateShotFields, shotFields: function () { return SHOT_FIELDS.slice(); },
+    lockShotPrompt: lockShotPrompt, unlockShotPrompt: unlockShotPrompt,
     // deliverables
     listDeliverables: listDeliverables, getDeliverable: getDeliverable,
     createDeliverable: createDeliverable, updateDeliverable: updateDeliverable, deleteDeliverable: deleteDeliverable,

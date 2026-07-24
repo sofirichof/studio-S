@@ -106,7 +106,11 @@
     <div style="background:#fff; border-bottom:1px solid rgba(16,16,32,0.08); padding:0 28px; flex-shrink:0;">
       <div style="display:flex; align-items:center; justify-content:space-between; height:52px;">
         <div style="display:flex; align-items:center; gap:8px;">
-          <span id="pb-concept" style="font-size:12px; color:#9A9AA8;">No concept</span>
+          <div style="position:relative;">
+            <select id="concept-select" onchange="{{ switchConcept }}" title="Scene" style="height:30px; background:#fff; border:1px solid rgba(16,16,32,0.12); border-radius:8px; padding:0 26px 0 10px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:12px; color:#5A5A6B; appearance:none; cursor:pointer; outline:none; max-width:190px;"></select>
+            <svg style="position:absolute; right:9px; top:50%; transform:translateY(-50%); pointer-events:none;" width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="#9A9AA8" stroke-width="1.5" stroke-linecap="round"><path d="M3 5l3 3 3-3"/></svg>
+          </div>
+          <button onclick="{{ addConcept }}" title="Add scene" style="width:28px; height:28px; background:#fff; border:1px solid rgba(16,16,32,0.12); border-radius:7px; cursor:pointer; display:flex; align-items:center; justify-content:center; color:#5A5A6B; font-size:11px;">S+</button>
           <span style="font-size:12px; color:rgba(16,16,32,0.2);">›</span>
           <div style="position:relative;">
             <select id="shot-select" onchange="{{ switchShot }}" style="height:30px; background:#fff; border:1px solid rgba(16,16,32,0.12); border-radius:8px; padding:0 28px 0 10px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:14px; font-weight:500; color:#16161D; appearance:none; cursor:pointer; outline:none;"></select>
@@ -118,6 +122,9 @@
           <button onclick="{{ renameShot }}" title="Rename shot" style="width:28px; height:28px; background:#fff; border:1px solid rgba(16,16,32,0.12); border-radius:7px; cursor:pointer; display:flex; align-items:center; justify-content:center; color:#5A5A6B;">
             <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2l3 3-7 7H2v-3z"/></svg>
           </button>
+          <button onclick="{{ shotUp }}" title="Move shot earlier" style="width:28px; height:28px; background:#fff; border:1px solid rgba(16,16,32,0.12); border-radius:7px; cursor:pointer; color:#5A5A6B; font-size:12px;">&#x2191;</button>
+          <button onclick="{{ shotDown }}" title="Move shot later" style="width:28px; height:28px; background:#fff; border:1px solid rgba(16,16,32,0.12); border-radius:7px; cursor:pointer; color:#5A5A6B; font-size:12px;">&#x2193;</button>
+          <button onclick="{{ deleteShot }}" title="Delete shot" style="width:28px; height:28px; background:#fff; border:1px solid rgba(16,16,32,0.12); border-radius:7px; cursor:pointer; color:#FF002E; font-size:12px;">&#x2715;</button>
         </div>
         <div style="display:flex; gap:8px; align-items:center;">
           <button class="action-btn" style="height:32px; padding:0 14px; background:#fff; border:1px solid rgba(16,16,32,0.12); border-radius:8px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:13px; font-weight:500; color:#16161D; cursor:pointer; display:flex; align-items:center; gap:6px;">
@@ -188,7 +195,7 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1440, &quot;height&quot;: 900}}">
 class Component extends DCLogic {
-  state = { step: 1, reviewStage: 'stills', stillModel: 'gpt', videoModel: 'kling', density: 'few', lookMode: 'dp', camMode: 'specific', dp: 'deakins', comp: 'mc', shot: 'wide', angle: 'eye', lens: '24', move: 'push', depth: 'shallow', framing: [], previewView: 'front', pinned: true, charRefIds: [], propRefIds: [], locRefId: null, styleRefId: null, atTags: true };
+  state = { step: 1, reviewStage: 'stills', cameraIntent: '', stillModel: 'gpt', videoModel: 'kling', density: 'few', lookMode: 'dp', camMode: 'specific', dp: 'deakins', comp: 'mc', shot: 'wide', angle: 'eye', lens: '24', move: 'push', depth: 'shallow', framing: [], previewView: 'front', pinned: true, charRefIds: [], propRefIds: [], locRefId: null, styleRefId: null, atTags: true };
 
   compLabel(id) {
     return { tl:'Top left', tc:'Top centre', tr:'Top right', ml:'Left third', mc:'Centre', mr:'Right third', bl:'Bottom left', bc:'Bottom centre', br:'Bottom right' }[id] || 'Centre';
@@ -440,7 +447,7 @@ class Component extends DCLogic {
   }
 
   builderKeys() {
-    return ['stillModel','videoModel','density','lookMode','camMode','dp','comp','shot','angle','lens','move','depth','framing','prefixOverride','subject','action','environment','negative','charRefIds','propRefIds','locRefId','styleRefId','atTags','chips'];
+    return ['stillModel','videoModel','density','lookMode','camMode','dp','comp','shot','angle','lens','move','depth','framing','prefixOverride','subject','action','environment','cameraIntent','negative','charRefIds','propRefIds','locRefId','styleRefId','atTags','chips'];
   }
 
   seedFromActive() {
@@ -627,14 +634,23 @@ class Component extends DCLogic {
     if (!window.Store) return;
     const esc = (v) => String(v == null ? '' : v).replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
     const a = Store.getActive();
-    const conceptEl = document.getElementById('pb-concept');
-    if (conceptEl) conceptEl.textContent = a.concept ? a.concept.name : 'No concept';
+    // Scene picker — concepts ARE scenes, so they're selectable here, not a label.
+    const csel = document.getElementById('concept-select');
+    const project = a.projectId && Store.getProject ? Store.getProject(a.projectId) : null;
+    if (csel) {
+      const cs = (project && project.concepts) || [];
+      csel.innerHTML = cs.map((c) =>
+        '<option value="' + c.id + '"' + (c.id === a.conceptId ? ' selected' : '') + '>' + esc(c.name || 'Untitled scene') + '</option>'
+      ).join('') || '<option value="">No scene</option>';
+    }
     const sel = document.getElementById('shot-select');
     if (sel && a.concept) {
       const shots = a.concept.shots || [];
+      // Label leads, so the picker stays scannable even when names are long.
       sel.innerHTML = shots.map((sh) => {
         const on = sh.id === a.shotId ? ' selected' : '';
-        return '<option value="' + sh.id + '"' + on + '>' + esc(sh.name) + '</option>';
+        const txt = (sh.label || '—') + (sh.name ? ' · ' + sh.name : '') + (sh.locked && sh.locked.prompt ? ' 🔒' : '');
+        return '<option value="' + sh.id + '"' + on + '>' + esc(txt) + '</option>';
       }).join('') || '<option value="">No shots</option>';
     }
   }
@@ -997,7 +1013,10 @@ class Component extends DCLogic {
           this.seg('camMode', [{val:'auto',label:'For me'},{val:'specific',label:'Specific camera'}], cm) +
           '</div>' + cameraField + '</div>' +
         this.field('Lens format', this.chips('lensformat', [{label:'Spherical', on:true},{label:'Anamorphic'}]), 'Anamorphic is a lens, not a camera body — it adds the wide squeeze, oval bokeh and horizontal flares on top of whichever body you pick.') +
-        this.field('Movement', this.schips('move', [{val:'static',label:'Static'},{val:'push',label:'Slow push'},{val:'pan',label:'Pan'},{val:'tracking',label:'Tracking'},{val:'handheld',label:'Handheld'}]), 'Movement is interpreted at the image-to-video step.');
+        this.field('Movement', this.schips('move', [{val:'static',label:'Static'},{val:'push',label:'Slow push'},{val:'pan',label:'Pan'},{val:'tracking',label:'Tracking'},{val:'handheld',label:'Handheld'}]), 'Movement is interpreted at the image-to-video step.') +
+        // Camera intent — the fourth descriptive field, editable here and in the
+        // project view. Held as DATA (the motivation), not composed prompt text.
+        this.field('Camera intent', this.textarea('cameraIntent', this.state.cameraIntent, 'Why the camera does what it does — e.g. low 35mm slow dolly-in as she realizes.'), 'Carried with the shot and shown in the shot list. Editable from the project view too.');
     }
     if (step === 3) {
       const lm = this.state.lookMode;
@@ -1034,8 +1053,11 @@ class Component extends DCLogic {
     if (step === 5) {
       return this.eyebrow('Prompt · Output') +
         this.head('Models &amp; output', 'Studio S writes a stills prompt and an image-to-video prompt from the same brief. Pick one or more models for each stage \u2014 prompts are tailored to each.') +
+        // ORDER MUST MATCH stillProfiles() \u2014 resolved by index, not by label.
         this.field('Stills model \u2014 text-to-image', this.chips('smodel', [{label:'GPT Image', on:true},{label:'Nano Banana Pro', on:true},{label:'Seedream 4.5'}], true), 'GPT Image (ChatGPT) for prompt accuracy &amp; world knowledge, Nano Banana Pro for character consistency, Seedream for text &amp; product.') +
-        this.field('Video model \u2014 image-to-video', this.chips('vmodel', [{label:'Kling 3.0', on:true},{label:'Cinema Studio'},{label:'Seedance'}], true), 'The stills you pick are animated with these. Kling, Seedance and Nano Banana Pro run natively in Palmier too.') +
+        // ORDER MUST MATCH videoProfiles() \u2014 the chip handler resolves the model by
+        // index into that array, not by label.
+        this.field('Video model \u2014 image-to-video', this.chips('vmodel', [{label:'Kling 3.0', on:true},{label:'Seedance'},{label:'Cinema Studio'}], true), 'The stills you pick are animated with these. Kling, Seedance and Nano Banana Pro run natively in Palmier too.') +
         this.field('Aspect ratio', this.chips('ar', [{label:'16:9', on:true},{label:'9:16'},{label:'1:1'},{label:'2.39:1'}]), '') +
         this.field('Stills per model', this.chips('count', [{label:'2'},{label:'4', on:true},{label:'6'},{label:'8'}]), '') +
         this.field('Negative prompt', this.textarea('negative', this.state.negative, 'Optional \u2014 what to avoid. e.g. blurry, distorted hands, text artifacts, oversaturated'), 'Optional \u2014 applies to both stages.');
@@ -1107,10 +1129,39 @@ class Component extends DCLogic {
           '</div>' +
         '</div>' +
       '</div>' +
+      // Lock affordance (Phase 4 slice 3) \u2014 snapshots the compiled prompt onto the
+      // shot so it shows on the project page. Composition is untouched.
+      this.lockCard() +
       '<div style="display:flex;gap:10px;align-items:center;background:#EEF0FF;border:1px solid rgba(2,23,211,0.12);border-radius:10px;padding:14px 16px;">' +
         '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#0217D3" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="6.5"></circle><path d="M8 5.5v3M8 10.5v.2"></path></svg>' +
         '<p style="font-size:13px;color:#16161D;line-height:1.5;">\u201cGenerate stills\u201d saves these prompts to the shot and copies the active model\u2019s prompt \u2014 then run it in that tool. (Direct generation isn\u2019t connected yet.)</p>' +
       '</div>';
+  }
+
+  // Lock / unlock card for the Review step.
+  lockCard() {
+    const a = (window.Store && Store.getActive) ? Store.getActive() : null;
+    const shot = a && a.shot;
+    const lock = shot && shot.locked;
+    if (lock && lock.prompt) {
+      const when = (() => { try { return new Date(lock.at).toLocaleString(); } catch (e) { return ''; } })();
+      return '<div style="background:#E8F7F1;border:1px solid rgba(29,158,117,0.22);border-radius:12px;padding:14px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px;">' +
+        '<svg width="15" height="15" viewBox="0 0 12 12" fill="none" stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><rect x="2.5" y="5.5" width="7" height="5" rx="1.2"/><path d="M4.25 5.5V4a1.75 1.75 0 0 1 3.5 0v1.5"/></svg>' +
+        '<div style="flex:1;min-width:0;">' +
+          '<p style="font-size:13px;font-weight:500;color:#16161D;">Prompt locked to ' + this.escHtml(shot.label || 'this shot') + '</p>' +
+          '<p style="font-size:11.5px;color:#5A5A6B;line-height:1.5;">Saved' + (when ? ' ' + this.escHtml(when) : '') + ' and shown on the project page. Re-lock to overwrite it with the current build.</p>' +
+        '</div>' +
+        '<button onclick="{{ lockPrompt }}" style="flex-shrink:0;height:30px;padding:0 12px;background:#fff;border:1px solid rgba(16,16,32,0.12);border-radius:7px;font-family:inherit;font-size:12px;font-weight:500;color:#16161D;cursor:pointer;">Re-lock</button>' +
+        '<button onclick="{{ unlockPrompt }}" style="flex-shrink:0;height:30px;padding:0 12px;background:transparent;border:1px solid rgba(255,0,46,0.25);border-radius:7px;font-family:inherit;font-size:12px;font-weight:500;color:#FF002E;cursor:pointer;">Unlock</button>' +
+      '</div>';
+    }
+    return '<div style="background:#fff;border:1px solid rgba(16,16,32,0.10);border-radius:12px;padding:14px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px;">' +
+      '<div style="flex:1;min-width:0;">' +
+        '<p style="font-size:13px;font-weight:500;color:#16161D;">Lock this prompt to the shot</p>' +
+        '<p style="font-size:11.5px;color:#5A5A6B;line-height:1.5;">Saves the compiled stills and video prompts onto ' + this.escHtml((shot && shot.label) || 'this shot') + ' so they show on the project page.</p>' +
+      '</div>' +
+      '<button onclick="{{ lockPrompt }}" style="flex-shrink:0;height:32px;padding:0 14px;background:#0217D3;border:none;border-radius:8px;font-family:inherit;font-size:13px;font-weight:500;color:#fff;cursor:pointer;">Lock prompt</button>' +
+    '</div>';
   }
 
   renderVals() {
@@ -1139,6 +1190,52 @@ class Component extends DCLogic {
         this.render();
         this.renderToolbar();
       },
+      // ── Scene/shot editing from the builder (Phase 4 slice 2) ──
+      // Same Store calls the project view uses, so the two surfaces cannot diverge.
+      switchConcept: (e) => {
+        if (!window.Store) return;
+        this.persistBuilder();
+        const cid = e.currentTarget.value;
+        const a = Store.getActive();
+        const p = Store.getProject(a.projectId);
+        const c = ((p && p.concepts) || []).filter((x) => x.id === cid)[0];
+        Store.setActive({ conceptId: cid, shotId: (c && c.shots && c.shots[0]) ? c.shots[0].id : '' });
+        this.seedFromActive();
+        this.render();
+        this.renderToolbar();
+      },
+      addConcept: () => {
+        if (!window.Store) return;
+        const a = Store.getActive();
+        if (!a.projectId) { window.alert('Open a project first (Projects).'); return; }
+        this.persistBuilder();
+        const c = Store.addConcept(a.projectId, {});
+        const s = c ? Store.addShot(a.projectId, c.id, { builder: Store.defaultBuilder() }) : null;
+        if (c) Store.setActive({ conceptId: c.id, shotId: s ? s.id : '' });
+        this.seedFromActive();
+        this.render();
+        this.renderToolbar();
+      },
+      shotUp: () => { this.moveShot(-1); },
+      shotDown: () => { this.moveShot(1); },
+      deleteShot: () => {
+        if (!window.Store || !this._ids || !this._ids.shotId) return;
+        const a = Store.getActive();
+        if (!a.shot) return;
+        const what = (a.shot.label || 'this shot') + (a.shot.name ? ' · ' + a.shot.name : '');
+        if (!window.confirm('Delete shot ' + what + '? Its prompt and fields go with it.')) return;
+        Store.removeShot(this._ids.projectId, this._ids.conceptId, this._ids.shotId);
+        this.seedFromActive();
+        this.render();
+        this.renderToolbar();
+      },
+      lockPrompt: () => { this.lockPrompt(); },
+      unlockPrompt: () => {
+        if (!window.Store || !this._ids) return;
+        Store.unlockShotPrompt(this._ids);
+        this.render();
+        this.renderToolbar();
+      },
       renameShot: () => {
         if (!window.Store || !this._ids) return;
         const a = Store.getActive();
@@ -1160,6 +1257,43 @@ class Component extends DCLogic {
         this.renderToolbar();
       }
     };
+  }
+
+  // Reorder the active shot by a delta; Store re-derives every label after.
+  moveShot(delta) {
+    if (!window.Store || !this._ids || !this._ids.shotId) return;
+    const a = Store.getActive();
+    const shots = (a.concept && a.concept.shots) || [];
+    const i = shots.findIndex((s) => s.id === this._ids.shotId);
+    if (i < 0 || i + delta < 0 || i + delta > shots.length - 1) return;
+    this.persistBuilder();
+    Store.reorderShot(this._ids.projectId, this._ids.conceptId, this._ids.shotId, i + delta);
+    this.seedFromActive();
+    this.render();
+    this.renderToolbar();
+  }
+
+  // Lock (Phase 4 slice 3): SNAPSHOT the already-composed prompt onto the shot so
+  // the project view can show it. compilePrompt/compileVideo are untouched — this
+  // only stores what they returned.
+  lockPrompt() {
+    if (!window.Store || !this._ids || !this._ids.shotId) {
+      window.alert('Open a shot in a project first (Projects).');
+      return;
+    }
+    this.persistBuilder();
+    const compiled = this.compilePrompt();
+    const stills = (compiled && compiled.stills) || '';
+    const video = (compiled && compiled.video) || '';
+    if (!stills.trim() && !video.trim()) { window.alert('Nothing to lock yet — build the shot first.'); return; }
+    Store.lockShotPrompt(this._ids, {
+      prompt: stills || video,
+      video: stills ? video : '',
+      stillModel: this.state.stillModel,
+      videoModel: this.state.videoModel
+    });
+    this.render();
+    this.renderToolbar();
   }
 
   generate() {

@@ -140,7 +140,7 @@
 <div id="np-modal" style="display:none; position:fixed; inset:0; background:rgba(16,16,32,0.32); z-index:100; align-items:center; justify-content:center;">
   <div style="background:#fff; border-radius:14px; width:440px; max-width:90vw; padding:24px; box-shadow:0 12px 40px rgba(16,16,32,0.2);">
     <p style="font-size:16px; font-weight:500; color:#16161D; margin-bottom:4px;">New project</p>
-    <p style="font-size:13px; color:#5A5A6B; margin-bottom:20px; line-height:1.5;">Name it and point Claude at your assets. We'll scan the folder for a production plan and scaffold concepts and shots if one's there.</p>
+    <p style="font-size:13px; color:#5A5A6B; margin-bottom:20px; line-height:1.5;">Name it and point Claude at your assets. We'll scan the folder for a production plan and scaffold scenes and shots if one's there.</p>
     <div style="display:flex; flex-direction:column; gap:16px;">
       <div>
         <label style="font-size:12px; font-weight:500; color:#16161D; display:block; margin-bottom:6px;">Project name</label>
@@ -228,7 +228,7 @@ class Component extends DCLogic {
               '<div style="height:96px;background:repeating-linear-gradient(45deg,#e8eaf0 0,#e8eaf0 1px,#F0F1F4 1px,#F0F1F4 10px);"></div>' +
               '<div style="padding:14px 16px 16px;">' +
                 '<p style="font-size:14px;font-weight:500;color:#16161D;margin-bottom:4px;">' + esc(p.name) + '</p>' +
-                '<p style="font-size:12px;color:#5A5A6B;">' + concepts + ' concept' + (concepts === 1 ? '' : 's') + ' · ' + shots + ' shot' + (shots === 1 ? '' : 's') + '</p>' +
+                '<p style="font-size:12px;color:#5A5A6B;">' + concepts + ' scene' + (concepts === 1 ? '' : 's') + ' · ' + shots + ' shot' + (shots === 1 ? '' : 's') + '</p>' +
               '</div>' +
             '</div>' +
           '</div>';
@@ -244,7 +244,7 @@ class Component extends DCLogic {
         const id = el.getAttribute('data-delete');
         const proj = Store.listProjects().filter((x) => x.id === id)[0];
         const label = proj ? proj.name : 'this project';
-        if (!window.confirm('Delete “' + label + '”? This removes its concepts and shots. This cannot be undone.')) return;
+        if (!window.confirm('Delete “' + label + '”? This removes its scenes and shots. This cannot be undone.')) return;
         Store.deleteProject(id);
         this.renderProjects();
         this.renderSelector();
@@ -279,6 +279,7 @@ class Component extends DCLogic {
     });
     const gridIco = '<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="1" y="1" width="4" height="4" rx=".5"/><rect x="7" y="1" width="4" height="4" rx=".5"/><rect x="1" y="7" width="4" height="4" rx=".5"/><rect x="7" y="7" width="4" height="4" rx=".5"/></svg>';
     const check = '<svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,5 4.5,7.5 8.5,2.5"/></svg>';
+    const lockIco = '<svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><rect x="2.5" y="5.5" width="7" height="5" rx="1.2"/><path d="M4.25 5.5V4a1.75 1.75 0 0 1 3.5 0v1.5"/></svg>';
 
     // ── Header: back + title + counts ──
     let html =
@@ -294,7 +295,7 @@ class Component extends DCLogic {
         '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">' +
           '<div>' +
             '<p style="font-size:14px;font-weight:500;color:#16161D;margin-bottom:2px;">Production progress</p>' +
-            '<p style="font-size:12px;color:#9A9AA8;">' + esc(p.name) + ' · ' + concepts.length + ' concept' + (concepts.length === 1 ? '' : 's') + ' · ' + this.shotCount(p) + ' shot' + (this.shotCount(p) === 1 ? '' : 's') + '</p>' +
+            '<p style="font-size:12px;color:#9A9AA8;">' + esc(p.name) + ' · ' + concepts.length + ' scene' + (concepts.length === 1 ? '' : 's') + ' · ' + this.shotCount(p) + ' shot' + (this.shotCount(p) === 1 ? '' : 's') + '</p>' +
           '</div>' +
           (todos.length ? '<span style="font-size:13px;font-weight:500;color:#0217D3;">' + pct + '%</span>' : '') +
         '</div>' +
@@ -320,26 +321,80 @@ class Component extends DCLogic {
         }).join('')
       : '<p style="font-size:13px;color:#9A9AA8;line-height:1.6;">No to-dos yet. They’re scaffolded from your Claude production plan (studio-s-plan.json) when you import it.</p>';
 
-    const conceptCards = concepts.map((c) => {
+    // ── Scene list (editable) ────────────────────────────────────────────────
+    // A single column, not a 2-up card grid: editing four descriptive fields per
+    // shot needs the width, and a shot list should read top-to-bottom like a shot
+    // list. Every control below writes through Store, so the builder sees it.
+    const iBtn = (attr, title, glyph, danger) =>
+      '<button ' + attr + ' title="' + title + '" aria-label="' + title + '" style="width:24px;height:24px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:transparent;border:1px solid rgba(16,16,32,0.10);border-radius:6px;font-family:inherit;font-size:11px;line-height:1;color:' + (danger ? '#FF002E' : '#5A5A6B') + ';cursor:pointer;">' + glyph + '</button>';
+    const nameInput = (attr, val, placeholder, strong) =>
+      '<input ' + attr + ' type="text" value="' + esc(val) + '" placeholder="' + placeholder + '" ' +
+      'style="flex:1;min-width:0;height:28px;background:transparent;border:1px solid transparent;border-radius:6px;padding:0 8px;font-family:inherit;font-size:' + (strong ? '14px;font-weight:500;color:#16161D' : '12px;color:#5A5A6B') + ';outline:none;" ' +
+      'onmouseover="this.style.borderColor=\'rgba(16,16,32,0.12)\'" onmouseout="if(document.activeElement!==this)this.style.borderColor=\'transparent\'" />';
+
+    const FIELDS = [
+      ['subject', 'Subject', 'who or what is in frame'],
+      ['action', 'Action', 'what happens in the shot'],
+      ['environment', 'Environment', 'where it is, and its dressing'],
+      ['cameraIntent', 'Camera intent', 'e.g. low 35mm slow dolly-in as she realizes']
+    ];
+
+    const conceptCards = concepts.map((c, ci) => {
       const shots = c.shots || [];
       const isActive = c.id === activeC;
-      const shotRows = shots.map((s) =>
-        '<div class="task-row" data-shot="' + c.id + '|' + s.id + '" style="display:flex;align-items:center;gap:8px;padding:5px 6px;margin:0 -6px;border-radius:6px;cursor:pointer;transition:background 0.1s;">' +
-          '<svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="#9A9AA8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="12" height="10" rx="2"/><path d="m6.5 6 3.5 2-3.5 2z"/></svg>' +
-          (s.label ? '<span style="font-size:10px;font-weight:500;color:#0217D3;background:#EEF0FF;border-radius:5px;padding:1px 6px;flex-shrink:0;">' + esc(s.label) + '</span>' : '') +
-          '<span style="flex:1;font-size:12px;color:#5A5A6B;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(s.name || 'Untitled shot') + '</span>' +
-          '<span style="font-size:10px;font-weight:500;color:#9A9AA8;background:#F0F1F4;border-radius:999px;padding:1px 7px;flex-shrink:0;">' + esc(s.status || 'draft') + '</span>' +
-        '</div>').join('');
-      return '<div class="concept-card" style="background:#fff;border:1px solid ' + (isActive ? 'rgba(2,23,211,0.35)' : 'rgba(16,16,32,0.08)') + ';border-radius:12px;overflow:hidden;box-shadow:0 1px 2px rgba(16,16,32,0.04);">' +
-        '<div style="height:96px;background:repeating-linear-gradient(45deg,#e8eaf0 0,#e8eaf0 1px,#F0F1F4 1px,#F0F1F4 10px);display:flex;align-items:center;justify-content:center;position:relative;">' +
-          '<span style="font-size:11px;color:#9A9AA8;font-weight:500;">still placeholder</span>' +
+      const shotRows = shots.map((s, si) => {
+        const open = this._openShot === s.id;
+        const b = s.builder || {};
+        const lock = s.locked || null;
+        const detail = !open ? '' :
+          '<div style="padding:10px 12px 12px;margin:2px 0 6px;background:#F7F5EF;border:1px solid rgba(16,16,32,0.07);border-radius:8px;">' +
+            FIELDS.map(([k, lbl, ph]) =>
+              '<div style="margin-bottom:8px;">' +
+                '<label style="display:block;font-size:10px;font-weight:500;color:#9A9AA8;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;">' + lbl + '</label>' +
+                '<textarea data-field="' + c.id + '|' + s.id + '|' + k + '" rows="2" placeholder="' + ph + '" ' +
+                  'style="width:100%;background:#fff;border:1px solid rgba(16,16,32,0.10);border-radius:6px;padding:6px 8px;font-family:inherit;font-size:12px;line-height:1.5;color:#16161D;resize:vertical;outline:none;">' + esc(b[k] || '') + '</textarea>' +
+              '</div>').join('') +
+            (lock && lock.prompt
+              ? '<div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(16,16,32,0.08);">' +
+                  '<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;">' + lockIco +
+                    '<span style="font-size:10px;font-weight:500;color:#1D9E75;text-transform:uppercase;letter-spacing:.04em;">Locked prompt</span>' +
+                    '<span style="flex:1;"></span>' +
+                    iBtn('data-unlock="' + c.id + '|' + s.id + '"', 'Unlock this prompt', '&#x2715;') +
+                  '</div>' +
+                  '<pre style="margin:0;white-space:pre-wrap;word-break:break-word;font-family:inherit;font-size:11.5px;line-height:1.55;color:#5A5A6B;background:#fff;border:1px solid rgba(16,16,32,0.08);border-radius:6px;padding:8px;max-height:180px;overflow:auto;">' + esc(lock.prompt) + '</pre>' +
+                  (lock.video ? '<pre style="margin:6px 0 0;white-space:pre-wrap;word-break:break-word;font-family:inherit;font-size:11.5px;line-height:1.55;color:#5A5A6B;background:#fff;border:1px solid rgba(16,16,32,0.08);border-radius:6px;padding:8px;max-height:140px;overflow:auto;">' + esc(lock.video) + '</pre>' : '') +
+                '</div>'
+              : '<p style="font-size:11px;color:#9A9AA8;margin-top:8px;line-height:1.5;">No locked prompt yet — open this shot in the builder and lock it there.</p>') +
+            '<button data-open-shot="' + c.id + '|' + s.id + '" style="margin-top:10px;height:28px;padding:0 12px;background:#fff;border:1px solid rgba(16,16,32,0.12);border-radius:6px;font-family:inherit;font-size:12px;font-weight:500;color:#16161D;cursor:pointer;">Open in builder</button>' +
+          '</div>';
+        return '<div>' +
+          '<div style="display:flex;align-items:center;gap:6px;padding:3px 0;">' +
+            iBtn('data-shot-open="' + s.id + '"', open ? 'Collapse shot' : 'Expand shot', open ? '&#x25BE;' : '&#x25B8;') +
+            '<span style="font-size:10px;font-weight:500;color:#0217D3;background:#EEF0FF;border-radius:5px;padding:2px 6px;flex-shrink:0;">' + esc(s.label || '—') + '</span>' +
+            nameInput('data-shot-name="' + c.id + '|' + s.id + '"', s.name || '', 'Name this beat — e.g. Man enters the bodega') +
+            (s.locked && s.locked.prompt ? '<span title="Prompt locked" style="flex-shrink:0;display:flex;">' + lockIco + '</span>' : '') +
+            '<span style="font-size:10px;font-weight:500;color:#9A9AA8;background:#F0F1F4;border-radius:999px;padding:1px 7px;flex-shrink:0;">' + esc(s.status || 'draft') + '</span>' +
+            iBtn('data-shot-up="' + c.id + '|' + s.id + '|' + (si - 1) + '"' + (si === 0 ? ' disabled' : ''), 'Move shot up', '&#x2191;') +
+            iBtn('data-shot-down="' + c.id + '|' + s.id + '|' + (si + 1) + '"' + (si === shots.length - 1 ? ' disabled' : ''), 'Move shot down', '&#x2193;') +
+            iBtn('data-shot-del="' + c.id + '|' + s.id + '"', 'Delete shot', '&#x2715;', true) +
+          '</div>' + detail +
+        '</div>';
+      }).join('');
+
+      return '<div class="concept-card" style="background:#fff;border:1px solid ' + (isActive ? 'rgba(2,23,211,0.35)' : 'rgba(16,16,32,0.08)') + ';border-radius:12px;padding:14px 16px 16px;box-shadow:0 1px 2px rgba(16,16,32,0.04);cursor:default;">' +
+        '<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">' +
+          '<span style="font-size:10px;font-weight:500;color:#5A5A6B;background:#F0F1F4;border-radius:5px;padding:2px 7px;flex-shrink:0;">Scene ' + (ci + 1) + '</span>' +
+          nameInput('data-concept-name="' + c.id + '"', c.name || '', 'Name this scene', true) +
+          iBtn('data-concept-up="' + c.id + '|' + (ci - 1) + '"' + (ci === 0 ? ' disabled' : ''), 'Move scene up', '&#x2191;') +
+          iBtn('data-concept-down="' + c.id + '|' + (ci + 1) + '"' + (ci === concepts.length - 1 ? ' disabled' : ''), 'Move scene down', '&#x2193;') +
+          iBtn('data-concept-del="' + c.id + '"', 'Delete scene', '&#x2715;', true) +
         '</div>' +
-        '<div style="padding:14px 16px 16px;">' +
-          '<p style="font-size:14px;font-weight:500;color:#16161D;margin-bottom:4px;">' + esc(c.name || 'Concept') + '</p>' +
-          (c.desc ? '<p style="font-size:12px;color:#5A5A6B;margin-bottom:12px;line-height:1.5;">' + esc(c.desc) + '</p>' : '') +
-          (shotRows ? '<div style="display:flex;flex-direction:column;gap:1px;margin-bottom:12px;">' + shotRows + '</div>' : '<p style="font-size:12px;color:#9A9AA8;margin-bottom:12px;">No shots yet.</p>') +
-          '<div style="display:flex;align-items:center;justify-content:space-between;">' +
-            '<span style="font-size:12px;color:#9A9AA8;display:flex;align-items:center;gap:4px;">' + gridIco + ' ' + shots.length + ' shot' + (shots.length === 1 ? '' : 's') + '</span>' +
+        (c.desc ? '<p style="font-size:12px;color:#5A5A6B;margin-bottom:10px;line-height:1.5;">' + esc(c.desc) + '</p>' : '') +
+        (shotRows ? '<div style="display:flex;flex-direction:column;margin-bottom:10px;">' + shotRows + '</div>' : '<p style="font-size:12px;color:#9A9AA8;margin-bottom:10px;">No shots yet.</p>') +
+        '<div style="display:flex;align-items:center;justify-content:space-between;">' +
+          '<span style="font-size:12px;color:#9A9AA8;display:flex;align-items:center;gap:4px;">' + gridIco + ' ' + shots.length + ' shot' + (shots.length === 1 ? '' : 's') + '</span>' +
+          '<div style="display:flex;gap:8px;">' +
+            '<button data-add-shot="' + c.id + '" style="height:28px;padding:0 12px;background:#fff;border:1px solid rgba(16,16,32,0.12);border-radius:6px;font-family:inherit;font-size:12px;font-weight:500;color:#16161D;cursor:pointer;">Add shot</button>' +
             '<button data-open-concept="' + c.id + '" style="height:28px;padding:0 12px;background:' + (isActive ? '#0217D3;border:none;color:#fff' : '#fff;border:1px solid rgba(16,16,32,0.12);color:#16161D') + ';border-radius:6px;font-family:inherit;font-size:12px;font-weight:500;cursor:pointer;">Open</button>' +
           '</div>' +
         '</div>' +
@@ -347,14 +402,9 @@ class Component extends DCLogic {
     }).join('');
 
     const addCard =
-      '<div id="ov-add-concept" class="concept-card" style="background:#F7F5EF;border:1px dashed rgba(16,16,32,0.16);border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-height:200px;padding:24px;cursor:pointer;">' +
-        '<div style="width:36px;height:36px;border:1.5px solid rgba(16,16,32,0.16);border-radius:8px;display:flex;align-items:center;justify-content:center;">' +
-          '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#9A9AA8" stroke-width="1.5" stroke-linecap="round"><line x1="8" y1="3" x2="8" y2="13"/><line x1="3" y1="8" x2="13" y2="8"/></svg>' +
-        '</div>' +
-        '<div style="text-align:center;">' +
-          '<p style="font-size:13px;font-weight:500;color:#5A5A6B;margin-bottom:4px;">New concept</p>' +
-          '<p style="font-size:12px;color:#9A9AA8;line-height:1.5;">Add another creative direction to this project.</p>' +
-        '</div>' +
+      '<div id="ov-add-concept" class="concept-card" style="background:#F7F5EF;border:1px dashed rgba(16,16,32,0.16);border-radius:12px;display:flex;align-items:center;justify-content:center;gap:10px;padding:16px;cursor:pointer;">' +
+        '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#9A9AA8" stroke-width="1.5" stroke-linecap="round"><line x1="8" y1="3" x2="8" y2="13"/><line x1="3" y1="8" x2="13" y2="8"/></svg>' +
+        '<p style="font-size:13px;font-weight:500;color:#5A5A6B;">New scene</p>' +
       '</div>';
 
     html +=
@@ -368,9 +418,10 @@ class Component extends DCLogic {
         '</div>' +
         '<div>' +
           '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">' +
-            '<p style="font-size:14px;font-weight:500;color:#16161D;">Concepts</p>' +
+            '<p style="font-size:14px;font-weight:500;color:#16161D;">Scenes &amp; shots</p>' +
+            '<button id="ov-breakdown" style="height:28px;padding:0 12px;background:#fff;border:1px solid rgba(16,16,32,0.12);border-radius:6px;font-family:inherit;font-size:12px;font-weight:500;color:#16161D;cursor:pointer;">Breakdown</button>' +
           '</div>' +
-          '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">' + conceptCards + addCard + '</div>' +
+          '<div style="display:flex;flex-direction:column;gap:12px;">' + conceptCards + addCard + '</div>' +
         '</div>' +
       '</div>';
 
@@ -394,19 +445,193 @@ class Component extends DCLogic {
         window.location.href = 'promptbuilder.html';
       };
     });
-    mount.querySelectorAll('[data-shot]').forEach((el) => {
-      el.onclick = (e) => {
-        e.stopPropagation();
-        const parts = el.getAttribute('data-shot').split('|');
-        Store.setActive({ projectId: id, conceptId: parts[0], shotId: parts[1] });
-        window.location.href = 'promptbuilder.html';
+    // ── Scene/shot list wiring ──
+    // Text edits commit on change/blur (never per keystroke) so the focused field
+    // survives; only structural edits re-render. Every write goes through Store,
+    // which is the same object the builder reads — that's what keeps them in sync.
+    const parts = (el, attr) => el.getAttribute(attr).split('|');
+    const openShot = (cid, sid) => {
+      Store.setActive({ projectId: id, conceptId: cid, shotId: sid });
+      window.location.href = 'promptbuilder.html';
+    };
+
+    mount.querySelectorAll('[data-concept-name]').forEach((el) => {
+      el.onchange = () => Store.renameConcept(id, el.getAttribute('data-concept-name'), el.value);
+    });
+    mount.querySelectorAll('[data-shot-name]').forEach((el) => {
+      const [cid, sid] = parts(el, 'data-shot-name');
+      el.onchange = () => Store.renameShot(id, cid, sid, el.value);
+    });
+    mount.querySelectorAll('[data-field]').forEach((el) => {
+      const [cid, sid, key] = parts(el, 'data-field');
+      el.onchange = () => {
+        Store.updateShotFields({ projectId: id, conceptId: cid, shotId: sid }, { [key]: el.value });
       };
     });
+    mount.querySelectorAll('[data-shot-open]').forEach((el) => {
+      el.onclick = () => {
+        const sid = el.getAttribute('data-shot-open');
+        this._openShot = this._openShot === sid ? null : sid;
+        this.renderOverview(id);
+      };
+    });
+    mount.querySelectorAll('[data-open-shot]').forEach((el) => {
+      el.onclick = () => { const [cid, sid] = parts(el, 'data-open-shot'); openShot(cid, sid); };
+    });
+    mount.querySelectorAll('[data-add-shot]').forEach((el) => {
+      el.onclick = () => {
+        const s = Store.addShot(id, el.getAttribute('data-add-shot'), {});
+        if (s) this._openShot = s.id;
+        this.renderOverview(id);
+      };
+    });
+    mount.querySelectorAll('[data-shot-up],[data-shot-down]').forEach((el) => {
+      el.onclick = () => {
+        const attr = el.hasAttribute('data-shot-up') ? 'data-shot-up' : 'data-shot-down';
+        const [cid, sid, to] = parts(el, attr);
+        Store.reorderShot(id, cid, sid, parseInt(to, 10));
+        this.renderOverview(id);
+      };
+    });
+    mount.querySelectorAll('[data-concept-up],[data-concept-down]').forEach((el) => {
+      el.onclick = () => {
+        const attr = el.hasAttribute('data-concept-up') ? 'data-concept-up' : 'data-concept-down';
+        const [cid, to] = parts(el, attr);
+        Store.reorderConcept(id, cid, parseInt(to, 10));
+        this.renderOverview(id);
+      };
+    });
+    mount.querySelectorAll('[data-shot-del]').forEach((el) => {
+      el.onclick = () => {
+        const [cid, sid] = parts(el, 'data-shot-del');
+        const p2 = Store.getProject(id);
+        const c = (p2.concepts || []).filter((x) => x.id === cid)[0];
+        const s = c && (c.shots || []).filter((x) => x.id === sid)[0];
+        if (!s) return;
+        const what = (s.label || 'this shot') + (s.name ? ' · ' + s.name : '');
+        if (!window.confirm('Delete shot ' + what + '? Its prompt and fields go with it.')) return;
+        if (this._openShot === sid) this._openShot = null;
+        Store.removeShot(id, cid, sid);
+        this.renderOverview(id);
+      };
+    });
+    mount.querySelectorAll('[data-concept-del]').forEach((el) => {
+      el.onclick = () => {
+        const cid = el.getAttribute('data-concept-del');
+        const c = (Store.getProject(id).concepts || []).filter((x) => x.id === cid)[0];
+        if (!c) return;
+        const n = (c.shots || []).length;
+        if (!window.confirm('Delete scene “' + (c.name || 'Untitled') + '”' +
+            (n ? ' and its ' + n + ' shot' + (n === 1 ? '' : 's') : '') + '? This cannot be undone.')) return;
+        Store.removeConcept(id, cid);
+        this.renderOverview(id);
+      };
+    });
+    mount.querySelectorAll('[data-unlock]').forEach((el) => {
+      el.onclick = () => {
+        const [cid, sid] = parts(el, 'data-unlock');
+        Store.unlockShotPrompt({ projectId: id, conceptId: cid, shotId: sid });
+        this.renderOverview(id);
+      };
+    });
+    const bd = document.getElementById('ov-breakdown');
+    if (bd) bd.onclick = () => { this.renderBreakdown(id); };
     const add = document.getElementById('ov-add-concept');
     if (add) add.onclick = () => {
       Store.addConcept(id, {});
       this.renderOverview(id);
     };
+  }
+
+  // ── Breakdown / asset view (Phase 4 slice 4) ──────────────────────────────
+  // Per shot, the assets it calls for — so the user knows what to CREATE before
+  // generating. Reads the existing attached-reference plumbing on shot.builder
+  // (charRefIds / locRefId / propRefIds / styleRefId) against the project's typed
+  // reference assets. This is the management view only; it generates nothing.
+  renderBreakdown(id) {
+    const mount = document.getElementById('projects-mount');
+    if (!mount || !window.Store) return;
+    const p = Store.getProject(id);
+    if (!p) { this.renderProjects(); return; }
+    const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+    });
+    const refs = Store.listReferences(id) || [];
+    const byRefId = {};
+    refs.forEach((r) => { byRefId[r.id] = r; });
+
+    // required: an empty slot is a real gap the user must fill before generating.
+    // optional: an empty slot is a legitimate choice, so it reads "none", not MISSING.
+    const SLOTS = [
+      { key: 'charRefIds', label: 'Characters', kind: 'character', many: true, required: true },
+      { key: 'locRefId', label: 'Location', kind: 'location', many: false, required: true },
+      { key: 'propRefIds', label: 'Props', kind: 'prop', many: true, required: false },
+      { key: 'styleRefId', label: 'Style look', kind: 'look', many: false, required: false }
+    ];
+    const pill = (text, fg, bg) =>
+      '<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:500;color:' + fg + ';background:' + bg + ';border-radius:999px;padding:2px 9px;">' + text + '</span>';
+
+    let gaps = 0;
+    const sceneBlocks = (p.concepts || []).map((c) => {
+      const rows = (c.shots || []).map((s) => {
+        const b = s.builder || {};
+        const cells = SLOTS.map((slot) => {
+          const raw = b[slot.key];
+          const ids = slot.many ? (Array.isArray(raw) ? raw : []) : (raw ? [raw] : []);
+          if (!ids.length) {
+            if (slot.required) { gaps++; return pill('MISSING', '#FF002E', '#FFECEF'); }
+            return pill('none', '#9A9AA8', '#F0F1F4');
+          }
+          return ids.map((rid) => {
+            const r = byRefId[rid];
+            // Attached id that no longer resolves — the asset was deleted.
+            if (!r) { gaps++; return pill('MISSING · deleted', '#FF002E', '#FFECEF'); }
+            // Attached and described, but no image generated yet: still a to-do.
+            if (!r.imagePath) { gaps++; return pill(esc(r.name) + ' · not generated', '#B26A00', '#FFF4E0'); }
+            return pill(esc(r.name), '#1D9E75', '#E8F7F1');
+          }).join(' ');
+        });
+        return '<tr>' +
+          '<td style="padding:9px 10px;border-top:1px solid rgba(16,16,32,0.06);vertical-align:top;white-space:nowrap;">' +
+            '<span style="font-size:10px;font-weight:500;color:#0217D3;background:#EEF0FF;border-radius:5px;padding:2px 6px;">' + esc(s.label || '—') + '</span>' +
+          '</td>' +
+          '<td style="padding:9px 10px;border-top:1px solid rgba(16,16,32,0.06);vertical-align:top;font-size:12px;color:#16161D;min-width:180px;">' +
+            esc(s.name || 'Untitled shot') +
+            (b.subject ? '<div style="font-size:11px;color:#9A9AA8;margin-top:2px;line-height:1.45;">' + esc(b.subject) + '</div>' : '') +
+          '</td>' +
+          cells.map((h) => '<td style="padding:9px 10px;border-top:1px solid rgba(16,16,32,0.06);vertical-align:top;line-height:1.9;">' + h + '</td>').join('') +
+        '</tr>';
+      }).join('');
+      return '<div style="background:#fff;border:1px solid rgba(16,16,32,0.08);border-radius:12px;overflow:hidden;margin-bottom:14px;">' +
+        '<div style="padding:12px 14px;border-bottom:1px solid rgba(16,16,32,0.06);">' +
+          '<p style="font-size:13px;font-weight:500;color:#16161D;">' + esc(c.name || 'Untitled scene') + '</p>' +
+        '</div>' +
+        (rows
+          ? '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;">' +
+              '<thead><tr>' +
+                '<th style="text-align:left;padding:8px 10px;font-size:10px;font-weight:500;color:#9A9AA8;text-transform:uppercase;letter-spacing:.04em;">Shot</th>' +
+                '<th style="text-align:left;padding:8px 10px;font-size:10px;font-weight:500;color:#9A9AA8;text-transform:uppercase;letter-spacing:.04em;">Beat</th>' +
+                SLOTS.map((s) => '<th style="text-align:left;padding:8px 10px;font-size:10px;font-weight:500;color:#9A9AA8;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;">' + s.label + '</th>').join('') +
+              '</tr></thead><tbody>' + rows + '</tbody></table></div>'
+          : '<p style="padding:12px 14px;font-size:12px;color:#9A9AA8;">No shots in this scene yet.</p>') +
+      '</div>';
+    }).join('');
+
+    mount.innerHTML =
+      '<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">' +
+        '<button id="bd-back" style="height:28px;padding:0 12px;background:#fff;border:1px solid rgba(16,16,32,0.12);border-radius:6px;font-family:inherit;font-size:12px;font-weight:500;color:#16161D;cursor:pointer;">← Back</button>' +
+        '<h2 style="font-size:20px;font-weight:500;color:#16161D;letter-spacing:-0.01em;">Breakdown</h2>' +
+      '</div>' +
+      '<p style="font-size:13px;color:#5A5A6B;margin-bottom:18px;line-height:1.6;">What each shot needs before you generate it. ' +
+        (gaps
+          ? '<strong style="color:#FF002E;">' + gaps + ' gap' + (gaps === 1 ? '' : 's') + '</strong> to close — anything marked MISSING or “not generated” has no usable reference yet.'
+          : '<strong style="color:#1D9E75;">Every shot has its references.</strong>') +
+      '</p>' +
+      (sceneBlocks || '<p style="font-size:13px;color:#9A9AA8;">No scenes yet.</p>') +
+      '<p style="font-size:12px;color:#9A9AA8;margin-top:6px;line-height:1.6;">Create the missing ones in References, then attach them to the shot in the builder.</p>';
+
+    const back = document.getElementById('bd-back');
+    if (back) back.onclick = () => { this.renderOverview(id); };
   }
 
   async pickDir() {

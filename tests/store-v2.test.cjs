@@ -220,5 +220,33 @@ ok('guard: bad ids return null', Store.renameConcept(sp.id, 'nope', 'x') === nul
    Store.reorderShot('nope', 'nope', 'nope', 0) === null &&
    Store.removeConcept('nope', 'nope') === null);
 
+// ── H. Phase 4 slice 3 — locked prompts persist per shot ──
+reset();
+const lp = Store.createProject({ name: 'LockTest' });
+const lc = Store.getProject(lp.id).concepts[0];
+const ls = lc.shots[0];
+const lids = { projectId: lp.id, conceptId: lc.id, shotId: ls.id };
+ok('lock: refuses an empty prompt', Store.lockShotPrompt(lids, { prompt: '   ' }) === null);
+Store.lockShotPrompt(lids, { prompt: 'A photorealistic wide shot.', video: 'Slow push in.', stillModel: 'gpt', videoModel: 'higgsfield' });
+const lshot = () => Store.getProject(lp.id).concepts[0].shots[0];
+ok('lock: prompt + video persist on the shot', lshot().locked.prompt === 'A photorealistic wide shot.' && lshot().locked.video === 'Slow push in.');
+ok('lock: records the models it was composed for', lshot().locked.stillModel === 'gpt' && lshot().locked.videoModel === 'higgsfield');
+ok('lock: stamps a time and marks the shot prompted', typeof lshot().locked.at === 'number' && lshot().status === 'prompted');
+// editing fields afterwards must NOT silently rewrite the locked snapshot
+Store.updateShotFields(lids, { subject: 'changed after locking' });
+ok('lock: snapshot is immune to later field edits', lshot().locked.prompt === 'A photorealistic wide shot.');
+Store.lockShotPrompt(lids, { prompt: 'Re-locked text.' });
+ok('lock: re-locking overwrites', lshot().locked.prompt === 'Re-locked text.' && lshot().locked.video === '');
+Store.unlockShotPrompt(lids);
+ok('lock: unlock clears it and resets status', !lshot().locked && lshot().status === 'draft');
+ok('lock: unlocking twice is inert', Store.unlockShotPrompt(lids) === null);
+ok('lock: bad ids return null', Store.lockShotPrompt({ projectId: 'x', conceptId: 'y', shotId: 'z' }, { prompt: 'p' }) === null);
+// a locked shot survives a reorder (labels change, the snapshot doesn't)
+Store.lockShotPrompt(lids, { prompt: 'Keep me.' });
+const ls2 = Store.addShot(lp.id, lc.id, {});
+Store.reorderShot(lp.id, lc.id, ls.id, 1);
+const moved = Store.getProject(lp.id).concepts[0].shots.filter(s => s.id === ls.id)[0];
+ok('lock: survives reorder with a new label', moved.locked.prompt === 'Keep me.' && moved.label === '1B');
+
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail ? 1 : 0);
