@@ -1,0 +1,29 @@
+# Runs the store + promptcompile suites on every push and PR.
+# Before this existed the 205 tests only ran when someone remembered to type
+# `npm test` locally, which is how a broken store layer could reach a release.
+#
+# Deliberately does NOT build the Tauri app: that needs the Rust toolchain and the
+# updater signing key, takes minutes, and belongs in the release script, not here.
+# These tests are plain Node with no dependencies, so this stays a ~20s job.
+name: test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # No `npm ci` — the only devDependency is the Tauri CLI, which the tests
+      # don't touch, and there is no lockfile-backed install to restore.
+      - name: Run tests
+        run: npm test

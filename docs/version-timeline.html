@@ -145,7 +145,7 @@
     <p class="former">Formerly <b>AI Film Studio</b> · renamed v0.3.0, 1 Jul 2026 · versions before 0.3.0 are <b>inferred</b> — repo has no git history; reconstructed from <code>_archive/</code> snapshots + <code>release-v*</code> folders.</p>
 
     <div class="facts">
-      <div class="fact"><div class="k">Current</div><div class="v mono"><span class="dot"></span>v0.3.7</div></div>
+      <div class="fact"><div class="k">Current</div><div class="v mono"><span class="dot"></span>v0.3.93</div></div>
       <div class="fact"><div class="k">Storage key</div><div class="v mono">aifs.v1</div></div>
       <div class="fact"><div class="k">Bundle id</div><div class="v mono">com.supergood.studios</div></div>
       <div class="fact"><div class="k">Rust cmds</div><div class="v">3 · lib.rs</div></div>
@@ -310,13 +310,28 @@
     </div>
 
     <div class="node">
-      <div class="stamp"><span class="date">16 Jul 2026</span><span class="ver">v0.3.7</span><span class="tag">Release · current</span></div>
+      <div class="stamp"><span class="date">16 Jul 2026</span><span class="ver">v0.3.7</span><span class="tag">Release</span></div>
       <h3>Updater UI</h3>
       <ul class="pts">
         <li>On-launch <b>"Checking for updates…"</b> pill (bottom-left) that settles to "up to date" or steps aside for the update banner.</li>
         <li>Manual <b>Check for updates</b> button in AI setup (<code>window.Updater.checkNow()</code>), reusing the same check path.</li>
       </ul>
       <div class="callout"><b>Web-hosting note (for Lucas):</b> static site backed by <code>localStorage</code> — no backend/API key to host. One external runtime dep (Babel via <code>unpkg.com</code> in <code>support.js</code>); desktop-only features (folder pick, <code>scan_plan_folder</code>, local image attach, updater) go inert on the web and degrade gracefully. Full detail → <code>docs/HANDOFF-lucas-web-2026-07-16.md</code>.</div>
+    </div>
+
+    <div class="node">
+      <div class="stamp"><span class="date">24 Jul 2026</span><span class="ver">v0.3.93</span><span class="tag">Release · current</span></div>
+      <h3>Phase 4 — scene/shot system</h3>
+      <ul class="pts">
+        <li><b>Scenes &amp; shots, editable and synced.</b> Concepts are scenes; shots are labelled 1A/1B/2A. Add, remove, rename and reorder from either the project view or the builder — both write through <code>store.js</code>, so an edit in one appears in the other.</li>
+        <li><b>Four descriptive fields per shot</b> (subject, action, environment, camera intent) held as model-agnostic data on <code>shot.builder</code>.</li>
+        <li><b>Locked prompts</b> snapshot the compiled stills + video prompts onto the shot and show on the project page.</li>
+        <li><b>Breakdown view</b> — per shot, the characters / location / props / style it needs, flagging MISSING and not-yet-generated.</li>
+        <li><b>Model set pruned</b> to GPT Image / Nano Banana Pro / Seedream and Kling / Cinema Studio / Seedance. Sora, Runway, FLUX and Midjourney removed.</li>
+        <li><b>Handoff emits setup only</b> — Claude authors zero generation prompts. Per-generator prompt craft deleted.</li>
+        <li><b>Phantom features removed</b> — dead new-project modal, two unwired settings controls, Palmier’s fake kickoff chips and fabricated send history.</li>
+      </ul>
+      <div class="callout"><b>Gap in this timeline:</b> v0.3.8 → v0.3.92 were released but never recorded here (this file stopped being maintained after 16 Jul 2026). Reconstruct from <code>git log</code> if you need that history — it has not been invented here. Full context → <code>docs/HANDOFF-2026-07-24.md</code>.</div>
     </div>
   </div>
 
