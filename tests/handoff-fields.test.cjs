@@ -46,7 +46,14 @@ const legal = {
   cameraIntent: 'The beat is her decision, so the frame isolates her. At the master lens it reads as coverage.',
   purpose: 'master',
   shot: 'close', lens: '85', angle: 'low', depth: 'layered', move: 'push',
-  comp: 'ml', density: 'single', framing: ['ots'], duration: '4'
+  comp: 'ml', density: 'single', framing: ['ots'], duration: '4',
+  look: 'Noir chiaroscuro'
+};
+// A few handoff keys deliberately land under a different builder key — the plan
+// speaks a user-facing vocabulary the builder stores internally. Verified by
+// what they resolve TO, not by name.
+const MAPPED = {
+  look: (b) => b.dp === 'khondji' && b.lookMode === 'dp'
 };
 const missing = asked.filter(k => !(k in legal));
 ok('every asked-for key is covered by this test (' + missing.join(', ') + ')', missing.length === 0);
@@ -73,6 +80,10 @@ ok('plan import produced a shot with a builder', !!(firstShot && firstShot.build
 if (firstShot && firstShot.builder) {
   const b = firstShot.builder;
   asked.forEach(k => {
+    if (MAPPED[k]) {
+      ok('handoff field "' + k + '" resolves on import', MAPPED[k](b));
+      return;
+    }
     const want = legal[k];
     const got = b[k];
     const same = Array.isArray(want) ? JSON.stringify(want) === JSON.stringify(got) : want === got;
@@ -475,6 +486,64 @@ ok('the shot no-prompts rule is scoped to shots, not references',
   ok('an empty frame does not', !/skin pores|flyaway hair|eye reflections/.test(without));
   ok('"none" compiles to a positive empty-frame clause',
     PC2.term('density', 'none', '').indexOf('no people in frame') !== -1);
+}
+
+// ── 12. Look: the checklist bug and the handoff gap ──
+{
+  // The checklist tested `prefixOverride` — the per-shot "override the project
+  // style prefix" flag — and called it "Style / look set". Picking a look could
+  // never satisfy it, and nothing on screen said why.
+  // Scope the assertion to the checks array itself. Testing only that the right
+  // fields appear somewhere lets a mutation re-add prefixOverride alongside
+  // them and still pass — which is exactly what happened first time.
+  // Comments in this block legitimately name the old field to explain the fix,
+  // so strip them — the assertion is about the code, not the prose.
+  const checksBlock = pb.slice(pb.indexOf('const checks = ['), pb.indexOf('const done = checks'))
+    .split('\n').filter(l => !/^\s*\/\//.test(l)).join('\n');
+  ok('the checklist no longer consults prefixOverride at all',
+    checksBlock.indexOf('prefixOverride') === -1);
+  ok('the look check reads the actual look fields',
+    checksBlock.indexOf("s.lookMode === 'dp' && has(s.dp)") !== -1
+    && checksBlock.indexOf("s.lookMode === 'feel'") !== -1);
+
+  // The handoff had no concept of a look, so a perfectly-followed plan was
+  // permanently capped below 100%.
+  ok('the handoff asks for a look', np.indexOf('"look":') !== -1);
+  ok('the handoff explains how to choose one', np.indexOf('keep a scene consistent') !== -1);
+
+  // Drift: the plan speaks in brand-free labels; the builder keys them by DP
+  // surname internally. Those must stay in step, and the surnames must never
+  // reach the handoff text.
+  const labels = Store.lookLabels();
+  ok('the store exposes the look labels', labels.length >= 8);
+  const offered = ((np.split('"look": "')[1] || '').split('"')[0])
+    .split('|').map(s => s.trim()).filter(Boolean);
+  ok('the handoff offers every look the store accepts', offered.length === labels.length);
+  offered.forEach(o => ok('handoff look "' + o + '" resolves', !!Store.resolveLook(o)));
+
+  const dpBlock = pb.slice(pb.indexOf('dpTraits() {'), pb.indexOf('dpTraits() {') + 2200);
+  labels.forEach((l) => {
+    const id = Store.resolveLook(l);
+    ok('builder still has an entry for "' + l + '"', dpBlock.indexOf("id:'" + id + "'") !== -1);
+  });
+  // The surnames are internal ids only — they are a legal-risk term and must
+  // not appear in anything the user pastes.
+  ['deakins', 'lubezki', 'khondji', 'anderson'].forEach(n =>
+    ok('"' + n + '" never appears in the handoff text', np.toLowerCase().indexOf(n) === -1));
+
+  ok('a look imports', (function () {
+    const id = Store.createProject({ name: 'look' }).id;
+    Store.scaffoldFromPlan(id, JSON.stringify({ concepts: [{ name: 'C', kind: 'video',
+      scenes: [{ name: 'S', shots: [{ label: '1A', look: 'Noir chiaroscuro' }] }] }] }));
+    const b = Store.getProject(id).concepts[0].scenes[0].shots[0].builder;
+    return b.dp === 'khondji' && b.lookMode === 'dp';
+  })());
+  ok('an unrecognised look leaves the default alone', (function () {
+    const id = Store.createProject({ name: 'look2' }).id;
+    Store.scaffoldFromPlan(id, JSON.stringify({ concepts: [{ name: 'C', kind: 'video',
+      scenes: [{ name: 'S', shots: [{ label: '1A', look: 'Neon Vaporwave' }] }] }] }));
+    return Store.getProject(id).concepts[0].scenes[0].shots[0].builder.dp === 'deakins';
+  })());
 }
 
 console.log('\n' + pass + ' passed, ' + fail + ' failed');

@@ -629,6 +629,26 @@
   // prose at the head of `breakdown` ("Purpose: master. …"), which couldn't be
   // validated or filtered. Off-vocabulary values are dropped, same as
   // SHOT_CONTROLS above.
+  // Cinematography looks the plan may choose, BY LABEL. The builder's own list
+  // (dpTraits() in promptbuilder.html) keys these by DP surname internally; the
+  // surnames must never reach the handoff or a prompt, so the plan speaks in
+  // these brand-free labels and this map resolves them. A drift-guard test
+  // fails if the two lists stop agreeing.
+  var LOOK_LABELS = {
+    'naturalistic classic': 'deakins',
+    'available-light immersive': 'lubezki',
+    'large-format cool': 'hoytema',
+    'soft epic': 'fraser',
+    'low-key painterly': 'young',
+    'noir chiaroscuro': 'khondji',
+    'warm documentary': 'morrison',
+    'crisp anamorphic': 'pfister',
+    'storybook symmetry': 'anderson'
+  };
+  function resolveLook(v) {
+    var k = String(v == null ? '' : v).trim().toLowerCase();
+    return LOOK_LABELS[k] || '';
+  }
   var SHOT_PURPOSES = ['establishing', 'master', 'two-shot', 'group', 'single',
     'reaction', 'insert', 'product detail', 'cutaway', 'location texture',
     'match action', 'transition', 'final wide', 'hero product'];
@@ -1194,6 +1214,10 @@
           // now asks for it, so accept it here or the ask is a silent no-op.
           b.negative = String(sh.negative || '');
           b.purpose = resolveShotPurpose(sh);
+          // Cinematography look, chosen by label. Silently ignored when absent
+          // or unrecognised, so the builder's default stands.
+          var look = resolveLook(sh.look);
+          if (look) { b.dp = look; b.lookMode = 'dp'; }
           // Camera setup, when the plan chose one — otherwise the defaults hold.
           applyShotControls(b, sh);
           return {
@@ -1239,6 +1263,8 @@
     reorderConcept: reorderConcept, reorderScene: reorderScene, reorderShot: reorderShot,
     updateShotFields: updateShotFields, shotFields: function () { return SHOT_FIELDS.slice(); },
     shotPurposes: function () { return SHOT_PURPOSES.slice(); },
+    lookLabels: function () { return Object.keys(LOOK_LABELS).slice(); },
+    resolveLook: resolveLook,
     lockShotPrompt: lockShotPrompt, unlockShotPrompt: unlockShotPrompt,
     // deliverables
     listDeliverables: listDeliverables, getDeliverable: getDeliverable,

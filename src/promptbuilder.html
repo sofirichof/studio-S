@@ -630,7 +630,12 @@ class Component extends DCLogic {
       { ok: has(s.environment), label: 'Environment set' },
       { ok: has(s.offCamera) || has(s.propState), label: 'Continuity recorded' },
       { ok: !!(s.framing && s.framing.length), label: 'Framing chosen' },
-      { ok: has(s.prefixOverride), label: 'Style / look set' },
+      // Was `has(s.prefixOverride)` — the per-shot 'override the project style
+      // prefix' flag, which has nothing to do with the look. Picking a look
+      // therefore never satisfied this and there was no way to find out why.
+      { ok: (s.lookMode === 'dp' && has(s.dp))
+          || (s.lookMode === 'feel' && !!((s.chips || {}).feel || []).length),
+        label: 'Style / look set' },
       { ok: has(s.negative), label: 'Negative prompt' }
     ];
     const done = checks.filter((c) => c.ok).length;

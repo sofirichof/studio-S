@@ -345,6 +345,7 @@ Exact format:
           "density": "none | single | few | crowd",
           "framing": "Symmetrical | lead | frame | Negative space | ots",
           "duration": "2 | 3 | 4 | 5 | 6 | 8 | 10",
+          "look": "Naturalistic classic | Available-light immersive | Large-format cool | Soft epic | Low-key painterly | Noir chiaroscuro | Warm documentary | Crisp anamorphic | Storybook symmetry",
           "negative": "what THIS shot must avoid, comma-separated — e.g. 'a second bag, visible crew, modern signage'",
           "breakdown": "PURPOSE first, then what the shot needs — e.g. 'Purpose: master. Marco + clerk, bodega interior, paper bag. Continuity: bag still full, street door left open behind him.'"
         },
@@ -419,6 +420,7 @@ WHAT EACH CONTROL ACTUALLY DOES:
   • framing — ots binds two characters and locks screen direction; lead carries motion or eyeline; frame uses a doorway or window to contain; Negative space isolates; Symmetrical formalises and stills the image.
   • density — how many bodies read in the frame. Use "none" for a shot with nobody in it — an empty room, a storefront before opening, a hands-only insert where no face appears. It is not cosmetic: it stops the prompt asking for skin texture, flyaway hair and eye reflections on a frame that has no person in it.
   • move — VIDEO ONLY, never the still. Motivate it or choose static: an unmotivated move reads as drift.
+  • look — the cinematography of the shot, chosen from the list above. Pick ONE per shot and keep a scene consistent unless the story changes: a scene that switches look mid-way reads as two different films. Naturalistic classic is the safe default for drama; Warm documentary for observed, real-feeling work; Noir chiaroscuro and Low-key painterly are strong choices that will dominate the frame; Storybook symmetry is a formal, deliberate style, not a neutral one.
   • duration — VIDEO ONLY, seconds of clip. Cut to the beat, not to a habit: an insert or a reaction is usually 2–3, a master or a held moment 5–6, and 8–10 is a long time on screen that has to earn itself. Keep the whole piece in mind — a 15-second cutdown cannot hold six 6-second shots.
 "framing" is the one ARRAY among these — give it a list, e.g. ["ots"] or ["lead","frame"], and leave it [] when none apply. Every other control takes a single value.
 
