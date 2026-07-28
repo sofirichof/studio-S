@@ -551,7 +551,7 @@ class Component extends DCLogic {
       const angleTxt = s.shot === 'aerial' ? '' : T('angle', s.angle);
       const film = [angleTxt, T('comp', s.comp), T('depth', s.depth)]
         .concat((s.framing || []).map((f) => T('framing', f)))
-        .concat([(s.density === 'single' || s.density === 'crowd') ? T('density', s.density) : ''])
+        .concat([(s.density === 'single' || s.density === 'crowd' || s.density === 'none') ? T('density', s.density) : ''])
         .filter(Boolean);
       film.forEach((c) => parts.push(', ' + c));
       // Realism extras (multi) — texture/physics cues, appended last.
@@ -562,7 +562,11 @@ class Component extends DCLogic {
       // AI" craft the older app appended to every still and the current app had
       // lost. Brand/name-free (see promptcompile.realismBaseline); the single
       // biggest reason the old prompts read real.
-      if (PC && PC.realismBaseline) PC.realismBaseline().forEach((c) => parts.push(', ' + c));
+      // realismBaseline has always accepted { people: false }; nothing ever set
+      // it, so an empty establishing shot still demanded 'a lone figure',
+      // visible skin pores and realistic eye reflections. Density 'none' is
+      // the input that was missing.
+      if (PC && PC.realismBaseline) PC.realismBaseline({ people: s.density !== 'none' }).forEach((c) => parts.push(', ' + c));
       stills = parts.join(' ').replace(/ ,/g, ',') + '.';
       // Video reuses the CLEAN scene (before any per-model stills wrapping), so the
       // image-to-video prompt carries subject/look/lens without the stills lead/flags.
@@ -997,7 +1001,10 @@ class Component extends DCLogic {
         const on = d === val;
         return '<button data-density="' + val + '" style="padding:8px 14px;border:1px solid ' + (on ? '#0217D3' : 'rgba(16,16,32,0.12)') + ';border-radius:8px;background:' + (on ? '#EEF0FF' : '#fff') + ';color:' + (on ? '#0217D3' : '#5A5A6B') + ';font-family:inherit;font-size:13px;font-weight:500;cursor:pointer;">' + label + '</button>';
       };
-      const densityRow = '<div style="display:flex;gap:8px;flex-wrap:wrap;">' + dBtn('single','Single subject') + dBtn('few','A few') + dBtn('crowd','Crowd') + '</div>';
+      // "No one" is the option that was missing: an empty establishing shot or
+      // a hands-only insert had to be filed as "Single subject", and the prompt
+      // then asked for a face, skin pores and eye reflections regardless.
+      const densityRow = '<div style="display:flex;gap:8px;flex-wrap:wrap;">' + dBtn('none','No one in frame') + dBtn('single','Single subject') + dBtn('few','A few') + dBtn('crowd','Crowd') + '</div>';
       let crowdPanel = '';
       if (d === 'crowd') {
         crowdPanel =

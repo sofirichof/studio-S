@@ -342,7 +342,7 @@ Exact format:
           "depth": "shallow | layered | deep",
           "move": "static | push | pan | tracking | handheld",
           "comp": "tl | tc | tr | ml | mc | mr | bl | bc | br",
-          "density": "single | few | crowd",
+          "density": "none | single | few | crowd",
           "framing": "Symmetrical | lead | frame | Negative space | ots",
           "duration": "2 | 3 | 4 | 5 | 6 | 8 | 10",
           "negative": "what THIS shot must avoid, comma-separated — e.g. 'a second bag, visible crew, modern signage'",
@@ -417,7 +417,7 @@ WHAT EACH CONTROL ACTUALLY DOES:
   • depth — shallow isolates the subject but throws away the room; layered keeps foreground, mid and background all legible; deep holds the whole space sharp. If the shot's job is spatial or continuity evidence, do not choose shallow.
   • comp — where the subject sits in the frame. Anything off-centre needs a reason: lead room for a look or a move, or weight set against an empty side.
   • framing — ots binds two characters and locks screen direction; lead carries motion or eyeline; frame uses a doorway or window to contain; Negative space isolates; Symmetrical formalises and stills the image.
-  • density — how many bodies read in the frame.
+  • density — how many bodies read in the frame. Use "none" for a shot with nobody in it — an empty room, a storefront before opening, a hands-only insert where no face appears. It is not cosmetic: it stops the prompt asking for skin texture, flyaway hair and eye reflections on a frame that has no person in it.
   • move — VIDEO ONLY, never the still. Motivate it or choose static: an unmotivated move reads as drift.
   • duration — VIDEO ONLY, seconds of clip. Cut to the beat, not to a habit: an insert or a reaction is usually 2–3, a master or a held moment 5–6, and 8–10 is a long time on screen that has to earn itself. Keep the whole piece in mind — a 15-second cutdown cannot hold six 6-second shots.
 "framing" is the one ARRAY among these — give it a list, e.g. ["ots"] or ["lead","frame"], and leave it [] when none apply. Every other control takes a single value.

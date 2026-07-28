@@ -225,7 +225,14 @@ class Component extends DCLogic {
       refId: refId || null,
       name: r ? r.name : '',
       kind: r ? r.kind : 'character',
-      fields: r && r.fields ? Object.assign({}, r.fields) : {}
+      fields: r && r.fields ? Object.assign({}, r.fields) : {},
+      // The prompt this reference already carries. A plan import writes a
+      // finished sheet here but only a `desc` in `fields` — it has no way to
+      // split prose into the per-attribute template fields. Recompiling from
+      // those empty fields yields a raw [BRACKET] template, and saving it would
+      // destroy the imported sheet. Keeping the original lets step 3 show what
+      // is really saved instead of overwriting it with a husk.
+      existingPrompt: (r && r.prompt) || ''
     };
     const m = document.getElementById('ref-modal');
     if (m) m.style.display = 'flex';
@@ -282,7 +289,19 @@ class Component extends DCLogic {
       const n = document.getElementById('ref-name');
       if (n) n.focus();
     } else if (w.step === 2) {
-      stage.innerHTML = PromptCompile.fieldsFor(w.kind).map((f) =>
+      // Imported references have no per-attribute fields, so every box here is
+      // empty and shows its example placeholder. The tester read those examples
+      // as real saved data ("man" for a character written as a woman). Say so.
+      const anyFilled = PromptCompile.fieldsFor(w.kind).some((f) => {
+        const v = w.fields[f.key];
+        return v != null && String(v).trim();
+      });
+      stage.innerHTML = (w.existingPrompt && !anyFilled
+        ? '<div style="display:flex;gap:8px;align-items:flex-start;background:#FFFBF2;border:1px solid rgba(154,91,0,.22);border-radius:8px;padding:9px 11px;margin-bottom:10px;">' +
+            '<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#9A5B00;margin-top:5px;flex-shrink:0;"></span>' +
+            '<p style="font-size:11.5px;line-height:1.45;color:#9A5B00;">These fields are blank because this reference arrived in a plan as a finished sheet — nothing has been lost, and the grey text below is example wording, not your data. Leave them empty to keep the sheet as it is.</p>' +
+          '</div>'
+        : '') + PromptCompile.fieldsFor(w.kind).map((f) =>
         '<div>' + label(f.label) + (
           f.type === 'select' ? sel('ref-f-' + f.key, w.fields[f.key], f.options)
             : f.type === 'textarea' ? area('ref-f-' + f.key, w.fields[f.key], f.placeholder)
@@ -291,9 +310,23 @@ class Component extends DCLogic {
       ).join('');
     } else {
       const compiled = PromptCompile.compileReferencePrompt(w.kind, w.name, w.fields);
+      // A recompile from empty per-attribute fields is a husk full of [BRACKET]
+      // holes. If this reference already carries a real prompt — the usual case
+      // for anything that arrived in a plan — show THAT, so saving cannot
+      // silently replace a finished sheet with a template.
+      const holes = (window.RefTemplates && RefTemplates.unfilledSlots)
+        ? RefTemplates.unfilledSlots(compiled.stills) : 0;
+      const keepExisting = !!w.existingPrompt && holes > 0;
+      const shown = keepExisting ? w.existingPrompt : compiled.stills;
       stage.innerHTML =
         '<div>' + label('Compiled prompt — paste into your image generator') +
-          '<textarea id="ref-prompt-final" style="width:100%;height:130px;background:#F7F5EF;border:1px solid rgba(16,16,32,0.12);border-radius:10px;padding:10px 12px;font-family:\'Host Grotesk\',system-ui;font-size:13px;color:#16161D;resize:vertical;line-height:1.6;outline:none;">' + this.esc(compiled.stills) + '</textarea>' +
+          (keepExisting
+            ? '<div style="display:flex;gap:8px;align-items:flex-start;background:#FFFBF2;border:1px solid rgba(154,91,0,.22);border-radius:8px;padding:9px 11px;margin-bottom:8px;">' +
+                '<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#9A5B00;margin-top:5px;flex-shrink:0;"></span>' +
+                '<p style="font-size:11.5px;line-height:1.45;color:#9A5B00;">This sheet came in with a plan, so the detail fields on the previous step were never filled in — they are blank, not lost. Showing the sheet that is actually saved. Fill those fields in if you want to rebuild it from scratch; otherwise edit the text here directly.</p>' +
+              '</div>'
+            : '') +
+          '<textarea id="ref-prompt-final" style="width:100%;height:130px;background:#F7F5EF;border:1px solid rgba(16,16,32,0.12);border-radius:10px;padding:10px 12px;font-family:\'Host Grotesk\',system-ui;font-size:13px;color:#16161D;resize:vertical;line-height:1.6;outline:none;">' + this.esc(shown) + '</textarea>' +
           '<p style="font-size:12px;color:#9A9AA8;margin-top:8px;line-height:1.5;">Tweak the wording if you like — your edits are what gets saved. After generating, attach the result image from the reference card.</p>' +
         '</div>';
     }

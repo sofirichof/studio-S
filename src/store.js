@@ -618,7 +618,7 @@
     depth:   ['shallow', 'layered', 'deep'],
     move:    ['static', 'push', 'pan', 'tracking', 'handheld'],
     comp:    ['tl', 'tc', 'tr', 'ml', 'mc', 'mr', 'bl', 'bc', 'br'],
-    density: ['single', 'few', 'crowd'],
+    density: ['none', 'single', 'few', 'crowd'],
     // Clip length in seconds, video only. Unset ('') on existing shots and on
     // any plan that omits it — the compiler stays silent rather than inventing
     // a length, and the project view reports how many are still unset.

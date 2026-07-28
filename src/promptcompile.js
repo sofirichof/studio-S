@@ -205,6 +205,10 @@
       ots: { core: 'over-the-shoulder framing' }
     },
     density: {
+      // An empty frame is a positive instruction, not the absence of one — and
+      // it is what finally drives realismBaseline's `people` opt-out, which had
+      // existed unused since the baseline shipped.
+      none:   { core: 'no people in frame, the space is empty' },
       single: { core: 'a lone figure' },
       few:    { core: 'a few figures' },
       crowd:  { core: 'set among a dense crowd' }

@@ -428,5 +428,54 @@ ok('the shot no-prompts rule is scoped to shots, not references',
   ok('runtime is rendered in the concept header', pj.indexOf('+ runtimeLabel +') !== -1);
 }
 
+// ── 11. Beta-report blockers ──
+{
+  // (a) Editing an imported reference must never replace a finished sheet with
+  //     a husk. A plan supplies the prompt but not the per-attribute fields, so
+  //     recompiling from them yields a template full of [BRACKET] holes.
+  ok('unfilledSlots detects an unfilled template',
+    RT.unfilledSlots(RT.fill('character', {})) > 5);
+  ok('unfilledSlots is zero on a real sentence',
+    RT.unfilledSlots('Cinematic character reference sheet, split-frame layout.') === 0);
+  ok('a fully filled sheet has no holes',
+    RT.unfilledSlots(RT.fill('prop', {
+      SUBJECT: 'a spyglass', GLOSS: 'telescope', ORIENTATION: 'tilted', MUSTREAD: 'the tubes',
+      PARTS: 'brass body', MATERIALLIGHT: 'specular brass', ASPECT: '4:5'
+    })) === 0);
+
+  const rh = fs.readFileSync(path.join(__dirname, '..', 'src', 'references.html'), 'utf8');
+  ok('the wizard remembers the prompt a reference already carries',
+    rh.indexOf('existingPrompt: (r && r.prompt)') !== -1);
+  ok('it refuses to show a husk over a real prompt',
+    rh.indexOf('const keepExisting = !!w.existingPrompt && holes > 0;') !== -1);
+  ok('the textarea renders the kept prompt, not the recompile',
+    rh.indexOf('this.esc(shown)') !== -1);
+  ok('the user is told why the fields are blank',
+    rh.indexOf('arrived in a plan as a finished sheet') !== -1);
+
+  // (b) An empty frame must not ask for a face. realismBaseline always accepted
+  //     { people: false }; nothing drove it until density gained "none".
+  const block = (fs.readFileSync(path.join(__dirname, '..', 'src', 'store.js'), 'utf8')
+    .split('var SHOT_CONTROLS')[1] || '').split('};')[0];
+  ok('density offers "none"', block.indexOf("'none'") !== -1);
+  ok('the handoff offers density none', np.indexOf('"density": "none | single | few | crowd"') !== -1);
+  ok('the handoff explains what none is for', np.indexOf('It is not cosmetic') !== -1);
+  ok('the builder offers a No-one chip', pb.indexOf("dBtn('none','No one in frame')") !== -1);
+  ok('density none reaches the prompt',
+    pb.indexOf("s.density === 'none'") !== -1);
+  ok('the people opt-out is finally driven',
+    pb.indexOf("PC.realismBaseline({ people: s.density !== 'none' })") !== -1);
+
+  global.window.PromptCompile = undefined;
+  eval(fs.readFileSync(path.join(__dirname, '..', 'src', 'promptcompile.js'), 'utf8'));
+  const PC2 = global.window.PromptCompile;
+  const withPeople = PC2.realismBaseline().join(' ');
+  const without = PC2.realismBaseline({ people: false }).join(' ');
+  ok('the default still asks for skin/hair/eye detail', /skin pores/.test(withPeople));
+  ok('an empty frame does not', !/skin pores|flyaway hair|eye reflections/.test(without));
+  ok('"none" compiles to a positive empty-frame clause',
+    PC2.term('density', 'none', '').indexOf('no people in frame') !== -1);
+}
+
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail ? 1 : 0);

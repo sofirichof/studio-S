@@ -247,9 +247,19 @@
     }).replace(/[ \t]+/g, ' ').replace(/ +\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
   }
 
+  // Does this compiled sheet still contain unfilled [BRACKET] slots? Used to
+  // refuse to overwrite a real, finished prompt with a husk — a plan import
+  // supplies the finished sheet but not the per-attribute fields, so a naive
+  // recompile produces a template full of holes.
+  function unfilledSlots(text) {
+    var m = String(text || '').match(/\[[A-Z][A-Z0-9 /|:,.'()+-]{2,}\]/g);
+    return m ? m.length : 0;
+  }
+
   window.RefTemplates = {
     fields: fieldsFor,
     fill: fill,
+    unfilledSlots: unfilledSlots,
     forHandoff: forHandoff,
     character: forHandoff('character'),
     prop: forHandoff('prop'),
