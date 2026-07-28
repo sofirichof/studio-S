@@ -59,7 +59,7 @@
       stillModel: 'gpt', videoModel: 'kling', density: 'few',
       lookMode: 'dp', camMode: 'specific', dp: 'deakins',
       comp: 'mc', shot: 'wide', angle: 'eye', lens: '24',
-      move: 'push', depth: 'shallow', framing: [],
+      move: 'push', depth: 'shallow', framing: [], duration: '',
       // Descriptive shot fields — model-agnostic DATA the app composes from.
       // Editable from both the builder and the project view (Phase 4 slice 2).
       subject: '', action: '', environment: '', cameraIntent: '',
@@ -618,7 +618,11 @@
     depth:   ['shallow', 'layered', 'deep'],
     move:    ['static', 'push', 'pan', 'tracking', 'handheld'],
     comp:    ['tl', 'tc', 'tr', 'ml', 'mc', 'mr', 'bl', 'bc', 'br'],
-    density: ['single', 'few', 'crowd']
+    density: ['single', 'few', 'crowd'],
+    // Clip length in seconds, video only. Unset ('') on existing shots and on
+    // any plan that omits it — the compiler stays silent rather than inventing
+    // a length, and the project view reports how many are still unset.
+    duration: ['2', '3', '4', '5', '6', '8', '10']
   };
   var FRAMING_VALUES = ['Symmetrical', 'lead', 'frame', 'Negative space', 'ots'];
   // Phase 3 — editorial purpose as a real, validated field. Used to ride as

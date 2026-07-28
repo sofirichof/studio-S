@@ -520,7 +520,10 @@ class Component extends DCLogic {
       const PC = window.PromptCompile;
       const chips = s.chips || {};
       const parts = [];
-      parts.push('A ' + this.shotLabelShort(s.shot));
+      // "A aerial shot" / "A extreme close-up" were shipping as broken English —
+      // the article was hardcoded. Vowel-initial sizes take "An".
+      const sizeLabel = this.shotLabelShort(s.shot);
+      parts.push((/^[aeiou]/i.test(sizeLabel) ? 'An ' : 'A ') + sizeLabel);
       if (has(s.subject)) parts.push('of ' + s.subject.trim().replace(/\.$/, '').replace(/^(A|An|The)\s+/, (m) => m.toLowerCase()));
       // Action — the "what happens" beat, frozen as the still's captured moment.
       const act = PC && PC.stillAction ? PC.stillAction(s.action) : '';
@@ -541,7 +544,12 @@ class Component extends DCLogic {
       // its verified phrase, so angle, depth, placement and framing actually
       // reach the prompt instead of only redrawing the preview.
       const T = (c, v) => (PC && PC.term) ? PC.term(c, v, s.stillModel) : '';
-      const film = [T('angle', s.angle), T('comp', s.comp), T('depth', s.depth)]
+      // Aerial already fixes the camera height, so an angle clause on top of it
+      // contradicts the size. `angle` defaults to 'eye', so before this every
+      // aerial shot compiled as "An aerial shot … shot at eye level" by default,
+      // not as a rare mis-selection.
+      const angleTxt = s.shot === 'aerial' ? '' : T('angle', s.angle);
+      const film = [angleTxt, T('comp', s.comp), T('depth', s.depth)]
         .concat((s.framing || []).map((f) => T('framing', f)))
         .concat([(s.density === 'single' || s.density === 'crowd') ? T('density', s.density) : ''])
         .filter(Boolean);

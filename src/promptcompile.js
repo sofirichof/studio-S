@@ -343,6 +343,11 @@
   // forbids prohibitions, so the old "no AI artifacts" is stated as its target
   // instead. No equipment, film-stock or DP names (skill rule + legal).
   var VIDEO_TAILS = {
+    // Seedance generates its own audio and picks its own frame rate unless told
+    // otherwise. Corpus convention is an explicit `Technical:` block. Audio is
+    // deliberately NOT specified here yet — that is a user choice and gets its
+    // own field later; this only pins the things that have one right answer.
+    seedance: 'Technical: 24fps smooth motion. 8K detail. No jitter.',
     higgsfield: 'Performance: pore-level skin realism, living eyes with catch-lights, ' +
       'naturalistic micro-expressions, visible breath. Physics: cloth and hair move with ' +
       'real mass and inertia, contact shadows hold where bodies meet surfaces. ' +
@@ -366,7 +371,10 @@
     parts.push('Ambient motion stays subtle and physical — air, light and background life move naturally' + (has(s.environment) ? ' within ' + clean(s.environment).toLowerCase() : '') + '.');
     // Positive continuity locks.
     parts.push('Hold the framing; same subject, wardrobe and lighting for the full shot.');
-    // Motion-realism tail, per model (Higgsfield only; Kling untouched).
+    // Clip length. Appended after the clause-join, never woven into it — same
+    // rule as the continuity tail. Silent when unset rather than guessing.
+    if (has(s.duration)) parts.push('Duration: ' + clean(s.duration) + ' seconds.');
+    // Motion-realism / technical tail, per model. Kling deliberately untouched.
     if (VIDEO_TAILS[opts.model]) parts.push(VIDEO_TAILS[opts.model]);
     return parts.join(' ');
   }

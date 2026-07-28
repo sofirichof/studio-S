@@ -46,7 +46,7 @@ const legal = {
   cameraIntent: 'The beat is her decision, so the frame isolates her. At the master lens it reads as coverage.',
   purpose: 'master',
   shot: 'close', lens: '85', angle: 'low', depth: 'layered', move: 'push',
-  comp: 'ml', density: 'single', framing: ['ots']
+  comp: 'ml', density: 'single', framing: ['ots'], duration: '4'
 };
 const missing = asked.filter(k => !(k in legal));
 ok('every asked-for key is covered by this test (' + missing.join(', ') + ')', missing.length === 0);
@@ -366,6 +366,66 @@ ok('the shot no-prompts rule is scoped to shots, not references',
     refHtml.indexOf('reftemplates.js') !== -1
     && refHtml.indexOf('reftemplates.js') < refHtml.indexOf('promptcompile.js'));
   ok('references.html can render a select field', refHtml.indexOf("f.type === 'select'") !== -1);
+}
+
+// ── 9. Control-combination defects found in review ──
+// All four were the same root cause: eight independent enums across three
+// tabs, joined unconditionally, none aware of any other. Two of them were the
+// DEFAULT state rather than a rare mis-selection, which is why they shipped.
+{
+  // Article: "A aerial shot" / "A extreme close-up" were broken English.
+  ok('article is chosen from the size label, not hardcoded',
+    pb.indexOf("/^[aeiou]/i.test(sizeLabel) ? 'An ' : 'A '") !== -1);
+  ok("the hardcoded 'A ' is gone", pb.indexOf("parts.push('A ' + this.shotLabelShort") === -1);
+
+  // Aerial fixes its own height; `angle` defaults to 'eye', so every aerial
+  // shot claimed eye level until this.
+  ok('aerial suppresses the angle clause',
+    pb.indexOf("const angleTxt = s.shot === 'aerial' ? '' : T('angle', s.angle);") !== -1);
+  ok('the film array uses the suppressed angle', pb.indexOf('const film = [angleTxt,') !== -1);
+
+  // Vowel-initial sizes, from the real label map.
+  const labels = (pb.match(/extreme:'([^']+)'[\s\S]*?aerial:'([^']+)'/) || []);
+  ok('extreme close-up is vowel-initial (so "An")', /^[aeiou]/i.test(labels[1] || ''));
+  ok('aerial shot is vowel-initial (so "An")', /^[aeiou]/i.test(labels[2] || ''));
+}
+
+// ── 10. Video gaps: duration and the Seedance technical block ──
+{
+  global.window.PromptCompile = undefined;
+  eval(fs.readFileSync(path.join(__dirname, '..', 'src', 'promptcompile.js'), 'utf8'));
+  const PC = global.window.PromptCompile;
+
+  const withDur = PC.compileVideo({ action: 'she turns', duration: '4' }, { scene: 'A wide shot', model: 'seedance' });
+  const noDur = PC.compileVideo({ action: 'she turns' }, { scene: 'A wide shot', model: 'seedance' });
+  ok('duration reaches the video prompt', withDur.indexOf('Duration: 4 seconds.') !== -1);
+  ok('duration is silent when unset', noDur.indexOf('Duration:') === -1);
+  ok('duration never reaches a stills prompt',
+    PC.compileReferencePrompt('prop', 'x', {}).stills.indexOf('Duration:') === -1);
+
+  ok('seedance gets the technical block',
+    withDur.indexOf('Technical: 24fps smooth motion. 8K detail. No jitter.') !== -1);
+  ok('kling is left untouched',
+    PC.compileVideo({}, { scene: 'A wide shot', model: 'kling' }).indexOf('Technical:') === -1);
+  ok('the technical block trails the duration',
+    withDur.indexOf('Duration:') < withDur.indexOf('Technical:'));
+  ok('audio is deliberately still unspecified — remove this when the field lands',
+    withDur.toLowerCase().indexOf('audio') === -1 && withDur.toLowerCase().indexOf('sound') === -1);
+
+  // duration is a validated control, so a junk value from a plan is dropped.
+  const src = fs.readFileSync(path.join(__dirname, '..', 'src', 'store.js'), 'utf8');
+  const block = (src.split('var SHOT_CONTROLS')[1] || '').split('};')[0];
+  ok('duration is in SHOT_CONTROLS (so plans can set it and junk is dropped)',
+    block.indexOf('duration:') !== -1);
+  const offered = ((np.split('"duration": "')[1] || '').split('"')[0]).split('|').map(s => s.trim()).filter(Boolean);
+  ok('the handoff offers duration values', offered.length > 1);
+  offered.forEach(v => ok('store accepts duration=' + v, block.indexOf("'" + v + "'") !== -1));
+
+  // Project view sums what the shots actually say.
+  const pj = fs.readFileSync(path.join(__dirname, '..', 'src', 'projects.html'), 'utf8');
+  ok('project view derives runtime from the shots', pj.indexOf('durTotals') !== -1);
+  ok('project view reports shots with no length set', pj.indexOf('with no length') !== -1);
+  ok('runtime is rendered in the concept header', pj.indexOf('+ runtimeLabel +') !== -1);
 }
 
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
