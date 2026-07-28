@@ -183,16 +183,54 @@ ok('the shot no-prompts rule is scoped to shots, not references',
   ok('a plan without a prompt still imports cleanly', !!bag && bag.prompt === '');
 }
 
+// ── 4b. The decisions log must survive import ──
+// It is the record of where the plan departs from the brief — the thing the
+// user approves or rejects. Dropping it silently would be worse than not
+// asking for it.
+{
+  const pid3 = Store.createProject({ name: 'Decisions' }).id;
+  Store.scaffoldFromPlan(pid3, JSON.stringify({
+    concepts: [{ name: 'C', kind: 'video', scenes: [{ name: 'S', shots: [{ label: '1A' }] }] }],
+    decisions: [
+      { found: 'Brief asks for a sunrise and a sunset in one continuous scene',
+        action: 'left as briefed', detail: 'Built both as briefed', why: 'Intern level — not mine to resolve' },
+      { found: 'No product named anywhere', action: 'changed', detail: 'Treated the bag as hero', why: 'Nothing else could be' },
+      { notAnEntry: true }          // junk must be dropped, not imported
+    ]
+  }));
+  const p3 = Store.getProject(pid3);
+  ok('decisions import', Array.isArray(p3.decisions) && p3.decisions.length === 2);
+  ok('decision fields are kept verbatim',
+    !!p3.decisions && p3.decisions[0].action === 'left as briefed'
+    && p3.decisions[0].why === 'Intern level — not mine to resolve');
+  ok('malformed decision entries are dropped',
+    !!p3.decisions && p3.decisions.every(d => d.found));
+
+  const pid4 = Store.createProject({ name: 'No decisions' }).id;
+  Store.scaffoldFromPlan(pid4, JSON.stringify({
+    concepts: [{ name: 'C', kind: 'video', scenes: [{ name: 'S', shots: [{ label: '1A' }] }] }]
+  }));
+  ok('a plan with no decisions still imports', !!Store.getProject(pid4));
+}
+
 // ── 5. Setup questions: every option must actually change the instructions ──
 // A <select> option with no matching directive silently falls back to the
 // default — the user picks "full coverage", nothing changes, and nothing errors.
 {
+  // Every setup <select> in the panel must appear here. Discovered from the
+  // markup rather than trusted, so adding a dropdown without a directive map
+  // fails instead of silently no-opping.
   const SELECTS = {
     'setup-script': 'SCRIPT',
     'setup-shots': 'SHOTS',
     'setup-refs': 'REFS',
+    'setup-freedom': 'FREEDOM',
     'setup-type': 'TYPE'
   };
+  const inMarkup = [...np.matchAll(/<select id="(setup-[a-z]+)"/g)].map(m => m[1]);
+  inMarkup.forEach(id => ok('select "' + id + '" is covered by this test', !!SELECTS[id]));
+  ok('no stale select in the test list',
+    Object.keys(SELECTS).every(id => inMarkup.indexOf(id) !== -1));
   Object.keys(SELECTS).forEach(id => {
     const sel = np.slice(np.indexOf('id="' + id + '"'));
     const body = sel.slice(0, sel.indexOf('</select>'));
@@ -214,8 +252,19 @@ ok('the shot no-prompts rule is scoped to shots, not references',
       || np.slice(np.indexOf('id="' + id + '"') - 400, np.indexOf('id="' + id + '"')).indexOf('setupChanged') !== -1);
   });
 
-  ['scriptDirective', 'shotsDirective', 'refsDirective', 'typeDirective'].forEach(d =>
+  ['scriptDirective', 'shotsDirective', 'refsDirective', 'typeDirective', 'freedomDirective'].forEach(d =>
     ok(d + ' is interpolated into the instructions', np.indexOf('${' + d + '}') !== -1));
+
+  // Intern is literal, and that has to beat the script answer — otherwise
+  // "execute the brief literally" and "write a full script first" are both live
+  // and the agent picks whichever it read last.
+  ok('intern overrides the script directive',
+    np.indexOf("if (s.freedom === 'intern')") !== -1
+    && np.indexOf('overrides this project\\\'s script setting') !== -1);
+  ok('decisions is required at every level, not just the permissive ones',
+    np.indexOf('"decisions" IS REQUIRED AT EVERY FREEDOM LEVEL') !== -1);
+  ok('the decisions log is also asked for in the STEP 4 PDF',
+    np.indexOf('Decisions and departures from the brief') !== -1);
   ok('setupChanged handler exists', np.indexOf('setupChanged: () => {') !== -1);
   ok('readSetup falls back to defaults', np.indexOf('readSetup()') !== -1);
 }

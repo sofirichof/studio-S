@@ -1110,6 +1110,21 @@
         return { label: String(t || ''), done: false };
       }).filter(function (t) { return t.label; });
     }
+    // "decisions" — where the brief and the plan part company. Required of the
+    // planning agent at every creative-freedom level: at intern it is the list
+    // of problems found and deliberately left alone, at art director the list of
+    // departures to approve. Kept verbatim; the app never edits it.
+    if (Array.isArray(plan.decisions)) {
+      p.decisions = plan.decisions.map(function (d) {
+        if (!d || typeof d !== 'object') return null;
+        return {
+          found: String(d.found || ''),
+          action: String(d.action || ''),
+          detail: String(d.detail || ''),
+          why: String(d.why || '')
+        };
+      }).filter(function (d) { return d && d.found; });
+    }
     // A plan describes ONE concept (one deliverable) as a list of scenes. Newer
     // plans may nest several concepts; both shapes land in the same place.
     //   { concepts: [ { name, kind, scenes: [...] } ] }   ← multi-concept

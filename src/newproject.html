@@ -84,6 +84,14 @@
               <option value="all">All made — don't write any</option>
             </select>
           </label>
+          <label style="font-size:11px; color:#5A5A6B;">Creative freedom
+            <select id="setup-freedom" onchange="{{ setupChanged }}" style="width:100%; height:32px; margin-top:4px; background:#fff; border:1px solid rgba(2,23,211,0.15); border-radius:6px; padding:0 8px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:11.5px; color:#16161D; outline:none;">
+              <option value="director">Director — free on craft, not on story</option>
+              <option value="intern">Intern — execute the brief literally</option>
+              <option value="assistant">Assistant — fix clear errors only</option>
+              <option value="artdirector">Art director — may reinterpret the concept</option>
+            </select>
+          </label>
           <label style="font-size:11px; color:#5A5A6B;">Kind of job
             <select id="setup-type" onchange="{{ setupChanged }}" style="width:100%; height:32px; margin-top:4px; background:#fff; border:1px solid rgba(2,23,211,0.15); border-radius:6px; padding:0 8px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:11.5px; color:#16161D; outline:none;">
               <option value="narrative">Narrative</option>
@@ -153,6 +161,7 @@ class Component extends DCLogic {
       script: v('setup-script', 'auto'),
       shots: v('setup-shots', 'standard'),
       refs: v('setup-refs', 'none'),
+      freedom: v('setup-freedom', 'director'),
       type: v('setup-type', 'narrative')
     };
   }
@@ -196,7 +205,24 @@ class Component extends DCLogic {
       doc: 'Documentary. Favour location texture, observed behaviour and cutaways over staged action; "hero product" almost never applies.',
       social: 'Social. Front-load the hook, keep shots legible small, and assume no sound on the first watch.'
     };
-    const scriptDirective = SCRIPT[s.script] || SCRIPT.auto;
+    const FREEDOM = {
+      intern:
+        'INTERN. Execute the brief literally. You have NO licence to improve, reinterpret, tidy or "fix" anything, and this overrides every other instruction in this document that reads as an invitation to direct. Where the brief is illogical, contradictory, impossible to shoot, or simply missing something — DO NOT SOLVE IT. Record it in "decisions" with action "left as briefed" and build exactly what was asked for anyway. The list of problems you found and did not touch is a deliverable in its own right; it is the most valuable thing you produce at this level.',
+      assistant:
+        'ASSISTANT. Fix clear errors only — contradictions, continuity impossibilities, a beat the brief plainly needs and forgot. Everything else stands as briefed: you do not touch creative or story choices, tone, structure or concept, however much you would like to. Log every fix in "decisions".',
+      director:
+        'DIRECTOR. Craft is yours — coverage, camera, blocking, pacing, the shape of the shot list. The story is not: the concept, the beats and what happens stay as the brief has them. Log any craft decision that a reader of the brief would be surprised by in "decisions".',
+      artdirector:
+        'ART DIRECTOR. Full range. You may reinterpret the concept, restructure the piece, and change what happens where it genuinely serves the work — but never silently. Every departure from the brief goes in "decisions" with what the brief said, what you did instead, and why. Freedom here is freedom to propose, not freedom to hide.'
+    };
+    const freedomDirective = FREEDOM[s.freedom] || FREEDOM.director;
+    let scriptDirective = SCRIPT[s.script] || SCRIPT.auto;
+    // Intern is literal, and that beats the script answer. Stated explicitly so
+    // the agent resolves the conflict the same way every time instead of
+    // picking whichever instruction it read last.
+    if (s.freedom === 'intern') {
+      scriptDirective = 'You are set to INTERN, and that overrides this project\'s script setting. DO NOT invent a script, a treatment or a beat sheet — writing one would be inventing story the brief did not give you. Build the shot list from what the brief actually contains. If the brief has no narrative spine, that is a finding, not a gap for you to fill: record it in "decisions" as "brief has no script or story structure — shot list built from the brief\'s stated content only" and carry on.';
+    }
     const shotsDirective = SHOTS[s.shots] || SHOTS.standard;
     const refsDirective = REFS[s.refs] || REFS.none;
     const typeDirective = TYPE[s.type] || TYPE.narrative;
@@ -215,6 +241,7 @@ A video is made of scenes; a scene is made of shots. Never flatten these.
 Assets folder: ${folderPath}
 
 THE USER ANSWERED THESE AT SETUP — they override your own read of the folder:
+  • Creative freedom — ${freedomDirective}
   • Kind of job — ${typeDirective}
   • Script — ${scriptDirective}
   • Coverage — ${shotsDirective}
@@ -291,6 +318,14 @@ Exact format:
     { "kind": "location", "name": "Corner bodega", "description": "Dressing, signage, materials, light sources.", "prompt": "…filled location plate, variant A or B per the template's test…" },
     { "kind": "prop", "name": "Paper bag", "description": "Colour, condition, branding.", "prompt": "…filled prop/product sheet…" }
   ],
+  "decisions": [
+    {
+      "found": "what in the brief is illogical, contradictory, impossible to shoot, or missing — quote or paraphrase it",
+      "action": "changed | left as briefed",
+      "detail": "exactly what you did instead, or exactly what you left alone",
+      "why": "one sentence"
+    }
+  ],
   "todos": [
     "Production step, e.g. Create the character sheet for Marco",
     "Next step, e.g. Create the corner bodega location plate",
@@ -343,9 +378,11 @@ A product insert is not shot from the master's position with the master's lens: 
 
 "descriptions" is the consistency bible — the facts that must hold across every shot. Facts only.
 
+"decisions" IS REQUIRED AT EVERY FREEDOM LEVEL, and an empty array is almost always wrong. It is the record of where the brief and the plan part company. At INTERN it is the list of problems you found and deliberately did not touch — a QA report on the brief. At ART DIRECTOR it is the list of departures the user has to approve. In between it is both. One entry per issue: what you found, whether you changed it or left it, exactly what you did, and why in one sentence. Never bury a change here that you could have avoided making, and never make a change you did not record.
+
 "todos" is this project's ordered production checklist — what the USER must produce from here to delivery (which character sheets, which locations, which shots to generate, review, handoff); 4–8 items.
 
-STEP 4 — Also write the human-facing documents (breakdown, shot list, locked descriptions) as PDF in the same folder. PDF, not markdown — no .md-only deliverables.
+STEP 4 — Also write the human-facing documents (breakdown, shot list, locked descriptions) as PDF in the same folder. PDF, not markdown — no .md-only deliverables. Include the "decisions" list in the breakdown PDF as its own section titled "Decisions and departures from the brief" — the JSON copy is for the app, this one is what a producer reads and signs off.
 
 ════════════════════════════════════════
 REFERENCE SHEET TEMPLATES
