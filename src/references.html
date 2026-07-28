@@ -264,6 +264,9 @@ class Component extends DCLogic {
     const input = (id, val, ph) => '<input id="' + id + '" type="text" value="' + this.esc(val || '') + '" placeholder="' + this.esc(ph || '') + '" style="width:100%;height:36px;background:#fff;border:1px solid rgba(16,16,32,0.12);border-radius:10px;padding:0 12px;font-family:\'Host Grotesk\',system-ui;font-size:14px;color:#16161D;outline:none;" />';
     const area = (id, val, ph) => '<textarea id="' + id + '" placeholder="' + this.esc(ph || '') + '" style="width:100%;height:76px;background:#fff;border:1px solid rgba(16,16,32,0.12);border-radius:10px;padding:10px 12px;font-family:\'Host Grotesk\',system-ui;font-size:14px;color:#16161D;resize:vertical;line-height:1.5;outline:none;">' + this.esc(val || '') + '</textarea>';
     const label = (t) => '<label style="font-size:12px;font-weight:500;color:#16161D;display:block;margin-bottom:6px;">' + t + '</label>';
+    const sel = (id, val, opts) => '<select id="' + id + '" style="width:100%;height:36px;background:#fff;border:1px solid rgba(16,16,32,0.12);border-radius:10px;padding:0 10px;font-family:\'Host Grotesk\',system-ui;font-size:14px;color:#16161D;outline:none;">'
+      + (opts || []).map((o) => '<option value="' + this.esc(o.value) + '"' + (o.value === val ? ' selected' : '') + '>' + this.esc(o.label) + '</option>').join('')
+      + '</select>';
 
     if (w.step === 1) {
       stage.innerHTML =
@@ -280,7 +283,11 @@ class Component extends DCLogic {
       if (n) n.focus();
     } else if (w.step === 2) {
       stage.innerHTML = PromptCompile.fieldsFor(w.kind).map((f) =>
-        '<div>' + label(f.label) + (f.type === 'textarea' ? area('ref-f-' + f.key, w.fields[f.key], f.placeholder) : input('ref-f-' + f.key, w.fields[f.key], f.placeholder)) + '</div>'
+        '<div>' + label(f.label) + (
+          f.type === 'select' ? sel('ref-f-' + f.key, w.fields[f.key], f.options)
+            : f.type === 'textarea' ? area('ref-f-' + f.key, w.fields[f.key], f.placeholder)
+              : input('ref-f-' + f.key, w.fields[f.key], f.placeholder)
+        ) + '</div>'
       ).join('');
     } else {
       const compiled = PromptCompile.compileReferencePrompt(w.kind, w.name, w.fields);
@@ -337,6 +344,7 @@ class Component extends DCLogic {
   }
 }
 </script>
+<script src="./reftemplates.js"></script>
 <script src="./promptcompile.js"></script>
 <script src="./store.js"></script>
 <script src="./nav.js"></script>

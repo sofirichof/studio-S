@@ -357,5 +357,189 @@ ok('scene name: no em-dash means no desc', ns[2].name === 'Just a plain name' &&
     ok('scan gate accepts "' + k + '"', gate.indexOf('\\"' + k + '\\"') !== -1));
 }
 
+// ── K. Phase 1: a plan may set the camera setup per shot ──
+// Before this, every imported shot kept defaultBuilder()'s wide/24/eye/shallow,
+// so a whole shotlist compiled with one identical setup. Off-vocabulary values
+// must be dropped rather than passed through — promptcompile's DICT lookup
+// returns '' for an unknown key, which would silently delete the clause.
+{
+  reset();
+  const p = Store.createProject({ name: 'Phase1' });
+  Store.scaffoldFromPlan(p.id, JSON.stringify({
+    scenes: [{
+      name: 'Bodega, late afternoon', shots: [
+        { label: '1A', shot: 'close', lens: '85', angle: 'low', depth: 'deep', move: 'static',
+          comp: 'ml', density: 'single', framing: ['ots', 'bogus'], subject: 'Marco' },
+        { label: '1B', shot: 'nonsense', lens: '9000', angle: '', subject: 'the clerk' }
+      ]
+    }]
+  }));
+  const shots = Store.load().projects.filter(x => x.id === p.id)[0].concepts[0].scenes[0].shots;
+  const a = shots[0].builder, b = shots[1].builder;
+  ok('plan controls: shot', a.shot === 'close');
+  ok('plan controls: lens', a.lens === '85');
+  ok('plan controls: angle', a.angle === 'low');
+  ok('plan controls: depth', a.depth === 'deep');
+  ok('plan controls: move', a.move === 'static');
+  ok('plan controls: comp', a.comp === 'ml');
+  ok('plan controls: density', a.density === 'single');
+  ok('plan controls: framing whitelisted', Array.isArray(a.framing) && a.framing.length === 1 && a.framing[0] === 'ots');
+  ok('plan controls: junk shot ignored', b.shot === 'wide');
+  ok('plan controls: junk lens ignored', b.lens === '24');
+  ok('plan controls: empty angle keeps default', b.angle === 'eye');
+  ok('plan controls: descriptive fields still land', a.subject === 'Marco' && b.subject === 'the clerk');
+}
+
+// ── K2. Regression: the plan template must only offer values the store accepts ──
+// The template in newproject.html lists the allowed values inline. If either side
+// gains a value the other doesn't know, plans compile to an empty camera clause.
+{
+  const tpl = fs.readFileSync(path.join(__dirname, '..', 'src', 'newproject.html'), 'utf8');
+  const src = fs.readFileSync(path.join(__dirname, '..', 'src', 'store.js'), 'utf8');
+  const block = (src.split('var SHOT_CONTROLS')[1] || '').split('};')[0];
+  // comp / density / framing compile too, and the handoff now asks for them —
+  // so they need the same guard. `framing` lives in FRAMING_VALUES, not
+  // SHOT_CONTROLS, so it is checked against the whole store source.
+  ['shot', 'lens', 'angle', 'depth', 'move', 'comp', 'density'].forEach((k) => {
+    const line = (tpl.split('"' + k + '": "')[1] || '').split('"')[0];
+    const offered = line.split('|').map(s => s.trim()).filter(Boolean);
+    ok('template offers ' + k + ' values', offered.length > 1);
+    offered.forEach((v) =>
+      ok('store accepts ' + k + '=' + v, block.indexOf("'" + v + "'") !== -1));
+  });
+  {
+    const line = (tpl.split('"framing": "')[1] || '').split('"')[0];
+    const offered = line.split('|').map(s => s.trim()).filter(Boolean);
+    ok('template offers framing values', offered.length > 1);
+    offered.forEach((v) =>
+      ok('store accepts framing=' + v, src.indexOf("'" + v + "'") !== -1));
+  }
+}
+
+// ── K3. Shot size is size, never editorial purpose ──
+// 'wide' compiled as "wide establishing shot", so every master and final wide
+// claimed to establish geography — issue 2.3, baked into the compiler rather
+// than the planner. Purpose belongs in the shot's breakdown, not in the size.
+// This also locks shotLabelShort's keys to SHOT_CONTROLS.shot: a size the store
+// accepts but the compiler can't word would compile to a bare "A shot of…".
+{
+  const pb = fs.readFileSync(path.join(__dirname, '..', 'src', 'promptbuilder.html'), 'utf8');
+  // Just the object literal — not the surrounding comment, which is allowed to
+  // explain what the wording must NOT say.
+  const map = ((pb.split('shotLabelShort(v) {')[1] || '').split('return ({')[1] || '').split('})')[0];
+  const src = fs.readFileSync(path.join(__dirname, '..', 'src', 'store.js'), 'utf8');
+  const block = (src.split('var SHOT_CONTROLS')[1] || '').split('};')[0];
+  const sizes = ((block.split('shot:')[1] || '').split(']')[0])
+    .replace(/[[\s']/g, '').split(',').filter(Boolean);
+  ok('shot sizes: store lists 7', sizes.length === 7);
+  sizes.forEach((v) => ok('shotLabelShort words "' + v + '"', map.indexOf(v + ':') !== -1));
+  ok('shot size wording carries no editorial purpose', map.indexOf('establishing') === -1);
+}
+
+// ── L. Phase 2: per-shot continuity fields ──
+// A still is generated from one shot's fields alone, so who left the crop and
+// what the props are doing have to be written down per shot or they're gone.
+{
+  reset();
+  const p = Store.createProject({ name: 'Phase2' });
+  Store.scaffoldFromPlan(p.id, JSON.stringify({
+    scenes: [{ name: 'Bedroom, morning', shots: [
+      { label: '1A', subject: 'Traveler at the open bag',
+        offCamera: 'Runner still seated frame left; her eyeline holds toward him',
+        propState: 'weekender open on the bench, shoes already packed' },
+      { label: '1B', subject: 'the bag' }
+    ] }]
+  }));
+  const shots = Store.load().projects.filter(x => x.id === p.id)[0].concepts[0].scenes[0].shots;
+  ok('continuity: offCamera imported', shots[0].builder.offCamera.indexOf('Runner still seated') === 0);
+  ok('continuity: propState imported', shots[0].builder.propState.indexOf('weekender open') === 0);
+  ok('continuity: absent → empty string, not undefined', shots[1].builder.offCamera === '' && shots[1].builder.propState === '');
+
+  // Editable from the project view as well as the builder.
+  const ids = { projectId: p.id, conceptId: Store.load().projects.filter(x => x.id === p.id)[0].concepts[0].id };
+  const doc0 = Store.load().projects.filter(x => x.id === p.id)[0];
+  ids.sceneId = doc0.concepts[0].scenes[0].id; ids.shotId = shots[1].id;
+  Store.updateShotFields(ids, { offCamera: 'Traveler off frame right', propState: 'bag zipped' });
+  const after = Store.load().projects.filter(x => x.id === p.id)[0].concepts[0].scenes[0].shots[1].builder;
+  ok('continuity: updateShotFields accepts offCamera', after.offCamera === 'Traveler off frame right');
+  ok('continuity: updateShotFields accepts propState', after.propState === 'bag zipped');
+}
+
+// ── L2. Regression: continuity fields must persist and must compile ──
+// builderKeys() is the persistence whitelist in promptbuilder.html — a field
+// missing from it renders, accepts typing, and is silently discarded on save.
+// The compile tail must also sit AFTER the scene assembly (like `negative`), and
+// before it, so the layering is scene → refs → continuity → negative.
+{
+  const pb = fs.readFileSync(path.join(__dirname, '..', 'src', 'promptbuilder.html'), 'utf8');
+  const keys = (pb.split('builderKeys() {')[1] || '').split(']')[0];
+  ['offCamera', 'propState'].forEach((k) => {
+    ok('builderKeys persists ' + k, keys.indexOf("'" + k + "'") !== -1);
+    ok('builder renders a field for ' + k, pb.indexOf("this.textarea('" + k + "'") !== -1);
+  });
+  const body = (pb.split('compilePrompt() {')[1] || '').split('renderRail()')[0];
+  const iScene = body.indexOf('stills = pre +');
+  const iOff = body.indexOf("tail('Off camera'");
+  const iProp = body.indexOf("tail('Continuity'");
+  const iNeg = body.indexOf('has(s.negative)');
+  ok('compile: continuity tail exists', iOff !== -1 && iProp !== -1);
+  ok('compile: tail comes after the scene assembly', iOff > iScene);
+  ok('compile: off camera before prop state before negative', iOff < iProp && iProp < iNeg);
+  // The plan template must emit every field the store now imports.
+  const tpl = fs.readFileSync(path.join(__dirname, '..', 'src', 'newproject.html'), 'utf8');
+  ['offCamera', 'propState'].forEach((k) =>
+    ok('plan template emits ' + k, tpl.indexOf('"' + k + '":') !== -1));
+  // Every SHOT_FIELDS entry is editable in the project view, or a plan-imported
+  // continuity error can only be fixed by opening the builder shot by shot.
+  const pv = fs.readFileSync(path.join(__dirname, '..', 'src', 'projects.html'), 'utf8');
+  const fieldRows = (pv.split('const FIELDS = [')[1] || '').split('];')[0];
+  Store.shotFields().forEach((k) =>
+    ok('project view edits ' + k, fieldRows.indexOf("['" + k + "'") !== -1));
+}
+
+// ── M. Phase 3 step A: purpose as a real field ──
+// Purpose used to ride as prose at the head of `breakdown` ("Purpose: master. …"),
+// so it couldn't be validated or filtered. Now it's a vocabulary-checked field,
+// same shape as Phase 1's SHOT_CONTROLS: off-vocabulary values are dropped.
+{
+  const VOCAB = ['establishing', 'master', 'two-shot', 'group', 'single', 'reaction',
+    'insert', 'product detail', 'cutaway', 'location texture', 'match action',
+    'transition', 'final wide', 'hero product'];
+  ok('shotPurposes: 14 exact strings', Store.shotPurposes().length === 14);
+  ok('shotPurposes: matches vocabulary', VOCAB.every((v) => Store.shotPurposes().indexOf(v) !== -1));
+
+  reset();
+  const p = Store.createProject({ name: 'Phase3A' });
+  Store.scaffoldFromPlan(p.id, JSON.stringify({
+    scenes: [{ name: 'Bodega, afternoon', shots: [
+      { label: '1A', subject: 'Marco at the counter', purpose: 'master' },
+      { label: '1B', subject: 'The clerk', purpose: 'bogus-not-in-vocab' },
+      { label: '1C', subject: 'The bag', breakdown: 'Purpose: insert. Bag held low.' },
+      { label: '1D', subject: 'Empty aisle', breakdown: 'No purpose sentence here.' },
+      { label: '1E', subject: 'No purpose or breakdown at all' }
+    ] }]
+  }));
+  const shots = Store.load().projects.filter(x => x.id === p.id)[0].concepts[0].scenes[0].shots;
+  ok('purpose: valid sh.purpose imported', shots[0].builder.purpose === 'master');
+  ok('purpose: junk sh.purpose rejected', shots[1].builder.purpose === '');
+  ok('purpose: breakdown fallback parses "Purpose: insert."', shots[2].builder.purpose === 'insert');
+  ok('purpose: junk breakdown → empty', shots[3].builder.purpose === '');
+  ok('purpose: absent → empty string, not undefined', shots[4].builder.purpose === '');
+}
+
+// ── M2. Regression: purpose must persist, render, and round-trip with the template ──
+{
+  const pb = fs.readFileSync(path.join(__dirname, '..', 'src', 'promptbuilder.html'), 'utf8');
+  const keys = (pb.split('builderKeys() {')[1] || '').split(']')[0];
+  ok('builderKeys persists purpose', keys.indexOf("'purpose'") !== -1);
+  ok('builder renders single-select chips for purpose', pb.indexOf("this.schips('purpose'") !== -1);
+
+  const tpl = fs.readFileSync(path.join(__dirname, '..', 'src', 'newproject.html'), 'utf8');
+  ok('plan template emits "purpose"', tpl.indexOf('"purpose":') !== -1);
+
+  const pv = fs.readFileSync(path.join(__dirname, '..', 'src', 'projects.html'), 'utf8');
+  ok('project view shows purpose on the shot card', pv.indexOf('b.purpose') !== -1);
+}
+
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail ? 1 : 0);

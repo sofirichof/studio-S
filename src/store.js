@@ -63,6 +63,13 @@
       // Descriptive shot fields — model-agnostic DATA the app composes from.
       // Editable from both the builder and the project view (Phase 4 slice 2).
       subject: '', action: '', environment: '', cameraIntent: '',
+      // Editorial purpose (Phase 3) — a validated field, not prose parsed back
+      // out of breakdown. See SHOT_PURPOSES.
+      purpose: '',
+      // Continuity (Phase 2) — the two facts that break when a still is generated
+      // in isolation: who left the crop but not the room, and what the props are
+      // doing right now. Compiled as a tail, like `negative`.
+      offCamera: '', propState: '',
       look: '', notes: '', negative: '',
       prefixOverride: false,
       charRefIds: [], propRefIds: [], locRefId: null, styleRefId: null
@@ -596,7 +603,55 @@
   // Descriptive fields live IN shot.builder — the same object the builder edits,
   // so there is exactly one data model and no copy to drift. Unknown keys are
   // rejected so the project view can't quietly write composition state.
-  var SHOT_FIELDS = ['subject', 'action', 'environment', 'cameraIntent'];
+  var SHOT_FIELDS = ['subject', 'action', 'environment', 'cameraIntent', 'offCamera', 'propState'];
+
+  // Per-shot camera setup a PLAN may specify (Phase 1). Without this every
+  // imported shot kept defaultBuilder()'s wide/24mm/eye-level, so a whole
+  // shotlist compiled with one identical setup no matter what the planner
+  // decided. Values must match promptcompile's DICT (and promptbuilder's
+  // shotLabelShort/lens chips) exactly — an unknown value would compile to an
+  // empty clause, so anything off-vocabulary is IGNORED and the default stands.
+  var SHOT_CONTROLS = {
+    shot:    ['extreme', 'close', 'mcu', 'medium', 'mfull', 'wide', 'aerial'],
+    lens:    ['16', '24', '35', '50', '85'],
+    angle:   ['eye', 'low', 'high', 'dutch'],
+    depth:   ['shallow', 'layered', 'deep'],
+    move:    ['static', 'push', 'pan', 'tracking', 'handheld'],
+    comp:    ['tl', 'tc', 'tr', 'ml', 'mc', 'mr', 'bl', 'bc', 'br'],
+    density: ['single', 'few', 'crowd']
+  };
+  var FRAMING_VALUES = ['Symmetrical', 'lead', 'frame', 'Negative space', 'ots'];
+  // Phase 3 — editorial purpose as a real, validated field. Used to ride as
+  // prose at the head of `breakdown` ("Purpose: master. …"), which couldn't be
+  // validated or filtered. Off-vocabulary values are dropped, same as
+  // SHOT_CONTROLS above.
+  var SHOT_PURPOSES = ['establishing', 'master', 'two-shot', 'group', 'single',
+    'reaction', 'insert', 'product detail', 'cutaway', 'location texture',
+    'match action', 'transition', 'final wide', 'hero product'];
+  // A plan predating this field still writes "Purpose: x." at the head of
+  // breakdown — parse that clause as a fallback when sh.purpose is absent or
+  // off-vocabulary.
+  function resolveShotPurpose(sh) {
+    var v = String(sh.purpose == null ? '' : sh.purpose).trim();
+    if (v && SHOT_PURPOSES.indexOf(v) !== -1) return v;
+    var m = /^purpose:\s*([^.]+)\./i.exec(String(sh.breakdown || '').trim());
+    if (m) {
+      var parsed = m[1].trim().toLowerCase();
+      if (SHOT_PURPOSES.indexOf(parsed) !== -1) return parsed;
+    }
+    return '';
+  }
+  // Copy a plan shot's camera setup onto its builder, silently dropping junk.
+  function applyShotControls(b, sh) {
+    Object.keys(SHOT_CONTROLS).forEach(function (k) {
+      var v = String(sh[k] == null ? '' : sh[k]).trim();
+      if (v && SHOT_CONTROLS[k].indexOf(v) !== -1) b[k] = v;
+    });
+    if (Array.isArray(sh.framing)) {
+      b.framing = sh.framing.filter(function (f) { return FRAMING_VALUES.indexOf(f) !== -1; });
+    }
+    return b;
+  }
   function updateShotFields(ids, patch) {
     ids = ids || {};
     var clean = {};
@@ -1035,7 +1090,13 @@
           name: name,
           kind: d.kind || 'character',
           fields: { desc: String(d.description || d.desc || '') },
-          prompt: '',       // Claude never authors prompts; the app composes them
+          // Reference sheets are the ONE exception to "Claude never authors
+          // prompts" — the shot-prompt builder was never built to compose them,
+          // so the handoff ships the reverse-engineered templates (see
+          // src/reftemplates.js) and the plan comes back with them filled.
+          // Shot prompts are still app-composed, per model. Falls back to '' so
+          // an older plan without the field imports exactly as it used to.
+          prompt: String(d.prompt || ''),
           imagePath: ''     // nothing generated yet — the breakdown flags this
         });
       });
@@ -1107,6 +1168,15 @@
           b.action = String(sh.action || '');
           b.environment = String(sh.environment || '');
           b.cameraIntent = String(sh.cameraIntent || sh.camera || '');
+          b.offCamera = String(sh.offCamera || '');
+          b.propState = String(sh.propState || '');
+          // `negative` compiles as an "Avoid: …" tail on both stills and video,
+          // but nothing used to import it — a plan could not set it. The handoff
+          // now asks for it, so accept it here or the ask is a silent no-op.
+          b.negative = String(sh.negative || '');
+          b.purpose = resolveShotPurpose(sh);
+          // Camera setup, when the plan chose one — otherwise the defaults hold.
+          applyShotControls(b, sh);
           return {
             id: newId('shot'),
             name: sh.name || sh.title || '',
@@ -1149,6 +1219,7 @@
     removeConcept: removeConcept, removeScene: removeScene, removeShot: removeShot,
     reorderConcept: reorderConcept, reorderScene: reorderScene, reorderShot: reorderShot,
     updateShotFields: updateShotFields, shotFields: function () { return SHOT_FIELDS.slice(); },
+    shotPurposes: function () { return SHOT_PURPOSES.slice(); },
     lockShotPrompt: lockShotPrompt, unlockShotPrompt: unlockShotPrompt,
     // deliverables
     listDeliverables: listDeliverables, getDeliverable: getDeliverable,

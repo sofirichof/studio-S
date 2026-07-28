@@ -35,6 +35,13 @@ functions (an Anthropic API proxy that keeps the key server-side, a plan-file sc
 lives in `src/`, not here — don't reach for Rust changes unless the task is actually about one
 of these three commands or Tauri config.
 
+**The app makes no runtime AI calls yet.** That Anthropic proxy (`anthropic_messages`) is
+inherited from the 3.5 baseline and nothing in `src/` calls it. Studio S composes prompts; the
+human runs them elsewhere (Claude Desktop for planning, generators by hand). Wiring the proxy up
+is on the roadmap but deliberately not now — it's a bigger decision than a task step. If a task's
+design needs a live model call, stop and confirm before designing it, even when a handoff doc
+schedules it.
+
 Build/run commands (from `package.json`): `npm run dev` (tauri dev), `npm run tauri build`
 (release build), `npm run ship` (full build + copy to `~/Applications` + installer to Desktop —
 only run this when actually cutting a release, not to verify a change compiles).

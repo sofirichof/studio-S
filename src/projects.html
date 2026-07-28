@@ -313,6 +313,10 @@ class Component extends DCLogic {
       ['subject', 'Subject', 'who or what is in frame'],
       ['action', 'Action', 'what happens in the shot'],
       ['environment', 'Environment', 'where it is, and its dressing'],
+      // Continuity (Phase 2) — reviewable here, where the whole shot list is in
+      // view and a prop state that regresses between shots is actually visible.
+      ['offCamera', 'Off camera', 'who is outside the frame, where, and the eyeline toward them'],
+      ['propState', 'Prop state', 'what is open, packed, worn or held right now'],
       ['cameraIntent', 'Camera intent', 'e.g. low 35mm slow dolly-in as she realizes']
     ];
 
@@ -359,6 +363,9 @@ class Component extends DCLogic {
           '<div style="display:flex;align-items:center;gap:6px;padding:3px 0;">' +
             iBtn('data-shot-open="' + s.id + '"', open ? 'Collapse shot' : 'Expand shot', open ? '&#x25BE;' : '&#x25B8;') +
             '<span style="font-size:10px;font-weight:500;color:#0217D3;background:#EEF0FF;border-radius:5px;padding:2px 6px;flex-shrink:0;">' + esc(s.label || '—') + '</span>' +
+            // Editorial purpose (Phase 3) — set from the builder's chips, shown
+            // here read-only so a shot list reads its own coverage at a glance.
+            (b.purpose ? '<span style="font-size:10px;font-weight:500;color:#5A5A6B;background:#F0F1F4;border-radius:999px;padding:1px 7px;flex-shrink:0;">' + esc(b.purpose) + '</span>' : '') +
             nameInput('data-shot-name="' + c.id + '|' + sceneObj.id + '|' + s.id + '"', String(s.name || '').replace(/^\s*\d+[A-Za-z]+\s*[·\-—:]\s*/, ''), 'Name this beat — e.g. Man enters the bodega') +
             (s.locked && s.locked.prompt ? '<span title="Prompt locked" style="flex-shrink:0;display:flex;">' + lockIco + '</span>' : '') +
             '<span style="font-size:10px;font-weight:500;color:#9A9AA8;background:#F0F1F4;border-radius:999px;padding:1px 7px;flex-shrink:0;">' + esc(s.status || 'draft') + '</span>' +

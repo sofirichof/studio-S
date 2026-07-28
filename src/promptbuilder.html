@@ -201,7 +201,7 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1440, &quot;height&quot;: 900}}">
 class Component extends DCLogic {
-  state = { step: 1, reviewStage: 'stills', cameraIntent: '', stillModel: 'gpt', videoModel: 'kling', density: 'few', lookMode: 'dp', camMode: 'specific', dp: 'deakins', comp: 'mc', shot: 'wide', angle: 'eye', lens: '24', move: 'push', depth: 'shallow', framing: [], previewView: 'front', pinned: true, charRefIds: [], propRefIds: [], locRefId: null, styleRefId: null, atTags: true };
+  state = { step: 1, reviewStage: 'stills', cameraIntent: '', offCamera: '', propState: '', purpose: '', stillModel: 'gpt', videoModel: 'kling', density: 'few', lookMode: 'dp', camMode: 'specific', dp: 'deakins', comp: 'mc', shot: 'wide', angle: 'eye', lens: '24', move: 'push', depth: 'shallow', framing: [], previewView: 'front', pinned: true, charRefIds: [], propRefIds: [], locRefId: null, styleRefId: null, atTags: true };
 
   compLabel(id) {
     return { tl:'Top left', tc:'Top centre', tr:'Top right', ml:'Left third', mc:'Centre', mr:'Right third', bl:'Bottom left', bc:'Bottom centre', br:'Bottom right' }[id] || 'Centre';
@@ -453,7 +453,7 @@ class Component extends DCLogic {
   }
 
   builderKeys() {
-    return ['stillModel','videoModel','density','lookMode','camMode','dp','comp','shot','angle','lens','move','depth','framing','prefixOverride','subject','action','environment','cameraIntent','negative','charRefIds','propRefIds','locRefId','styleRefId','atTags','chips'];
+    return ['stillModel','videoModel','density','lookMode','camMode','dp','comp','shot','angle','lens','move','depth','framing','prefixOverride','subject','action','environment','cameraIntent','offCamera','propState','purpose','negative','charRefIds','propRefIds','locRefId','styleRefId','atTags','chips'];
   }
 
   seedFromActive() {
@@ -493,7 +493,11 @@ class Component extends DCLogic {
   }
 
   shotLabelShort(v) {
-    return ({ extreme:'extreme close-up', close:'close-up', mcu:'medium close-up', medium:'medium shot', mfull:'medium-full shot', wide:'wide establishing shot', aerial:'aerial shot' })[v] || 'shot';
+    // SIZE ONLY — never editorial purpose. 'wide' used to compile as "wide
+    // establishing shot", so every master, group shot and final wide claimed to
+    // establish geography it had already established. Purpose is a separate
+    // field (it rides at the head of the shot's breakdown); framing is this.
+    return ({ extreme:'extreme close-up', close:'close-up', mcu:'medium close-up', medium:'medium shot', mfull:'medium-full shot', wide:'wide shot', aerial:'aerial shot' })[v] || 'shot';
   }
 
   // HTML-escape helper (shared by the rail and the Review card).
@@ -574,6 +578,19 @@ class Component extends DCLogic {
       const refs = ids.filter(Boolean).map((id) => Store.getReference(id)).filter(Boolean);
       compiled = PromptCompile.weaveReferences(compiled, refs, { atTags: this.usesAtTags(), videoRefMode: PromptCompile.videoRefMode(s.videoModel) });
     }
+    // Continuity tail (Phase 2). Appended like `negative` — never woven into the
+    // scene clause-join above, which stays exactly as it compiled before. Order
+    // follows the brief's layering: scene, references, off-camera continuity,
+    // prop state, then negative constraints. Both stages get it: prop state
+    // during a move matters as much as at the frozen instant.
+    const tail = (label, v) => {
+      if (!has(v)) return;
+      const clause = ' ' + label + ': ' + String(v).trim().replace(/\.$/, '') + '.';
+      if (has(compiled.stills)) compiled.stills += clause;
+      if (has(compiled.video)) compiled.video += clause;
+    };
+    tail('Off camera', s.offCamera);
+    tail('Continuity', s.propState);
     // The negative field promises "applies to both stages" — honor it as a
     // prose tail (no model exposes a negative_prompt param; see RESEARCH-LOG).
     if (has(s.negative)) {
@@ -599,6 +616,7 @@ class Component extends DCLogic {
       { ok: has(s.subject) && s.subject.trim().length > 24, label: 'Subject detailed' },
       { ok: has(s.action), label: 'Action / beat set' },
       { ok: has(s.environment), label: 'Environment set' },
+      { ok: has(s.offCamera) || has(s.propState), label: 'Continuity recorded' },
       { ok: !!(s.framing && s.framing.length), label: 'Framing chosen' },
       { ok: has(s.prefixOverride), label: 'Style / look set' },
       { ok: has(s.negative), label: 'Negative prompt' }
@@ -989,6 +1007,10 @@ class Component extends DCLogic {
       }
       return this.eyebrow('Prompt · Subject') +
         this.head('What\u2019s in the shot?', 'Describe the main subject. Be specific \u2014 who or what, how many, and what they\u2019re doing.') +
+        // Editorial purpose (Phase 3) — a validated field, not prose parsed back
+        // out of breakdown. Decided first: it shapes what subject/action need to
+        // carry (a reaction needs less blocking than a master).
+        this.field('Shot purpose', this.schips('purpose', [{val:'establishing',label:'Establishing'},{val:'master',label:'Master'},{val:'two-shot',label:'Two-shot'},{val:'group',label:'Group'},{val:'single',label:'Single'},{val:'reaction',label:'Reaction'},{val:'insert',label:'Insert'},{val:'product detail',label:'Product detail'},{val:'cutaway',label:'Cutaway'},{val:'location texture',label:'Location texture'},{val:'match action',label:'Match action'},{val:'transition',label:'Transition'},{val:'final wide',label:'Final wide'},{val:'hero product',label:'Hero product'}]), 'What this shot does editorially in the cut. "Establishing" is only for introducing or re-establishing geography — a wide later in the scene is a master, group shot, or final wide.') +
         this.field('Subject description', this.textarea('subject', this.state.subject, 'Who or what is in the shot — be specific. e.g. A lone commuter crossing a downtown intersection at dawn.'), 'The clearer the subject, the more consistent your stills.') +
         this.field('What happens in the shot', this.textarea('action', this.state.action, 'The beat across the clip — subject motion, separate from the camera. e.g. She pours the coffee, then looks up as the door opens.'), 'The video prompt is composed from this. Movement of the camera is set later, in Camera.') +
         this.field('Subject type', this.chips('type', [{label:'People'},{label:'Product'},{label:'Architecture'},{label:'Landscape'},{label:'Vehicle'},{label:'Abstract'}]), '') +
@@ -1000,6 +1022,11 @@ class Component extends DCLogic {
       return this.eyebrow('Prompt · Environment') +
         this.head('Set the scene', 'Where and when does this take place? Environment and light shape the whole frame.') +
         this.field('Location', this.textarea('environment', this.state.environment, 'Where and when — e.g. A modern downtown intersection, glass storefronts, wide sidewalks.'), '') +
+        // Continuity (Phase 2). The image model generates this shot alone and has
+        // never seen the others, so anything not written here is gone — including
+        // people who left the crop but not the room.
+        this.field('Off camera', this.textarea('offCamera', this.state.offCamera, 'Who is just outside the frame and where, and how the subject is oriented toward them — e.g. Runner still seated frame left; her shoulders and eyeline hold toward him.'), 'Shapes the pose and eyeline of who IS in frame, so the coverage cuts together.') +
+        this.field('Prop state', this.textarea('propState', this.state.propState, 'What each prop is doing right now — e.g. weekender open on the bench, black outfit and shoes already packed, rain shell across the top layer.'), 'What is open, closed, packed, worn or held — and in which hand.') +
         this.field('Time of day', this.phraseChips('tod'), '') +
         this.field('Lighting', this.phraseChips('light', true), 'Pick all that apply.') +
         this.field('Location reference &nbsp;<span style="font-weight:400;color:#9A9AA8;">optional</span>', this.attachRef('Lock a recurring location', 'locRefId', ['location'], false), 'Keeps the same space consistent across shots.');
@@ -1373,6 +1400,7 @@ class Component extends DCLogic {
   }
 }
 </script>
+<script src="./reftemplates.js"></script>
 <script src="./promptcompile.js"></script>
 <script src="./store.js"></script>
 <script src="./nav.js"></script>

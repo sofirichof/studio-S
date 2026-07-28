@@ -60,6 +60,39 @@
       <div id="plan-instructions-panel" style="display:none; background:#EEF0FF; border:1px solid rgba(2,23,211,0.15); border-radius:12px; padding:20px; margin-bottom:16px;">
         <p style="font-size:12px; font-weight:500; color:#0217D3; margin-bottom:4px;"><span style="display:inline-flex; width:18px; height:18px; background:#0217D3; border-radius:50%; align-items:center; justify-content:center; margin-right:6px; font-size:10px; color:#fff; font-weight:500; vertical-align:middle;">2</span>Send to Claude</p>
         <p style="font-size:12px; color:#5A5A6B; margin-bottom:14px; line-height:1.5;">Copy these instructions and paste them into Claude.ai or Claude Code. Claude will read your folder and write the production plan.</p>
+        <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:14px;">
+          <label style="font-size:11px; color:#5A5A6B;">Script
+            <select id="setup-script" onchange="{{ setupChanged }}" style="width:100%; height:32px; margin-top:4px; background:#fff; border:1px solid rgba(2,23,211,0.15); border-radius:6px; padding:0 8px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:11.5px; color:#16161D; outline:none;">
+              <option value="auto">Let Claude decide from the folder</option>
+              <option value="script">There's a script or treatment in the folder</option>
+              <option value="write-script">No script — write a full script first</option>
+              <option value="write-beats">No script — write a beat sheet first</option>
+              <option value="shots-only">No script — go straight to shots</option>
+            </select>
+          </label>
+          <label style="font-size:11px; color:#5A5A6B;">Coverage
+            <select id="setup-shots" onchange="{{ setupChanged }}" style="width:100%; height:32px; margin-top:4px; background:#fff; border:1px solid rgba(2,23,211,0.15); border-radius:6px; padding:0 8px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:11.5px; color:#16161D; outline:none;">
+              <option value="standard">Standard — 3–8 shots per scene</option>
+              <option value="tight">Tight — 2–4 shots per scene</option>
+              <option value="full">Full coverage — 6–12 shots per scene</option>
+            </select>
+          </label>
+          <label style="font-size:11px; color:#5A5A6B;">Reference sheets
+            <select id="setup-refs" onchange="{{ setupChanged }}" style="width:100%; height:32px; margin-top:4px; background:#fff; border:1px solid rgba(2,23,211,0.15); border-radius:6px; padding:0 8px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:11.5px; color:#16161D; outline:none;">
+              <option value="none">None made yet — write them all</option>
+              <option value="some">Some exist — write only what's missing</option>
+              <option value="all">All made — don't write any</option>
+            </select>
+          </label>
+          <label style="font-size:11px; color:#5A5A6B;">Kind of job
+            <select id="setup-type" onchange="{{ setupChanged }}" style="width:100%; height:32px; margin-top:4px; background:#fff; border:1px solid rgba(2,23,211,0.15); border-radius:6px; padding:0 8px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:11.5px; color:#16161D; outline:none;">
+              <option value="narrative">Narrative</option>
+              <option value="commercial">Product / commercial</option>
+              <option value="doc">Documentary</option>
+              <option value="social">Social</option>
+            </select>
+          </label>
+        </div>
         <div style="position:relative;">
           <textarea id="plan-instructions-text" readonly style="width:100%; height:110px; background:#fff; border:1px solid rgba(2,23,211,0.15); border-radius:8px; padding:12px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:11.5px; color:#5A5A6B; line-height:1.55; resize:none; outline:none; cursor:text;"></textarea>
           <button onclick="{{ copyInstructions }}" id="copy-instructions-btn" style="position:absolute; top:8px; right:8px; height:28px; padding:0 12px; background:#0217D3; border:none; border-radius:6px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:11px; font-weight:500; color:#fff; cursor:pointer; display:flex; align-items:center; gap:5px;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
@@ -113,7 +146,60 @@ class Component extends DCLogic {
   }
 
 
-  buildClaudeInstructions(folderPath) {
+  // The four setup answers from the panel above the instructions textarea.
+  readSetup() {
+    const v = (id, d) => { const el = document.getElementById(id); return (el && el.value) || d; };
+    return {
+      script: v('setup-script', 'auto'),
+      shots: v('setup-shots', 'standard'),
+      refs: v('setup-refs', 'none'),
+      type: v('setup-type', 'narrative')
+    };
+  }
+
+  buildClaudeInstructions(folderPath, setup) {
+    // The planning agent runs against the user's OWN project folder, which will
+    // never contain the reference-sheet research doc — and the app has no
+    // filesystem write command to put it there. So the templates ship in
+    // src/reftemplates.js and travel inside the pasted instructions.
+    const refTemplates = (window.RefTemplates && window.RefTemplates.all())
+      || '(reference templates unavailable — reftemplates.js failed to load)';
+    // Setup answers vary the instructions. Not persisted — the panel only
+    // exists during project creation, so re-answering is the way back.
+    const s = setup || this.readSetup();
+    const SCRIPT = {
+      auto:
+        '▸ IF THERE IS A SCRIPT (or treatment / scene breakdown): work from it. Don\'t transcribe it into beats — you are going to block, light and pace it.\n'
+        + '▸ IF THERE IS NO SCRIPT (brief only): WRITE ONE FIRST. Derive the concepts the brief calls for, then for each concept write the script — the scenes in order, what actually happens in each, who speaks and what they say — BEFORE you break anything into shots. Include it in the STEP 4 documents.',
+      script:
+        'The user says there IS a script, treatment or scene breakdown in the folder. Find it and work from it. Don\'t transcribe it into beats — block, light and pace it. If you genuinely cannot find one, stop and say so rather than inventing a shot list on top of nothing.',
+      'write-script':
+        'The user says there is NO script, and wants one written. Derive the concepts the brief calls for (e.g. "Hero film", "Lifestyle cutdown"), then for each concept WRITE THE FULL SCRIPT — the scenes in order, what actually happens in each, who speaks and what they say — BEFORE you break anything into shots. Include it in the STEP 4 documents. Do not skip this and go straight to a shot list.',
+      'write-beats':
+        'The user says there is NO script, and wants a beat sheet rather than a full script. For each concept write the beats in order — what each beat is FOR and what changes in it, no dialogue — BEFORE you break anything into shots. Include it in the STEP 4 documents.',
+      'shots-only':
+        'The user has chosen to SKIP the script stage. Derive the concepts from the brief and go straight to scenes and shots. Be aware this is the most reliable way to end up with an action-dominated sequence that cuts badly — lean hard on COVERAGE IS NOT ALL ACTION below, and earn your inserts and reactions deliberately.'
+    };
+    const SHOTS = {
+      standard: 'Give each scene 3–8 specific shots unless the material genuinely needs more.',
+      tight: 'Keep it TIGHT — 2–4 shots per scene. Cut anything not carrying story, product or continuity; the user wants the short version.',
+      full: 'FULL COVERAGE — 6–12 shots per scene. More angles, more inserts, more editorial options; the user would rather cut something down than find it missing.'
+    };
+    const REFS = {
+      none: 'The user has NO reference sheets made yet. Write a filled sheet into "prompt" for every entry in "descriptions".',
+      some: 'The user has SOME reference sheets already. Check the folder for an existing reference image per character, location and prop before writing a sheet — write "prompt" only for the ones you find nothing for, and leave it as an empty string for the rest. Note in "todos" which ones you assumed already exist.',
+      all: 'The user already has ALL reference sheets. Still list every character, location and prop in "descriptions" with its facts, but leave "prompt" as an empty string on all of them — do not write reference sheets.'
+    };
+    const TYPE = {
+      narrative: 'Narrative. Performance, blocking and eyelines carry it; earn reactions and let beats breathe.',
+      commercial: 'Product / commercial. The product has to read — protect product detail and hero product shots, and keep material and finish legible in every insert.',
+      doc: 'Documentary. Favour location texture, observed behaviour and cutaways over staged action; "hero product" almost never applies.',
+      social: 'Social. Front-load the hook, keep shots legible small, and assume no sound on the first watch.'
+    };
+    const scriptDirective = SCRIPT[s.script] || SCRIPT.auto;
+    const shotsDirective = SHOTS[s.shots] || SHOTS.standard;
+    const refsDirective = REFS[s.refs] || REFS.none;
+    const typeDirective = TYPE[s.type] || TYPE.narrative;
     // SETUP ONLY. Studio S is the prompt generator — it composes every generation
     // prompt itself, per model, from the fields below. If this instruction ever
     // asks for prompt text again, it has re-broken the thing Phase 4 fixed.
@@ -128,23 +214,32 @@ A video is made of scenes; a scene is made of shots. Never flatten these.
 
 Assets folder: ${folderPath}
 
-DO NOT WRITE GENERATION PROMPTS. Studio S composes every image and video prompt itself, tailored per model. Your job is the facts and the plan — never prompt text, never per-tool phrasing, never camera syntax for a specific generator. A shot "name" is a short human beat, not a paragraph.
+THE USER ANSWERED THESE AT SETUP — they override your own read of the folder:
+  • Kind of job — ${typeDirective}
+  • Script — ${scriptDirective}
+  • Coverage — ${shotsDirective}
+  • Reference sheets — ${refsDirective}
+
+DO NOT WRITE GENERATION PROMPTS FOR SHOTS. Studio S composes every image and video SHOT prompt itself, tailored per model. For shots your job is the facts and the plan — never prompt text, never per-tool phrasing, never camera syntax for a specific generator. A shot "name" is a short human beat, not a paragraph.
+
+THE ONE EXCEPTION IS REFERENCE SHEETS. Character, prop/product and location reference sheets ARE written by you, as finished prompt text, in the "prompt" field of each entry in "descriptions". Studio S does not compose those — the shot-prompt builder was never built to produce them. Use the templates in REFERENCE SHEET TEMPLATES at the end of these instructions, verbatim, filling every bracket. This exception covers reference sheets and nothing else.
 
 STEP 1 — Read everything in the folder: brief, storyboard, references, mood boards, and especially any SCRIPT, treatment, or scene breakdown.
 
 STEP 2 — Work out the concepts first: what separate deliverables does the brief actually ask for? Then build each concept out, scene by scene, shot by shot.
 
-▸ IF THERE IS A SCRIPT (or treatment / scene breakdown):
-Act as a shotlist director — this is cinema, not a clip. Don't transcribe the script into beats; block, light, and pace it. For each scene:
-  • Block the mise-en-scène — where each character stands/moves, geo-spatial position, what hands are doing.
+STEP 2A — GET A SCRIPT UNDER IT.
+${scriptDirective}
+
+STEP 2B — DIRECT IT. Whether the script arrived in the folder or you just wrote it, every scene now gets the same treatment. Act as a shotlist director — this is cinema, not a clip. For each scene:
+  • Block the mise-en-scène FIRST — fix where every character stands, sits and moves, which way each one faces, and what their hands are doing. Do this for the whole scene before writing a single shot: the shots are coverage OF the blocking, not a substitute for it.
   • Pace dramatically — give heavy moments their own shots; compress action into short ones.
   • Direct the acting specifically — not "she looks sad" but "eyes drop, jaw tightens, swallows once before answering."
-  • Motivate the camera — what the move is FOR ("low 35mm slow dolly-in as she realizes"). Intent, not generator syntax.
-  • Hold continuity in your head — character state, wardrobe, props, emotional carry across shots.
-Split a long scene into multiple shots. Record that craft in the four descriptive FIELDS below, not in the shot name.
-
-▸ IF THERE IS NO SCRIPT (brief only):
-Derive the concepts from the brief — the distinct deliverables it calls for (e.g. "Hero film", "Lifestyle cutdown", "Testimonial"). Give each concept its own scenes, and each scene 3–8 specific shots.
+  • Motivate the camera — every setup answers "what is this shot FOR", and you write that answer down in "cameraIntent" BEFORE you pick shot/lens/angle/depth. Reasoning first, values second: a justification written after the fact just defends whatever you already chose. See WHAT EACH CONTROL ACTUALLY DOES below.
+  • Write continuity DOWN — do not hold it in your head. Each shot is generated in isolation from its own fields alone, by a model that cannot see the other shots. Everything that must stay true is restated in THIS shot: who is in frame (subject), what they are doing at the instant (action), the anchors that fix the crop in the room (environment), who is outside the crop and where (offCamera), and the state of every prop that matters (propState). One fact, one field — see FIELD OWNERSHIP below.
+  • Do NOT invent geometry you cannot support. If the folder holds location references, state only what they actually show, and mark anything you are proposing rather than reading as "(inferred)". With no reference you may define the space — but once defined it is fixed, and every later shot must agree with it. Never assert a room dimension, an unseen boundary, or an exact distance from a single photograph.
+  • Vary the coverage — a scene built only from people doing things cuts badly. Earn reactions, inserts, product details, location texture, empty-frame transitions.
+Split a long scene into multiple shots. Record that craft in the descriptive FIELDS below, not in the shot name. ${shotsDirective}
 
 STEP 3 — Write the plan as JSON to: ${folderPath}/studio-s-plan.json
 
@@ -161,11 +256,23 @@ Exact format:
         {
           "label": "1A",
           "name": "1A · Man enters the bodega",
-          "subject": "who or what is in frame, with continuity anchors",
-          "action": "what happens across the shot — subject motion only",
-          "environment": "where it is, the time of day, how it's dressed",
-          "cameraIntent": "the move and WHY — e.g. low 35mm slow dolly-in as he hesitates",
-          "breakdown": "what this shot needs on the day: which characters, location, props, any VFX or continuity note"
+          "subject": "WHO AND WHAT IS PHYSICALLY IN THIS FRAME — identity and appearance anchors only. Never anyone outside the crop (that is offCamera) and never what they are doing (that is action) — e.g. 'Marco, mid-30s, charcoal work jacket over a washed tee, three-day stubble; the counter and its register'",
+          "action": "ONE frozen instant — the single photographable moment, never a sequence — including the body at that instant: posture, weight, hands, where the eyes go — e.g. 'the paper bag held out toward her, hands not yet touching, weight back on one foot, shoulders squared to the counter'",
+          "environment": "place, time of day, and the spatial anchors this crop needs to match its neighbours. Mark anything you are proposing rather than reading off a reference as (inferred) — e.g. 'corner bodega interior, late afternoon, counter frame right, fridge wall behind him, street door standing open frame left (inferred)'",
+          "purpose": "this shot's editorial role, from this list ONLY — establishing | master | two-shot | group | single | reaction | insert | product detail | cutaway | location texture | match action | transition | final wide | hero product",
+          "offCamera": "SOLE OWNER of everyone outside this crop: where each one is, which way they face, whose eyeline they hold, and whether they have moved since the previous shot. Never repeat any of this in subject. Write 'none' if the frame genuinely holds everyone — e.g. 'the clerk still behind the counter off frame right, facing him, eyeline holding on him; unmoved since 1A'",
+          "propState": "every prop that matters, as BEFORE / DURING / AFTER this instant, carried forward from the previous shot so state never regresses — e.g. 'before: bag full, low in his right hand. during: bag extended between them, still full. after: bag released, her right hand on the handles'",
+          "cameraIntent": "WRITE THIS BEFORE YOU CHOOSE THE SETUP BELOW, not after. What is this shot FOR, and what does that require of the camera — then what would be lost if you shot it the obvious default way instead. Two sentences. This is never compiled into any prompt and the audience may never read it; it exists to stop you picking values to fill fields — e.g. 'Her decision lands here, so the frame has to isolate her and drop the room: tight single, long lens, shallow. Shot at the master's wide 24mm it reads as another piece of coverage and the beat disappears.'",
+          "shot": "extreme | close | mcu | medium | mfull | wide | aerial",
+          "lens": "16 | 24 | 35 | 50 | 85",
+          "angle": "eye | low | high | dutch",
+          "depth": "shallow | layered | deep",
+          "move": "static | push | pan | tracking | handheld",
+          "comp": "tl | tc | tr | ml | mc | mr | bl | bc | br",
+          "density": "single | few | crowd",
+          "framing": "Symmetrical | lead | frame | Negative space | ots",
+          "negative": "what THIS shot must avoid, comma-separated — e.g. 'a second bag, visible crew, modern signage'",
+          "breakdown": "PURPOSE first, then what the shot needs — e.g. 'Purpose: master. Marco + clerk, bodega interior, paper bag. Continuity: bag still full, street door left open behind him.'"
         },
         { "label": "1B", "name": "1B · Hand on the door handle" }
       ]
@@ -178,10 +285,11 @@ Exact format:
     {
       "kind": "character",
       "name": "Marco (lead)",
-      "description": "FACTS ONLY — face, build, hair, wardrobe, continuity anchors. No prompt phrasing, no camera, no style."
+      "description": "FACTS ONLY — face, build, hair, wardrobe, continuity anchors. No prompt phrasing, no camera, no style.",
+      "prompt": "THE FILLED REFERENCE SHEET — see REFERENCE SHEET TEMPLATES at the end. Use the template for this kind verbatim, fill every [BRACKET] from the facts above, delete the (opt) lines you don't use, and leave no 'A or B' hedge. This is the one place you write finished prompt text."
     },
-    { "kind": "location", "name": "Corner bodega", "description": "Dressing, signage, materials, light sources." },
-    { "kind": "prop", "name": "Paper bag", "description": "Colour, condition, branding." }
+    { "kind": "location", "name": "Corner bodega", "description": "Dressing, signage, materials, light sources.", "prompt": "…filled location plate, variant A or B per the template's test…" },
+    { "kind": "prop", "name": "Paper bag", "description": "Colour, condition, branding.", "prompt": "…filled prop/product sheet…" }
   ],
   "todos": [
     "Production step, e.g. Create the character sheet for Marco",
@@ -198,13 +306,56 @@ LABELS ARE REQUIRED: every shot carries a "label" — the scene number plus a se
 
 ONE CONCEPT PER DELIVERABLE: don't put two videos' scenes in one concept, and don't split one video across two concepts. "kind" is "video" or "still".
 
-FIELDS ARE DATA, NOT PROSE TO BE PASTED: subject / action / environment / cameraIntent are model-agnostic facts. Studio S turns them into prompts for whichever model the user picks. Keep each to a phrase or two.
+FIELDS ARE DATA, NOT PROSE TO BE PASTED: subject / action / environment / offCamera / propState / negative are model-agnostic facts. Studio S turns them into prompts for whichever model the user picks. Facts, never prompt phrasing — but do not clip them short: together they must carry every continuity fact the shot needs in order to stand alone.
+
+FIELD OWNERSHIP — ONE FACT, ONE FIELD: these five overlap in the obvious reading, so the boundaries are strict. Putting a fact in two fields duplicates it in the compiled prompt; putting it in none loses it.
+  • subject — bodies and objects INSIDE the frame, and what they look like. Identity, wardrobe, distinguishing features.
+  • action — what is happening at the one frozen instant, including posture, weight, hands and gaze. If it could change between two adjacent shots, it belongs here, not in subject.
+  • environment — the place and the spatial anchors. Where things are, not who.
+  • offCamera — everyone OUTSIDE the frame. Nothing about them appears in subject.
+  • propState — the handled objects and their state across the cut.
+A quick test: if the same sentence would be true of the next shot too, it is probably subject or environment. If it is only true at this instant, it is action or propState. If it concerns someone you cannot see, it is offCamera.
+
+ONE FROZEN INSTANT PER SHOT: a still shows one moment. "She steps forward, raises the jacket, hands it over, and he packs it" is four shots, not one — asked as one it produces a vague midpoint that reads as none of them, with unclear poses and duplicated limbs. Choose the photographable instant: just before the handoff, the object held between them, the object half inside the bag, the hand resting on the zipper, the body caught at the landing position. When the separate beats matter, split them into separate shots.
+
+CONTINUITY IS RESTATED, NOT REFERRED TO: "same bedroom", "same locked geography", "as established" tell the image model nothing — it never saw the previous shot. Name the anchors instead, in this shot's own environment: "bed frame left, window behind the candidates, bag open on the bench". Two fields exist for the rest, and every shot with other people or handled props in it fills them:
+  • "offCamera" — a character who leaves the crop has NOT left the room. Say where they now are and how the subject is oriented toward them; that is what holds eyelines and screen direction together across a cut.
+  • "propState" — what is open, closed, packed, empty, folded, worn, held, and in which hand, written as BEFORE / DURING / AFTER this instant. Carry it forward shot to shot so the state never regresses: a bag that gained an item does not lose it in the next shot, and this shot's "after" is the next shot's "before".
+
+SHOT PURPOSE, NOT JUST SIZE: every shot carries its editorial purpose in the "purpose" field, chosen from this list only — establishing, master, two-shot, group, single, reaction, insert, product detail, cutaway, location texture, match action, transition, final wide, hero product. (If you're writing to an older template without a "purpose" field, open the breakdown with "Purpose: x." instead — the app still reads it from there.) Use "establishing" ONLY where the shot introduces a location or re-establishes geography after a real change. It is not a synonym for "wide": a wide later in the same scene is a master, a group shot, a reset, a wide reaction, or a final wide.
+
+COVERAGE IS NOT ALL ACTION: a run of people doing things, back to back, leaves the edit no room to breathe and nothing to cut away to. For every stretch of action, earn at least one reaction, insert, product detail, location texture, empty-frame transition, or match-action bridge — and each one must carry story, product information, emotion, spatial orientation, or continuity evidence. Never decoration.
+
+CHOOSE THE SETUP PER SHOT: shot / lens / angle / depth / comp / density / framing / move are real fields compiled straight into the prompt — pick each one deliberately, from the listed values ONLY (anything else is discarded and the shot falls back to a wide 24mm eye-level default). Every value is a decision with a visible consequence, so choose it because THIS shot needs it. Never fill a field to fill it, and never carry the previous shot's setup forward by default.
+
+WHAT EACH CONTROL ACTUALLY DOES:
+  • shot — how much of the subject the frame holds. extreme/close read emotion and detail and destroy geography; mcu/medium read performance; mfull/wide read behaviour and space; aerial reads scale and pattern.
+  • lens — 16/24 exaggerate depth, bend verticals, put the viewer inside the space and make rooms feel bigger; 35 is neutral reportage; 50 reads closest to the eye; 85 compresses, flattens the background and isolates the subject. A product insert and a location master should almost never share a lens.
+  • angle — eye is neutral and invisible; low grants stature, threat or heroism; high diminishes, exposes or surveys; dutch destabilises. Use dutch rarely, or it reads as an error rather than a choice.
+  • depth — shallow isolates the subject but throws away the room; layered keeps foreground, mid and background all legible; deep holds the whole space sharp. If the shot's job is spatial or continuity evidence, do not choose shallow.
+  • comp — where the subject sits in the frame. Anything off-centre needs a reason: lead room for a look or a move, or weight set against an empty side.
+  • framing — ots binds two characters and locks screen direction; lead carries motion or eyeline; frame uses a doorway or window to contain; Negative space isolates; Symmetrical formalises and stills the image.
+  • density — how many bodies read in the frame.
+  • move — VIDEO ONLY, never the still. Motivate it or choose static: an unmotivated move reads as drift.
+"framing" is the one ARRAY among these — give it a list, e.g. ["ots"] or ["lead","frame"], and leave it [] when none apply. Every other control takes a single value.
+
+A product insert is not shot from the master's position with the master's lens: an insert is close or extreme on a longer lens, a reaction is a single on 50 or 85, a location texture may be wide and static. Don't repeat the same size, height and distance shot after shot — vary what serves the story, the product, or the rhythm of the edit, never at random.
 
 "descriptions" is the consistency bible — the facts that must hold across every shot. Facts only.
 
 "todos" is this project's ordered production checklist — what the USER must produce from here to delivery (which character sheets, which locations, which shots to generate, review, handoff); 4–8 items.
 
-STEP 4 — Also write the human-facing documents (breakdown, shot list, locked descriptions) as PDF in the same folder. PDF, not markdown — no .md-only deliverables.`;
+STEP 4 — Also write the human-facing documents (breakdown, shot list, locked descriptions) as PDF in the same folder. PDF, not markdown — no .md-only deliverables.
+
+════════════════════════════════════════
+REFERENCE SHEET TEMPLATES
+════════════════════════════════════════
+Reverse-engineered from prompts that actually shipped. Use them verbatim — the non-bracketed
+text is constant and carries the result; rewording it in your own voice is how these stop
+working. One filled sheet goes in the "prompt" field of each "descriptions" entry, matched to
+that entry's "kind". These are the only prompts you write.
+
+${refTemplates}`;
   }
 
   finish(projectId) {
@@ -215,6 +366,10 @@ STEP 4 — Also write the human-facing documents (breakdown, shot list, locked d
   renderVals() {
     return {
       cancel: () => { window.location.href = (window.Store && Store.listProjects().length) ? 'projects.html' : 'home.html'; },
+      setupChanged: () => {
+        const textarea = document.getElementById('plan-instructions-text');
+        if (textarea) textarea.value = this.buildClaudeInstructions(this._assetsFolder);
+      },
       pickFolder: async () => {
         const display = document.getElementById('folder-path-display');
         if (!(window.__TAURI__ && window.__TAURI__.dialog && window.__TAURI__.dialog.open)) {
@@ -292,6 +447,7 @@ STEP 4 — Also write the human-facing documents (breakdown, shot list, locked d
 }
 </script>
 <script src="./store.js"></script>
+<script src="./reftemplates.js"></script>
 <script src="./updater.js"></script>
 </body>
 </html>

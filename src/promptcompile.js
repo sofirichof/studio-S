@@ -45,7 +45,12 @@
 
   function kinds() { return KINDS.slice(); }
 
+  // The References wizard fills the SAME reverse-engineered sheets the handoff
+  // ships to the planning agent (src/reftemplates.js), so a reference built by
+  // hand and one built from a plan come out identical. FIELDS below is the
+  // pre-template fallback, kept only for when reftemplates.js hasn't loaded.
   function fieldsFor(kind) {
+    if (window.RefTemplates && window.RefTemplates.fields) return window.RefTemplates.fields(kind);
     return (FIELDS[kind] || FIELDS.character).slice();
   }
 
@@ -56,6 +61,14 @@
   // video note). Same clause-join style as promptbuilder's compilePrompt().
   function compileReferencePrompt(kind, name, fields) {
     fields = fields || {};
+    // Template path — the reverse-engineered sheet, same as the handoff ships.
+    if (window.RefTemplates && window.RefTemplates.fill) {
+      return {
+        stills: window.RefTemplates.fill(kind, fields),
+        video: 'Reference asset — attach the generated still to image-to-video shots that feature it; no standalone animation needed.'
+      };
+    }
+    // Legacy one-liner. Only reached if reftemplates.js failed to load.
     var f = function (k) { return has(fields[k]) ? clean(fields[k]) : ''; };
     var parts = [];
     if (kind === 'character') {
