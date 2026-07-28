@@ -101,6 +101,10 @@
             </select>
           </label>
         </div>
+        <div id="model-advice" style="display:flex; align-items:flex-start; gap:8px; background:#fff; border:1px solid rgba(2,23,211,0.15); border-radius:8px; padding:10px 12px; margin-bottom:12px;">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#0217D3" stroke-width="1.5" stroke-linecap="round" style="flex-shrink:0; margin-top:1px;"><circle cx="8" cy="8" r="6"></circle><path d="M8 7.5V11M8 5.5v.5"></path></svg>
+          <p style="font-size:11.5px; color:#5A5A6B; line-height:1.5;"><span id="model-advice-name" style="font-weight:500; color:#16161D;"></span><span id="model-advice-why"></span></p>
+        </div>
         <div style="position:relative;">
           <textarea id="plan-instructions-text" readonly style="width:100%; height:110px; background:#fff; border:1px solid rgba(2,23,211,0.15); border-radius:8px; padding:12px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:11.5px; color:#5A5A6B; line-height:1.55; resize:none; outline:none; cursor:text;"></textarea>
           <button onclick="{{ copyInstructions }}" id="copy-instructions-btn" style="position:absolute; top:8px; right:8px; height:28px; padding:0 12px; background:#0217D3; border:none; border-radius:6px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:11px; font-weight:500; color:#fff; cursor:pointer; display:flex; align-items:center; gap:5px;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
@@ -154,7 +158,49 @@ class Component extends DCLogic {
   }
 
 
-  // The four setup answers from the panel above the instructions textarea.
+  // Which Claude to paste this into. Planning is ONE call, not a long session,
+  // so the cost difference is a few cents and plan quality is the whole
+  // product — the bar for recommending the stronger model is low. Sonnet is
+  // the right answer only when the job is genuinely literal or small, because
+  // then the instructions are doing the work and there is little left to judge.
+  modelAdvice(s) {
+    const heavy =
+      (s.script === 'write-script' || s.script === 'write-beats' || s.script === 'auto' ? 1 : 0)
+      + (s.shots === 'full' ? 1 : 0)
+      + (s.freedom === 'artdirector' || s.freedom === 'director' ? 1 : 0)
+      + (s.refs === 'none' ? 1 : 0)
+      - (s.freedom === 'intern' ? 2 : 0)
+      - (s.script === 'shots-only' ? 1 : 0)
+      - (s.shots === 'tight' ? 1 : 0);
+    if (heavy >= 2) {
+      const reasons = [];
+      if (s.script === 'write-script') reasons.push('it has to write the script');
+      else if (s.script === 'write-beats') reasons.push('it has to write the beats');
+      if (s.refs === 'none') reasons.push('it is filling every reference sheet');
+      if (s.shots === 'full') reasons.push('full coverage means a long shot list');
+      if (s.freedom === 'artdirector') reasons.push('you have given it room to reinterpret');
+      return {
+        name: 'Claude Opus 5',
+        why: ' — ' + (reasons.slice(0, 2).join(' and ') || 'this is a lot of judgment in one pass')
+          + '. This is a single call, so the stronger model costs cents and the plan is the product.'
+      };
+    }
+    return {
+      name: 'Claude Sonnet 5',
+      why: ' — this run is literal enough that the instructions do the work. '
+        + 'Opus 5 is worth it if the plan comes back thin.'
+    };
+  }
+
+  renderModelAdvice() {
+    const a = this.modelAdvice(this.readSetup());
+    const n = document.getElementById('model-advice-name');
+    const w = document.getElementById('model-advice-why');
+    if (n) n.textContent = 'Paste into ' + a.name;
+    if (w) w.textContent = a.why;
+  }
+
+  // The five setup answers from the panel above the instructions textarea.
   readSetup() {
     const v = (id, d) => { const el = document.getElementById(id); return (el && el.value) || d; };
     return {
@@ -406,6 +452,7 @@ ${refTemplates}`;
       setupChanged: () => {
         const textarea = document.getElementById('plan-instructions-text');
         if (textarea) textarea.value = this.buildClaudeInstructions(this._assetsFolder);
+        this.renderModelAdvice();
       },
       pickFolder: async () => {
         const display = document.getElementById('folder-path-display');
@@ -423,6 +470,7 @@ ${refTemplates}`;
         if (scanPanel) scanPanel.style.display = 'block';
         const textarea = document.getElementById('plan-instructions-text');
         if (textarea) textarea.value = this.buildClaudeInstructions(dir);
+        this.renderModelAdvice();
       },
       copyInstructions: () => {
         const textarea = document.getElementById('plan-instructions-text');

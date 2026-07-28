@@ -266,6 +266,17 @@ ok('the shot no-prompts rule is scoped to shots, not references',
   ok('the decisions log is also asked for in the STEP 4 PDF',
     np.indexOf('Decisions and departures from the brief') !== -1);
   ok('setupChanged handler exists', np.indexOf('setupChanged: () => {') !== -1);
+
+  // Model advice must react to the answers and use real model ids — a stale or
+  // invented id sends the user somewhere that does not exist.
+  ok('model advice is rendered on setup change and on folder pick',
+    (np.match(/this\.renderModelAdvice\(\)/g) || []).length >= 2);
+  ok('model advice names Opus 5 for heavy runs', np.indexOf("'Claude Opus 5'") !== -1);
+  ok('model advice names Sonnet 5 for literal runs', np.indexOf("'Claude Sonnet 5'") !== -1);
+  ok('model advice has a target element', np.indexOf('id="model-advice-name"') !== -1
+    && np.indexOf('id="model-advice-why"') !== -1);
+  ok('no retired model ids in the advice',
+    !/claude-3|Opus 4\.|Sonnet 4\.|claude-2/.test(np.slice(np.indexOf('modelAdvice(s) {'), np.indexOf('renderModelAdvice()'))));
   ok('readSetup falls back to defaults', np.indexOf('readSetup()') !== -1);
 }
 
