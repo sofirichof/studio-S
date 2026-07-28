@@ -4,13 +4,20 @@
     {
       "name": "afs-node",
       "runtimeExecutable": "node",
-      "runtimeArgs": ["/private/tmp/claude-503/-Users-sofiagonzalezirigoyen/23dc6021-18a1-4170-9f8b-d3aabd51402c/scratchpad/serve.js"],
+      "runtimeArgs": [
+        "/tmp/studio-s-serve.js"
+      ],
       "port": 4173
     },
     {
       "name": "afs-static",
       "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "--directory", "src"],
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "--directory",
+        "src"
+      ],
       "autoPort": true,
       "port": 4179
     }
