@@ -1161,6 +1161,11 @@ class Component extends DCLogic {
       '</div>' +
       // model tabs
       '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;">' + profiles.map(modelTab).join('') + '</div>' +
+      // Control-coherence warnings, directly above the sentence they are about.
+      // Advisory only — nothing here blocks generating.
+      (window.Coherence && window.Findings
+        ? Findings.render(Coherence.checkShot(this.state), { title: 'Worth checking before you generate' })
+        : '') +
       // active prompt card
       '<div style="background:#fff;border:1px solid rgba(16,16,32,0.10);border-radius:12px;overflow:hidden;margin-bottom:16px;">' +
         '<div style="padding:14px 18px;border-bottom:1px solid rgba(16,16,32,0.06);display:flex;align-items:center;justify-content:space-between;">' +
@@ -1409,6 +1414,8 @@ class Component extends DCLogic {
 }
 </script>
 <script src="./reftemplates.js"></script>
+<script src="./coherence.js"></script>
+<script src="./findings.js"></script>
 <script src="./promptcompile.js"></script>
 <script src="./store.js"></script>
 <script src="./nav.js"></script>

@@ -32,8 +32,14 @@
   function checkShot(builder) {
     var b = builder || {};
     var findings = [];
-    function flag(rule, message, severity) {
-      findings.push({ rule: rule, message: message, severity: severity || 'warn' });
+    // `controls` names what the finding blames. Rendered as a strip today; it
+    // is what a future marker-on-the-control render would key off, so the data
+    // exists now and that becomes a render change rather than a rewrite.
+    function flag(rule, message, severity, controls) {
+      findings.push({
+        rule: rule, message: message, severity: severity || 'warn',
+        controls: controls || []
+      });
     }
 
     var framing = Array.isArray(b.framing) ? b.framing : [];
@@ -44,7 +50,7 @@
     if (b.depth === 'deep' && realism.indexOf(BOKEH_CHIP) !== -1) {
       flag('depth-bokeh',
         'Deep focus and "' + BOKEH_CHIP + '" contradict each other — the prompt asks for everything sharp and for creamy bokeh in the same breath. Drop one.',
-        'error');
+        'error', ['depth', 'realism']);
     }
 
     // 2. Physically impossible rather than merely inconsistent: a long lens at
@@ -54,7 +60,7 @@
       && CLOSE_SIZES.indexOf(b.shot) !== -1) {
       flag('lens-depth-distance',
         b.lens + 'mm at this distance cannot hold deep focus — on a tabletop insert that is not a look, it is impossible. Use a shorter lens or accept shallow.',
-        'warn');
+        'warn', ['lens', 'depth', 'shot']);
     }
 
     // 3. Negative space means the subject sits off-centre. `comp` defaults to
@@ -62,7 +68,7 @@
     if (b.comp === 'mc' && framing.indexOf('Negative space') !== -1) {
       flag('comp-negative-space',
         'Negative space with the subject centred pulls against itself — negative space needs the subject off-centre to read. Move the placement or drop the framing.',
-        'warn');
+        'warn', ['comp', 'framing']);
     }
 
     // 4. Not a conflict any more — the join suppresses it — but the control is
@@ -70,7 +76,7 @@
     if (b.shot === 'aerial' && has(b.angle) && b.angle !== 'eye') {
       flag('aerial-angle-ignored',
         'Aerial already fixes the camera height, so the angle is not used in the prompt. Nothing is broken; the control just has no effect here.',
-        'info');
+        'info', ['angle']);
     }
 
     return findings;

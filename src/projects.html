@@ -340,8 +340,30 @@ class Component extends DCLogic {
         ? ' · ' + durTotals.secs + 's runtime'
           + (durTotals.unset ? ' <span style="color:#9A5B00;">(' + durTotals.unset + ' shot' + (durTotals.unset === 1 ? '' : 's') + ' with no length)</span>' : '')
         : (conceptShots ? ' · <span style="color:#9A5B00;">no shot lengths set</span>' : '');
+      // Validator findings. continuity.js reasons about the scene as a whole;
+      // coherence.js about one shot's controls. Both emit the same contract, so
+      // Findings renders either. Advisory only — nothing here blocks anything.
+      const castNames = (window.Store && Store.listReferences ? (Store.listReferences(p.id) || []) : [])
+        .filter((r) => r.kind === 'character').map((r) => r.name).filter(Boolean);
+      const findingsFor = (sceneObj) => {
+        const cont = (window.Continuity ? Continuity.checkScene(sceneObj, castNames) : []);
+        const perShot = {};
+        (sceneObj.shots || []).forEach((s) => {
+          const own = cont.filter((f) => f.shotLabel && f.shotLabel === s.label);
+          const coh = window.Coherence ? Coherence.checkShot(s.builder || {}) : [];
+          perShot[s.id] = own.concat(coh);
+        });
+        // shotLabel '' means the finding is about the scene, not one shot.
+        return { scene: cont.filter((f) => !f.shotLabel), perShot: perShot, all: cont.concat(
+          Object.keys(perShot).reduce((a, k) => a.concat(perShot[k].filter((f) => !f.shotLabel)), [])) };
+      };
+
       const sceneBlocks = scenes.map((sceneObj, sceneIdx) => {
       const shots = sceneObj.shots || [];
+      const F = findingsFor(sceneObj);
+      const sceneCount = window.Findings
+        ? Findings.count(F.scene.concat(Object.keys(F.perShot).reduce((a, k) => a.concat(F.perShot[k]), [])))
+        : { total: 0 };
       const shotRows = shots.map((s, si) => {
         const open = this._openShot === s.id;
         const b = s.builder || {};
@@ -372,12 +394,19 @@ class Component extends DCLogic {
                   (lock.video ? '<pre style="margin:6px 0 0;white-space:pre-wrap;word-break:break-word;font-family:inherit;font-size:11.5px;line-height:1.55;color:#5A5A6B;background:#fff;border:1px solid rgba(16,16,32,0.08);border-radius:6px;padding:8px;max-height:140px;overflow:auto;">' + esc(lock.video) + '</pre>' : '') +
                 '</div>'
               : '<p style="font-size:11px;color:#9A9AA8;margin-top:8px;line-height:1.5;">No locked prompt yet — open this shot in the builder and lock it there.</p>') +
+            // Everything this shot trips — continuity findings addressed to its
+            // label, plus its own control-coherence checks.
+            (window.Findings ? Findings.render(F.perShot[s.id], { title: 'Worth checking' }) : '') +
             '<button data-open-shot="' + c.id + '|' + sceneObj.id + '|' + s.id + '" style="margin-top:10px;height:28px;padding:0 12px;background:#fff;border:1px solid rgba(16,16,32,0.12);border-radius:6px;font-family:inherit;font-size:12px;font-weight:500;color:#16161D;cursor:pointer;">Open in builder</button>' +
           '</div>';
         return '<div>' +
           '<div style="display:flex;align-items:center;gap:6px;padding:3px 0;">' +
             iBtn('data-shot-open="' + s.id + '"', open ? 'Collapse shot' : 'Expand shot', open ? '&#x25BE;' : '&#x25B8;') +
             '<span style="font-size:10px;font-weight:500;color:#0217D3;background:#EEF0FF;border-radius:5px;padding:2px 6px;flex-shrink:0;">' + esc(s.label || '—') + '</span>' +
+            // Presence, not count — the number lives on the scene header, and
+            // the detail is inside. Without this the findings are invisible
+            // until you happen to open the right shot.
+            (window.Findings ? Findings.dot(F.perShot[s.id]) : '') +
             // Editorial purpose (Phase 3) — set from the builder's chips, shown
             // here read-only so a shot list reads its own coverage at a glance.
             (b.purpose ? '<span style="font-size:10px;font-weight:500;color:#5A5A6B;background:#F0F1F4;border-radius:999px;padding:1px 7px;flex-shrink:0;">' + esc(b.purpose) + '</span>' : '') +
@@ -395,12 +424,19 @@ class Component extends DCLogic {
       return '<div style="border-left:2px solid rgba(16,16,32,0.08);padding:0 0 0 12px;margin-bottom:12px;">' +
         '<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">' +
           '<span style="font-size:10px;font-weight:500;color:#5A5A6B;background:#F0F1F4;border-radius:5px;padding:2px 7px;flex-shrink:0;">Scene ' + (sceneIdx + 1) + '</span>' +
+          // The rollup. Without a count here you never learn there is anything
+          // to look at — the per-shot dots are only visible once you scroll to
+          // the right shot. `info` is excluded, so a number always means work.
+          (window.Findings ? Findings.badge(F.scene.concat(Object.keys(F.perShot).reduce((a, k) => a.concat(F.perShot[k]), []))) : '') +
           nameInput('data-scene-name="' + c.id + '|' + sceneObj.id + '"', sceneObj.name || '', 'Name this scene — e.g. Festival grounds, golden hour', true) +
           iBtn('data-scene-up="' + c.id + '|' + sceneObj.id + '|' + (sceneIdx - 1) + '"' + (sceneIdx === 0 ? ' disabled' : ''), 'Move scene up', '&#x2191;') +
           iBtn('data-scene-down="' + c.id + '|' + sceneObj.id + '|' + (sceneIdx + 1) + '"' + (sceneIdx === scenes.length - 1 ? ' disabled' : ''), 'Move scene down', '&#x2193;') +
           iBtn('data-scene-del="' + c.id + '|' + sceneObj.id + '"', 'Delete scene', '&#x2715;', true) +
         '</div>' +
         (sceneObj.desc ? '<p style="font-size:12px;color:#5A5A6B;margin-bottom:8px;line-height:1.5;">' + esc(sceneObj.desc) + '</p>' : '') +
+        // Scene-level continuity findings — coverage balance, camera repetition,
+        // an establishing shot in the wrong place. Not about any one shot.
+        (window.Findings ? Findings.render(F.scene, { title: 'This scene' }) : '') +
         (shotRows ? '<div style="display:flex;flex-direction:column;margin-bottom:8px;">' + shotRows + '</div>' : '<p style="font-size:12px;color:#9A9AA8;margin-bottom:8px;">No shots yet.</p>') +
         '<button data-add-shot="' + c.id + '|' + sceneObj.id + '" style="height:26px;padding:0 10px;background:#fff;border:1px solid rgba(16,16,32,0.12);border-radius:6px;font-family:inherit;font-size:11px;font-weight:500;color:#16161D;cursor:pointer;">Add shot</button>' +
       '</div>';
@@ -746,6 +782,9 @@ class Component extends DCLogic {
 }
 
 </script>
+<script src="./continuity.js"></script>
+<script src="./coherence.js"></script>
+<script src="./findings.js"></script>
 <script src="./store.js"></script>
 <script src="./nav.js"></script>
 </body>
