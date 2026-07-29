@@ -256,8 +256,17 @@
     return m ? m.length : 0;
   }
 
+  // The {{TOKEN}} names for a kind, in schema order. The handoff inlines these
+  // so the planning agent can hand back the values it filled the sheet with —
+  // the bracket hints alone don't carry the key ([SKIN TONE] is {{SKIN}}), so
+  // without this list the agent would have to guess what to call them.
+  function keysFor(kind) {
+    return fieldsFor(kind).map(function (f) { return f.key; });
+  }
+
   window.RefTemplates = {
     fields: fieldsFor,
+    keys: keysFor,
     fill: fill,
     unfilledSlots: unfilledSlots,
     forHandoff: forHandoff,

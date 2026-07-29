@@ -596,5 +596,105 @@ ok('the shot no-prompts rule is scoped to shots, not references',
     pv2.indexOf('Store.reuseDependents(') !== -1);
 }
 
+// ── 8. A plan's reference sheet must arrive with its fill values ──
+// The sheet alone is a dead end: the References wizard shows one editable box
+// per template token, an imported reference had none of them, and recompiling
+// from empty boxes yields a [BRACKET] husk that would overwrite the real sheet.
+// The agent already holds these values — it filled the template with them.
+{
+  ok('the handoff asks for the fill values', np.indexOf('SHOW YOUR FILL VALUES') !== -1);
+  ok('the descriptions example carries a fields object', /"fields":\s*\{/.test(np));
+  ok('the key list is derived from the schema, not retyped',
+    np.indexOf('RT.keys(k)') !== -1 && np.indexOf('${fieldKeys}') !== -1);
+  ok('reftemplates exposes the key list', typeof RT.keys === 'function');
+  ok('the keys ARE the wizard field ids',
+    JSON.stringify(RT.keys('character')) === JSON.stringify(RT.fields('character').map(f => f.key)));
+  // Every key the handoff will print must be a token the template substitutes,
+  // or the agent fills a box that reaches nothing.
+  ['character', 'prop', 'location'].forEach((k) => {
+    const raw = RT.forHandoff(k, 'A');
+    ok('every ' + k + ' key is token-shaped', RT.keys(k).every(x => /^[A-Z][A-Z0-9]*$/.test(x)));
+    ok(k + ' has a non-empty key list', RT.keys(k).length > 0 && raw.length > 0);
+  });
+
+  const fpid = Store.createProject({ name: 'Fill values' }).id;
+  const sheet = 'Cinematic character reference sheet, split-frame layout, photorealistic. …';
+  Store.scaffoldFromPlan(fpid, JSON.stringify({
+    concepts: [{ name: 'C', kind: 'video', scenes: [{ name: 'S', shots: [{ label: '1A' }] }] }],
+    descriptions: [{
+      kind: 'character', name: 'Marco', description: 'facts', prompt: sheet,
+      fields: { GENDER: 'man', AGE: 'mid-30s', SKIN: 'warm medium-brown skin',
+                notATokenKey: 'ignored', lowercase: 'ignored' }
+    }]
+  }));
+  const marco = (Store.listReferences(fpid) || []).find(r => r.name === 'Marco');
+  ok('fill values import', !!marco && marco.fields.GENDER === 'man' && marco.fields.AGE === 'mid-30s');
+  ok('the description still lands in desc', !!marco && marco.fields.desc === 'facts');
+  ok('the sheet is still kept alongside them', !!marco && marco.prompt === sheet);
+  ok('non-token keys are refused', !!marco && !('notATokenKey' in marco.fields) && !('lowercase' in marco.fields));
+
+  // With the values present the wizard can rebuild the sheet, which is the
+  // whole point — a recompile must come out whole, not full of holes.
+  const rebuilt = RT.fill('character', marco.fields);
+  ok('a full field set rebuilds a sheet with no holes', (function () {
+    const full = {};
+    RT.keys('character').forEach(k => { full[k] = 'x'; });
+    return RT.unfilledSlots(RT.fill('character', full)) === 0;
+  })());
+  ok('a partial field set still rebuilds something', rebuilt.indexOf('warm medium-brown skin') !== -1);
+}
+
+// ── 9. Re-importing a plan tops up; it never duplicates or clobbers ──
+// Re-scanning is how you pick up a revised plan — and how the user gets fill
+// values onto a reference imported before the handoff asked for them. It used
+// to add a second copy of every reference beside the first, orphaning the shot
+// links pointing at the originals.
+{
+  const rid = Store.createProject({ name: 'Re-import' }).id;
+  const v1 = JSON.stringify({
+    concepts: [{ name: 'C', kind: 'video', scenes: [{ name: 'S', shots: [{ label: '1A' }] }] }],
+    descriptions: [{ kind: 'character', name: 'Marco', description: 'facts', prompt: 'the original sheet' }]
+  });
+  Store.scaffoldFromPlan(rid, v1);
+  const first = (Store.listReferences(rid) || []).find(r => r.name === 'Marco');
+  ok('first import creates the reference', !!first);
+
+  // The user generates the image and hand-edits the sheet.
+  Store.updateReference(first.id, { imagePath: '/refs/marco.png', prompt: 'my edited sheet' });
+
+  // The plan comes back, now with fill values.
+  Store.scaffoldFromPlan(rid, JSON.stringify({
+    concepts: [{ name: 'C', kind: 'video', scenes: [{ name: 'S', shots: [{ label: '1A' }] }] }],
+    descriptions: [{ kind: 'character', name: 'Marco', description: 'facts',
+      prompt: 'the regenerated sheet', fields: { GENDER: 'man', AGE: 'mid-30s' } }]
+  }));
+  const refs = Store.listReferences(rid) || [];
+  const again = refs.filter(r => r.name === 'Marco');
+  ok('re-import does NOT duplicate the reference', again.length === 1);
+  ok('re-import keeps the same id, so shot links survive', again[0].id === first.id);
+  ok('re-import fills in the values that were missing',
+    again[0].fields.GENDER === 'man' && again[0].fields.AGE === 'mid-30s');
+  ok('re-import does NOT overwrite a hand-edited sheet', again[0].prompt === 'my edited sheet');
+  ok('re-import does NOT lose the generated image', again[0].imagePath === '/refs/marco.png');
+
+  // A field the user typed themselves outranks the plan's value too.
+  Store.updateReference(again[0].id, { fields: Object.assign({}, again[0].fields, { AGE: 'late 40s' }) });
+  Store.scaffoldFromPlan(rid, JSON.stringify({
+    concepts: [{ name: 'C', kind: 'video', scenes: [{ name: 'S', shots: [{ label: '1A' }] }] }],
+    descriptions: [{ kind: 'character', name: 'Marco', fields: { AGE: 'mid-30s', SKIN: 'warm medium-brown' } }]
+  }));
+  const after = (Store.listReferences(rid) || []).find(r => r.name === 'Marco');
+  ok('a user-typed field is not overwritten by a re-import', after.fields.AGE === 'late 40s');
+  ok('a still-blank field is filled by the re-import', after.fields.SKIN === 'warm medium-brown');
+
+  // Same name, different kind, is a different reference.
+  Store.scaffoldFromPlan(rid, JSON.stringify({
+    concepts: [{ name: 'C', kind: 'video', scenes: [{ name: 'S', shots: [{ label: '1A' }] }] }],
+    descriptions: [{ kind: 'prop', name: 'Marco', description: 'a prop that shares a name' }]
+  }));
+  ok('name+kind identifies a reference, not name alone',
+    (Store.listReferences(rid) || []).filter(r => r.name === 'Marco').length === 2);
+}
+
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail ? 1 : 0);

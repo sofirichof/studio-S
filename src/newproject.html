@@ -219,6 +219,14 @@ class Component extends DCLogic {
     // src/reftemplates.js and travel inside the pasted instructions.
     const refTemplates = (window.RefTemplates && window.RefTemplates.all())
       || '(reference templates unavailable — reftemplates.js failed to load)';
+    // The {{TOKEN}} key list per kind, so the agent can hand back the values it
+    // filled each sheet with. Derived from the same schema the wizard renders,
+    // so the two can't drift into asking for different key names.
+    const RT = window.RefTemplates;
+    const fieldKeys = RT && RT.keys
+      ? ['character', 'prop', 'location'].map((k) =>
+          '  ' + k + ' — ' + RT.keys(k).join(', ')).join('\n')
+      : '  (field keys unavailable — reftemplates.js failed to load)';
     // Setup answers vary the instructions. Not persisted — the panel only
     // exists during project creation, so re-answering is the way back.
     const s = setup || this.readSetup();
@@ -373,10 +381,11 @@ Exact format:
       "kind": "character",
       "name": "Marco (lead)",
       "description": "FACTS ONLY — face, build, hair, wardrobe, continuity anchors. No prompt phrasing, no camera, no style.",
+      "fields": { "GENDER": "man", "AGE": "mid-30s", "ETHNICITY": "Puerto Rican", "…": "one entry per key listed in SHOW YOUR FILL VALUES below" },
       "prompt": "THE FILLED REFERENCE SHEET — see REFERENCE SHEET TEMPLATES at the end. Use the template for this kind verbatim, fill every [BRACKET] from the facts above, delete the (opt) lines you don't use, and leave no 'A or B' hedge. This is the one place you write finished prompt text."
     },
-    { "kind": "location", "name": "Corner bodega", "description": "Dressing, signage, materials, light sources.", "prompt": "…filled location plate, variant A or B per the template's test…" },
-    { "kind": "prop", "name": "Paper bag", "description": "Colour, condition, branding.", "prompt": "…filled prop/product sheet…" }
+    { "kind": "location", "name": "Corner bodega", "description": "Dressing, signage, materials, light sources.", "fields": { "VARIANT": "A", "SUBJECT": "a corner bodega interior" }, "prompt": "…filled location plate, variant A or B per the template's test…" },
+    { "kind": "prop", "name": "Paper bag", "description": "Colour, condition, branding.", "fields": { "SUBJECT": "a kraft paper grocery bag" }, "prompt": "…filled prop/product sheet…" }
   ],
   "decisions": [
     {
@@ -449,6 +458,14 @@ WHAT EACH CONTROL ACTUALLY DOES:
 A product insert is not shot from the master's position with the master's lens: an insert is close or extreme on a longer lens, a reaction is a single on 50 or 85, a location texture may be wide and static. Don't repeat the same size, height and distance shot after shot — vary what serves the story, the product, or the rhythm of the edit, never at random.
 
 "descriptions" is the consistency bible — the facts that must hold across every shot. Facts only.
+
+SHOW YOUR FILL VALUES. Alongside each sheet's "prompt", give a "fields" object holding the value you put in each [BRACKET], keyed exactly as listed here:
+${fieldKeys}
+Studio S keeps the sheet you wrote AND these values, and shows the values as editable boxes in its References screen. Without them the user gets a finished sheet with nothing behind it: every detail box is blank, and changing one thing about the character means retyping the whole sheet by hand. The values are already in your head — you just used them — so this costs you nothing and is exact where reading them back out of the prose would be guesswork.
+  • One entry per key you actually used. Omit a key you deliberately left out (the optional ones); do not invent a value to fill the object.
+  • The value is the bare phrase you dropped into the bracket — "warm medium-brown skin", not the sentence around it, and no brackets.
+  • They must AGREE with the sheet. If "prompt" says the jacket is charcoal, GARMENTS says charcoal. These are two renderings of one decision, not two chances to decide.
+  • location: "VARIANT" is "A" or "B" — which of the two location templates you used. Get this wrong and the sheet rebuilds as the other one.
 
 "decisions" IS REQUIRED AT EVERY FREEDOM LEVEL, and an empty array is almost always wrong. It is the record of where the brief and the plan part company. At INTERN it is the list of problems you found and deliberately did not touch — a QA report on the brief. At ART DIRECTOR it is the list of departures the user has to approve. In between it is both. One entry per issue: what you found, whether you changed it or left it, exactly what you did, and why in one sentence. Never bury a change here that you could have avoided making, and never make a change you did not record.
 

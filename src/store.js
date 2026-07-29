@@ -1245,10 +1245,49 @@
         if (!d || typeof d !== 'object') return;
         var name = String(d.name || '').trim();
         if (!name) return;
+        var kind = d.kind || 'character';
+        var fields = { desc: String(d.description || d.desc || '') };
+        // The template values the agent used to FILL the sheet, keyed by the
+        // {{TOKEN}} names in src/reftemplates.js. Without them the References
+        // wizard opens an imported sheet with every detail box blank: the sheet
+        // is finished, but nothing behind it is editable, and a recompile from
+        // empty fields would replace it with a husk full of [BRACKET] holes.
+        // The agent already has these values — it wrote them into the sheet —
+        // so asking for them back is exact where parsing the prose would guess.
+        // Only token-shaped keys are taken; substitute() can never read any
+        // other shape, so an off-schema key would sit in storage forever.
+        if (d.fields && typeof d.fields === 'object' && !Array.isArray(d.fields)) {
+          Object.keys(d.fields).forEach(function (k) {
+            if (/^[A-Z][A-Z0-9]*$/.test(k)) fields[k] = String(d.fields[k] == null ? '' : d.fields[k]);
+          });
+        }
+        // Re-importing a plan TOPS UP an existing reference rather than adding a
+        // second one beside it. Re-scanning is the natural way to pick up a
+        // revised plan, and it used to duplicate every reference in the project
+        // while orphaning the shot links that pointed at the originals.
+        var already = listReferences(p.id).filter(function (r) {
+          return r.kind === kind && String(r.name || '').trim().toLowerCase() === name.toLowerCase();
+        })[0];
+        if (already) {
+          // Fill the blanks, never overwrite. A field the user has typed into,
+          // and a sheet they have edited by hand, both outrank the plan — the
+          // whole point of re-importing is to gain what was missing.
+          var merged = Object.assign({}, already.fields || {});
+          Object.keys(fields).forEach(function (k) {
+            var cur = merged[k];
+            if (cur == null || !String(cur).trim()) merged[k] = fields[k];
+          });
+          var patch = { fields: merged };
+          if (!String(already.prompt || '').trim() && String(d.prompt || '').trim()) {
+            patch.prompt = String(d.prompt);
+          }
+          updateReference(already.id, patch);
+          return;
+        }
         addReference(p.id, {
           name: name,
-          kind: d.kind || 'character',
-          fields: { desc: String(d.description || d.desc || '') },
+          kind: kind,
+          fields: fields,
           // Reference sheets are the ONE exception to "Claude never authors
           // prompts" — the shot-prompt builder was never built to compose them,
           // so the handoff ships the reverse-engineered templates (see
