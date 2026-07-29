@@ -504,8 +504,8 @@ ok('scene name: no em-dash means no desc', ns[2].name === 'Just a plain name' &&
 {
   const VOCAB = ['establishing', 'master', 'two-shot', 'group', 'single', 'reaction',
     'insert', 'product detail', 'cutaway', 'location texture', 'match action',
-    'transition', 'final wide', 'hero product'];
-  ok('shotPurposes: 14 exact strings', Store.shotPurposes().length === 14);
+    'transition', 'final wide', 'hero product', 'button'];
+  ok('shotPurposes: 15 exact strings', Store.shotPurposes().length === 15);
   ok('shotPurposes: matches vocabulary', VOCAB.every((v) => Store.shotPurposes().indexOf(v) !== -1));
 
   reset();
@@ -532,7 +532,33 @@ ok('scene name: no em-dash means no desc', ns[2].name === 'Just a plain name' &&
   const pb = fs.readFileSync(path.join(__dirname, '..', 'src', 'promptbuilder.html'), 'utf8');
   const keys = (pb.split('builderKeys() {')[1] || '').split(']')[0];
   ok('builderKeys persists purpose', keys.indexOf("'purpose'") !== -1);
-  ok('builder renders single-select chips for purpose', pb.indexOf("this.schips('purpose'") !== -1);
+  // Purpose is set by the planning agent, not by hand. A director building a
+  // shot in the app already knows it is the establishing shot; making them
+  // declare it is data entry for the validator's benefit. The builder therefore
+  // offers no purpose control at all, and continuity exempts hand-built shots.
+  ok('the builder has no purpose control', pb.indexOf("spick('purpose'") === -1
+    && pb.indexOf("schips('purpose'") === -1);
+  const pj = fs.readFileSync(path.join(__dirname, '..', 'src', 'projects.html'), 'utf8');
+  ok('purpose IS correctable in the project view', pj.indexOf('data-purpose="') !== -1);
+  ok('the project view saves it through the validated setter',
+    pj.indexOf('Store.setShotPurpose(') !== -1);
+  ok('setShotPurpose validates', (function () {
+    const pid = Store.createProject({ name: 'purp' }).id;
+    Store.scaffoldFromPlan(pid, JSON.stringify({ concepts: [{ name: 'C', kind: 'video',
+      scenes: [{ name: 'S', shots: [{ label: '1A', purpose: 'master' }] }] }] }));
+    const p2 = Store.getProject(pid), c = p2.concepts[0], sc = c.scenes[0], sh = sc.shots[0];
+    const ids = { projectId: pid, conceptId: c.id, sceneId: sc.id, shotId: sh.id };
+    Store.setShotPurpose(ids, 'button');
+    const afterGood = Store.getProject(pid).concepts[0].scenes[0].shots[0].builder.purpose;
+    Store.setShotPurpose(ids, 'nonsense');
+    const afterJunk = Store.getProject(pid).concepts[0].scenes[0].shots[0].builder.purpose;
+    Store.setShotPurpose(ids, '');
+    const afterClear = Store.getProject(pid).concepts[0].scenes[0].shots[0].builder.purpose;
+    return afterGood === 'button' && afterJunk === 'button' && afterClear === '';
+  })());
+  ok('imported shots are stamped as plan-authored',
+    fs.readFileSync(path.join(__dirname, '..', 'src', 'store.js'), 'utf8')
+      .indexOf("source: 'plan'") !== -1);
 
   const tpl = fs.readFileSync(path.join(__dirname, '..', 'src', 'newproject.html'), 'utf8');
   ok('plan template emits "purpose"', tpl.indexOf('"purpose":') !== -1);

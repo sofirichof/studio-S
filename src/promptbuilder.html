@@ -968,7 +968,11 @@ class Component extends DCLogic {
     return '<div class="chip-group" data-name="' + name + '" data-multi="' + (multi ? 1 : 0) + '" style="display:flex;gap:8px;flex-wrap:wrap;">' +
       opts.map((o, i) => {
         const on = isOn(o, i);
-        return '<span class="chip" data-on="' + (on ? 1 : 0) + '" style="padding:8px 14px;border:1px solid ' + (on ? '#0217D3' : 'rgba(16,16,32,0.12)') + ';border-radius:8px;font-size:13px;background:' + (on ? '#EEF0FF' : '#fff') + ';color:' + (on ? '#0217D3' : '#5A5A6B') + ';">' + o.label + '</span>';
+        // A <button>, not a <span>: these were mouse-clickable but took no
+        // keyboard focus, carried no role for a screen reader, and could not be
+        // found as controls by automation. The handler keys off '.chip', so
+        // behaviour is unchanged.
+        return '<button type="button" class="chip" data-on="' + (on ? 1 : 0) + '" aria-pressed="' + (on ? 'true' : 'false') + '" style="padding:8px 14px;border:1px solid ' + (on ? '#0217D3' : 'rgba(16,16,32,0.12)') + ';border-radius:8px;font-family:inherit;font-size:13px;background:' + (on ? '#EEF0FF' : '#fff') + ';color:' + (on ? '#0217D3' : '#5A5A6B') + ';">' + o.label + '</button>';
       }).join('') + '</div>';
   }
   textarea(name, val, ph) {
@@ -994,7 +998,7 @@ class Component extends DCLogic {
     const isOn = (val) => multi ? (Array.isArray(sel) && sel.indexOf(val) >= 0) : val === (sel || null);
     const chip = (val, label) => {
       const on = isOn(val);
-      return '<span class="chip" data-refpick="' + key + '" data-multi="' + (multi ? 1 : 0) + '" data-val="' + (val || '') + '" style="padding:8px 14px;border:1px solid ' + (on ? '#0217D3' : 'rgba(16,16,32,0.12)') + ';border-radius:8px;font-size:13px;background:' + (on ? '#EEF0FF' : '#fff') + ';color:' + (on ? '#0217D3' : '#5A5A6B') + ';cursor:pointer;">' + this.escHtml(label) + '</span>';
+      return '<button type="button" class="chip" data-refpick="' + key + '" data-multi="' + (multi ? 1 : 0) + '" data-val="' + (val || '') + '" style="padding:8px 14px;border:1px solid ' + (on ? '#0217D3' : 'rgba(16,16,32,0.12)') + ';border-radius:8px;font-size:13px;background:' + (on ? '#EEF0FF' : '#fff') + ';color:' + (on ? '#0217D3' : '#5A5A6B') + ';cursor:pointer;">' + this.escHtml(label) + '</button>';
     };
     return '<div style="display:flex;gap:8px;flex-wrap:wrap;">' + (multi ? '' : chip(null, 'None')) + refs.map((r) => chip(r.id, r.name)).join('') + '</div>';
   }
@@ -1030,8 +1034,7 @@ class Component extends DCLogic {
         // Editorial purpose (Phase 3) — a validated field, not prose parsed back
         // out of breakdown. Decided first: it shapes what subject/action need to
         // carry (a reaction needs less blocking than a master).
-        this.field('Shot purpose', this.schips('purpose', [{val:'establishing',label:'Establishing'},{val:'master',label:'Master'},{val:'two-shot',label:'Two-shot'},{val:'group',label:'Group'},{val:'single',label:'Single'},{val:'reaction',label:'Reaction'},{val:'insert',label:'Insert'},{val:'product detail',label:'Product detail'},{val:'cutaway',label:'Cutaway'},{val:'location texture',label:'Location texture'},{val:'match action',label:'Match action'},{val:'transition',label:'Transition'},{val:'final wide',label:'Final wide'},{val:'hero product',label:'Hero product'}]), 'What this shot does editorially in the cut. "Establishing" is only for introducing or re-establishing geography — a wide later in the scene is a master, group shot, or final wide.') +
-        this.field('Subject description', this.textarea('subject', this.state.subject, 'Who or what is in the shot — be specific. e.g. A lone commuter crossing a downtown intersection at dawn.'), 'The clearer the subject, the more consistent your stills.') +
+                this.field('Subject description', this.textarea('subject', this.state.subject, 'Who or what is in the shot — be specific. e.g. A lone commuter crossing a downtown intersection at dawn.'), 'The clearer the subject, the more consistent your stills.') +
         this.field('What happens in the shot', this.textarea('action', this.state.action, 'The beat across the clip — subject motion, separate from the camera. e.g. She pours the coffee, then looks up as the door opens.'), 'The video prompt is composed from this. Movement of the camera is set later, in Camera.') +
         this.field('Subject type', this.chips('type', [{label:'People'},{label:'Product'},{label:'Architecture'},{label:'Landscape'},{label:'Vehicle'},{label:'Abstract'}]), '') +
         this.field('Density', densityRow + crowdPanel, '') +

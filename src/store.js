@@ -651,7 +651,11 @@
   }
   var SHOT_PURPOSES = ['establishing', 'master', 'two-shot', 'group', 'single',
     'reaction', 'insert', 'product detail', 'cutaway', 'location texture',
-    'match action', 'transition', 'final wide', 'hero product'];
+    'match action', 'transition', 'final wide', 'hero product',
+    // 15th term, added 2026-07-28. 'final wide' is the only purpose that welds
+    // an editorial role to a framing — the exact fault the brief's 2.3 raised
+    // about 'establishing'. 'button' is the closing beat at any size.
+    'button'];
   // A plan predating this field still writes "Purpose: x." at the head of
   // breakdown — parse that clause as a fallback when sh.purpose is absent or
   // off-vocabulary.
@@ -676,6 +680,16 @@
     }
     return b;
   }
+  // Editorial purpose is correctable from the project view's shot editor, but
+  // not from the prompt builder: the plan sets it, and a director building a
+  // shot by hand does not need to declare what they already know. Validated,
+  // so a bad value cannot land; '' clears it.
+  function setShotPurpose(ids, value) {
+    var v = String(value == null ? '' : value).trim();
+    if (v && SHOT_PURPOSES.indexOf(v) === -1) return null;
+    return updateShotBuilder(ids, { purpose: v });
+  }
+
   function updateShotFields(ids, patch) {
     ids = ids || {};
     var clean = {};
@@ -1222,6 +1236,11 @@
           applyShotControls(b, sh);
           return {
             id: newId('shot'),
+            // Authored by the planning agent, not by hand. Continuity only
+            // demands an editorial purpose of these: a director building a shot
+            // in the app knows their opening shot is the establishing one and
+            // does not need to declare it for a validator's benefit.
+            source: 'plan',
             name: sh.name || sh.title || '',
             label: lbl,
             status: 'draft',
@@ -1261,7 +1280,7 @@
     renameConcept: renameConcept, setConceptKind: setConceptKind, renameScene: renameScene,
     removeConcept: removeConcept, removeScene: removeScene, removeShot: removeShot,
     reorderConcept: reorderConcept, reorderScene: reorderScene, reorderShot: reorderShot,
-    updateShotFields: updateShotFields, shotFields: function () { return SHOT_FIELDS.slice(); },
+    updateShotFields: updateShotFields, setShotPurpose: setShotPurpose, shotFields: function () { return SHOT_FIELDS.slice(); },
     shotPurposes: function () { return SHOT_PURPOSES.slice(); },
     lookLabels: function () { return Object.keys(LOOK_LABELS).slice(); },
     resolveLook: resolveLook,

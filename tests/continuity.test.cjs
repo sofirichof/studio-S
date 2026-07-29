@@ -16,8 +16,9 @@ const Continuity = global.window.Continuity;
 let pass = 0, fail = 0;
 function ok(name, cond) { if (cond) { pass++; } else { fail++; console.log('  ✗ ' + name); } }
 
+// Default fixture models an IMPORTED shot — purpose is only required of those.
 function shot(label, b) {
-  return { id: 'sh_' + label, label: label, builder: Object.assign({
+  return { id: 'sh_' + label, label: label, source: 'plan', builder: Object.assign({
     subject: '', action: '', environment: '', offCamera: '', propState: '', purpose: '',
     shot: 'wide', lens: '24', angle: 'eye', depth: 'shallow', move: 'static'
   }, b) };
@@ -72,6 +73,25 @@ function shot(label, b) {
   const Store = global.window.Store;
   ok('continuity vocabulary matches Store.shotPurposes()',
     Store.shotPurposes().every(v => src.indexOf("'" + v + "'") !== -1));
+}
+
+// ── Hand-built shots are exempt from purpose-missing ──
+// A director building a shot in the app holds the editorial intent in their
+// head; the builder has no purpose control, so demanding one would be a
+// permanent error nobody could clear.
+{
+  const handBuilt = { id: 'sh_x', label: '1A', builder: {
+    subject: 'a', action: 'b', environment: 'c', offCamera: 'd', propState: 'e',
+    purpose: '', shot: 'wide', lens: '24', angle: 'eye', depth: 'shallow', move: 'static'
+  } };
+  const rules = Continuity.checkScene({ name: 'S', shots: [handBuilt] }, [])
+    .map(function (f) { return f.rule; });
+  ok('hand-built shot is not nagged for a purpose', rules.indexOf('purpose-missing') === -1);
+
+  const imported = Object.assign({}, handBuilt, { source: 'plan' });
+  const impRules = Continuity.checkScene({ name: 'S', shots: [imported] }, [])
+    .map(function (f) { return f.rule; });
+  ok('an imported shot still is', impRules.indexOf('purpose-missing') !== -1);
 }
 
 console.log('\n' + pass + ' passed, ' + fail + ' failed');

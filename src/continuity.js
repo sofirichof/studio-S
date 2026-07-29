@@ -10,7 +10,7 @@
   // tests/continuity.test.cjs fails if the two lists disagree.
   var SHOT_PURPOSES = ['establishing', 'master', 'two-shot', 'group', 'single',
     'reaction', 'insert', 'product detail', 'cutaway', 'location texture',
-    'match action', 'transition', 'final wide', 'hero product'];
+    'match action', 'transition', 'final wide', 'hero product', 'button'];
   var NON_ACTION_PURPOSES = ['reaction', 'insert', 'product detail', 'location texture'];
   var SEQUENCE_MARKERS = ['then', 'after which', 'and then'];
   var CAMERA_KEYS = ['shot', 'lens', 'angle', 'depth', 'move'];
@@ -38,12 +38,16 @@
     shots.forEach(function (sh, i) {
       var b = sh.builder || {};
       var label = sh.label || ('#' + (i + 1));
+      // Only a plan-authored shot is required to carry a purpose. Hand-built
+      // shots are exempt — the human holds the editorial intent in their head,
+      // and nagging them to type it is data entry for the validator.
+      var fromPlan = sh.source === 'plan';
 
       if (!has(b.offCamera)) flag(label, 'continuity-offcamera', 'No off-camera note — anyone who left the crop is undocumented.', 'warn');
       if (!has(b.propState)) flag(label, 'continuity-propstate', 'No prop-state note — nothing carried forward from the last shot.', 'warn');
 
       if (!has(b.purpose)) {
-        flag(label, 'purpose-missing', 'No editorial purpose set.', 'error');
+        if (fromPlan) flag(label, 'purpose-missing', 'No editorial purpose set.', 'error');
       } else if (SHOT_PURPOSES.indexOf(b.purpose) === -1) {
         flag(label, 'purpose-vocab', 'Purpose "' + b.purpose + '" is not in the vocabulary.', 'error');
       } else {
