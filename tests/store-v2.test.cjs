@@ -567,5 +567,157 @@ ok('scene name: no em-dash means no desc', ns[2].name === 'Just a plain name' &&
   ok('project view shows purpose on the shot card', pv.indexOf('b.purpose') !== -1);
 }
 
+// ── N. Concept reuse: a cutdown points at the hero film's shots ──
+// The failure this prevents is duplication: before it, a social cut of a hero
+// film restated every shot's subject/action/environment, so changing the hero
+// left the cutdown describing a frame that no longer existed. Content is
+// single-source; only DURATION is per-use.
+{
+  const plan = {
+    concepts: [
+      { name: 'Hero film', kind: 'video', scenes: [{ name: 'Bodega', shots: [
+        { label: '1A', subject: 'Marco at the counter', duration: '6', purpose: 'master' },
+        { label: '1B', subject: 'The clerk', duration: '4' }
+      ] }] },
+      { name: 'Social cutdown', kind: 'video', scenes: [{ name: 'Bodega', shots: [
+        { label: '1A', reuseOf: { concept: 'Hero film', label: '1A' }, duration: '2' },
+        { label: '1B', reuseOf: { concept: 'Hero film', label: '1B' } },
+        { label: '1C', subject: 'Logo card' },
+        { label: '1D', reuseOf: { concept: 'Hero film', label: '9Z' } },
+        { label: '1E', reuseOf: { concept: 'Social cutdown', label: '1C' } }
+      ] }] }
+    ]
+  };
+  reset();
+  const pid = Store.createProject({ name: 'Reuse' }).id;
+  Store.scaffoldFromPlan(pid, JSON.stringify(plan));
+  const proj = Store.getProject(pid);
+  const hero = proj.concepts[0], cut = proj.concepts[1];
+  const hShots = hero.scenes[0].shots, cShots = cut.scenes[0].shots;
+  const ids = (c, sh) => ({ projectId: pid, conceptId: c.id, sceneId: c.scenes[0].id, shotId: sh.id });
+
+  ok('reuse: an ordinary shot carries no reuseOf key at all', !('reuseOf' in hShots[0]));
+  ok('reuse: a pointer imports with reuseOf', !!cShots[0].reuseOf);
+  ok('reuse: the pointer resolved to the source ids',
+    cShots[0].reuseOf.conceptId === hero.id && cShots[0].reuseOf.shotId === hShots[0].id);
+
+  const r0 = Store.resolveShot(ids(cut, cShots[0]));
+  ok('reuse: resolves to the source content', r0.builder.subject === 'Marco at the counter');
+  ok('reuse: the source purpose comes with it', r0.builder.purpose === 'master');
+  ok('reuse: its OWN duration wins over the source’s', r0.builder.duration === '2');
+  ok('reuse: reports the source concept and label', r0.reuse.ok === true
+    && r0.reuse.concept === 'Hero film' && r0.reuse.label === '1A');
+  ok('reuse: exposes source ids for navigation',
+    r0.reuse.sourceIds.shotId === hShots[0].id && r0.reuse.sourceIds.conceptId === hero.id);
+
+  const r1 = Store.resolveShot(ids(cut, cShots[1]));
+  ok('reuse: no override falls back to the source duration', r1.builder.duration === '4');
+
+  const r2 = Store.resolveShot(ids(cut, cShots[2]));
+  ok('reuse: an ordinary shot resolves to itself', r2.reuse === null && r2.builder.subject === 'Logo card');
+
+  const r3 = Store.resolveShot(ids(cut, cShots[3]));
+  ok('reuse: a label that matches nothing is a BROKEN link, not a silent blank',
+    !!r3.reuse && r3.reuse.ok === false && r3.reuse.label === '9Z');
+
+  ok('reuse: a pointer at its own concept never links', cShots[4].reuseOf.shotId === '');
+
+  // Resolution is by id, so renaming the concept the pointer named cannot break
+  // it — the stored name is display text and a repair hint, nothing more.
+  Store.renameConcept(pid, hero.id, 'Hero film (v2)');
+  const afterRename = Store.resolveShot(ids(cut, cShots[0]));
+  ok('reuse: survives renaming the source concept', afterRename.reuse.ok === true
+    && afterRename.builder.subject === 'Marco at the counter');
+  ok('reuse: reports the CURRENT source concept name', afterRename.reuse.concept === 'Hero film (v2)');
+
+  // Editing the original reaches every cut — that is the whole point.
+  Store.updateShotFields(ids(hero, hShots[0]), { subject: 'Marco, now in a red jacket' });
+  ok('reuse: an edit to the original reaches the cutdown',
+    Store.resolveShot(ids(cut, cShots[0])).builder.subject === 'Marco, now in a red jacket');
+
+  // Who breaks if the source goes.
+  const deps = Store.reuseDependents(pid, hShots[0].id);
+  ok('reuseDependents: finds the shot that points here', deps.length === 1 && deps[0].label === '1A');
+  ok('reuseDependents: names the concept it is in', deps[0].concept === 'Social cutdown');
+  ok('reuseDependents: empty for a shot nobody reuses', Store.reuseDependents(pid, cShots[2].id).length === 0);
+
+  // Deleting the source doesn't cascade — it leaves a link the UI can show as
+  // broken, which is recoverable. A silent cascade delete would not be.
+  Store.removeShot(ids(hero, hShots[0]));
+  const afterDel = Store.resolveShot(ids(cut, cShots[0]));
+  ok('reuse: deleting the source leaves a broken link, not a deleted shot',
+    !!afterDel.reuse && afterDel.reuse.ok === false);
+  ok('reuse: the broken link still says what it wanted',
+    afterDel.reuse.concept === 'Hero film' && afterDel.reuse.label === '1A');
+}
+
+// ── N2. Pointers never chain, and a mistyped concept name still resolves ──
+{
+  reset();
+  const pid = Store.createProject({ name: 'Reuse edges' }).id;
+  Store.scaffoldFromPlan(pid, JSON.stringify({ concepts: [
+    { name: 'Hero film', kind: 'video', scenes: [{ name: 'S', shots: [
+      { label: '1A', subject: 'the original frame' }
+    ] }] },
+    { name: 'Cut A', kind: 'video', scenes: [{ name: 'S', shots: [
+      { label: '1A', reuseOf: { concept: 'Hreo flim', label: '1A' } }   // typo'd name
+    ] }] },
+    { name: 'Cut B', kind: 'video', scenes: [{ name: 'S', shots: [
+      { label: '1A', reuseOf: { concept: 'Cut A', label: '1A' } }       // points at a pointer
+    ] }] }
+  ] }));
+  const proj = Store.getProject(pid);
+  const [heroC, cutA, cutB] = proj.concepts;
+  const ids = (c) => ({ projectId: pid, conceptId: c.id, sceneId: c.scenes[0].id, shotId: c.scenes[0].shots[0].id });
+
+  ok('reuse: a mistyped concept name still resolves by label',
+    Store.resolveShot(ids(cutA)).builder.subject === 'the original frame');
+  ok('reuse: a pointer at a pointer does NOT chain', cutB.scenes[0].shots[0].reuseOf.shotId === '');
+  ok('reuse: an unchained pointer reads as broken', Store.resolveShot(ids(cutB)).reuse.ok === false);
+  ok('reuse: the source itself is untouched', !('reuseOf' in heroC.scenes[0].shots[0]));
+
+  // A reuseOf with no label is not a pointer — dropping it is better than
+  // storing one that can never resolve.
+  const pid2 = Store.createProject({ name: 'Empty reuse' }).id;
+  Store.scaffoldFromPlan(pid2, JSON.stringify({ scenes: [{ name: 'S', shots: [
+    { label: '1A', subject: 'x', reuseOf: { concept: 'Hero film' } },
+    { label: '1B', subject: 'y', reuseOf: 'not an object' }
+  ] }] }));
+  const shots2 = Store.getProject(pid2).concepts[0].scenes[0].shots;
+  ok('reuse: a targetless reuseOf is dropped', !('reuseOf' in shots2[0]));
+  ok('reuse: a non-object reuseOf is dropped', !('reuseOf' in shots2[1]));
+}
+
+// ── N3. setShotDuration — the only hand-editable clip length in the app ──
+// The prompt builder has no duration control, so before this the field could
+// only ever be set by a plan. A cutdown whose lengths are wrong was unfixable.
+{
+  reset();
+  const pid = Store.createProject({ name: 'Durations' }).id;
+  Store.scaffoldFromPlan(pid, JSON.stringify({ scenes: [{ name: 'S', shots: [{ label: '1A' }] }] }));
+  const p = Store.getProject(pid), c = p.concepts[0], sc = c.scenes[0];
+  const ids = { projectId: pid, conceptId: c.id, sceneId: sc.id, shotId: sc.shots[0].id };
+  const dur = () => Store.getProject(pid).concepts[0].scenes[0].shots[0].builder.duration;
+
+  ok('shotDurations: matches SHOT_CONTROLS', JSON.stringify(Store.shotDurations()) === JSON.stringify(['2','3','4','5','6','8','10']));
+  Store.setShotDuration(ids, '6');
+  ok('setShotDuration: a legal value lands', dur() === '6');
+  Store.setShotDuration(ids, '7');
+  ok('setShotDuration: an off-vocabulary value is rejected', dur() === '6');
+  Store.setShotDuration(ids, '');
+  ok('setShotDuration: empty clears it', dur() === '');
+
+  // The project view is the only surface that can set it, and it must go
+  // through the validated setter rather than writing the builder directly.
+  const pv = fs.readFileSync(path.join(__dirname, '..', 'src', 'projects.html'), 'utf8');
+  ok('the project view offers a clip-length control', pv.indexOf('data-duration="') !== -1);
+  ok('the project view saves it through the validated setter', pv.indexOf('Store.setShotDuration(') !== -1);
+  // The runtime total must sum the RESOLVED durations — a cutdown that summed
+  // the hero film's lengths would report a runtime it does not have.
+  const durBlock = (pv.split('const durTotals =')[1] || '').split('}, {')[0];
+  ok('the runtime total sums resolved durations, not raw builders',
+    durBlock.indexOf('R(s).builder.duration') !== -1 && durBlock.indexOf('s.builder') === -1);
+}
+
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail ? 1 : 0);

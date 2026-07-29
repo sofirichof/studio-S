@@ -320,6 +320,13 @@ class Component extends DCLogic {
       ['cameraIntent', 'Camera intent', 'e.g. low 35mm slow dolly-in as she realizes']
     ];
 
+    // A shot may POINT AT another concept's shot (a cutdown re-cuts the hero
+    // film rather than re-shooting it). Everything below reads the RESOLVED
+    // shot, or a reused one renders as an empty row. Resolution runs against the
+    // project object already in hand — Store.resolveShot re-reads localStorage.
+    const R = (s) => (window.Store && Store.resolveShotIn)
+      ? Store.resolveShotIn(p, s) : { builder: s.builder || {}, reuse: null };
+
     // concept (a deliverable) → scenes → shots
     const conceptCards = concepts.map((c, ci) => {
       const scenes = c.scenes || [];
@@ -329,9 +336,12 @@ class Component extends DCLogic {
       // separately — a total you type drifts from the shots the moment one
       // changes. Shots with no duration set are counted and reported, because
       // "38s" over a 15s cutdown is only meaningful if you know it's complete.
+      // A cutdown sums ITS OWN durations, not the hero film's: a reused shot
+      // that overrides its length counts at the override, and one that doesn't
+      // counts at the source's. That's what makes a 15s cutdown checkable.
       const durTotals = scenes.reduce((acc, sc) => {
         (sc.shots || []).forEach((s) => {
-          const d = parseInt(((s.builder || {}).duration || ''), 10);
+          const d = parseInt((R(s).builder.duration || ''), 10);
           if (d > 0) { acc.secs += d; acc.set += 1; } else { acc.unset += 1; }
         });
         return acc;
@@ -346,11 +356,20 @@ class Component extends DCLogic {
       const castNames = (window.Store && Store.listReferences ? (Store.listReferences(p.id) || []) : [])
         .filter((r) => r.kind === 'character').map((r) => r.name).filter(Boolean);
       const findingsFor = (sceneObj) => {
-        const cont = (window.Continuity ? Continuity.checkScene(sceneObj, castNames) : []);
+        // Continuity judges the RESOLVED scene. Against the raw one, every
+        // reused shot reports its own empty builder as missing purpose, missing
+        // off-camera, an identical camera setup to its neighbours — findings
+        // about a frame that is fully specified one concept over.
+        const resolved = Object.assign({}, sceneObj, {
+          shots: (sceneObj.shots || []).map((s) => Object.assign({}, s, { builder: R(s).builder }))
+        });
+        const cont = (window.Continuity ? Continuity.checkScene(resolved, castNames) : []);
         const perShot = {};
         (sceneObj.shots || []).forEach((s) => {
           const own = cont.filter((f) => f.shotLabel && f.shotLabel === s.label);
-          const coh = window.Coherence ? Coherence.checkShot(s.builder || {}) : [];
+          // Resolved, so a pointer is judged on the frame it points at rather
+          // than on its own empty builder.
+          const coh = window.Coherence ? Coherence.checkShot(R(s).builder) : [];
           perShot[s.id] = own.concat(coh);
         });
         // shotLabel '' means the finding is about the scene, not one shot.
@@ -366,16 +385,47 @@ class Component extends DCLogic {
         : { total: 0 };
       const shotRows = shots.map((s, si) => {
         const open = this._openShot === s.id;
-        const b = s.builder || {};
+        const res = R(s);
+        const b = res.builder;
+        const ru = res.reuse;
         const lock = s.locked || null;
-        const detail = !open ? '' :
-          '<div style="padding:10px 12px 12px;margin:2px 0 6px;background:#F7F5EF;border:1px solid rgba(16,16,32,0.07);border-radius:8px;">' +
-            FIELDS.map(([k, lbl, ph]) =>
+        // A pointer has no content of its own, so its fields are shown read-only
+        // and edited at the source. Making them editable here would fork the
+        // frame in two, which is the exact thing reuse exists to prevent.
+        const fieldRows = ru && ru.ok
+          ? FIELDS.map(([k, lbl]) => (b[k] ? '<div style="margin-bottom:8px;">' +
+                '<label style="display:block;font-size:10px;font-weight:500;color:#9A9AA8;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;">' + lbl + '</label>' +
+                '<p style="font-size:12px;color:#5A5A6B;line-height:1.5;">' + esc(b[k]) + '</p>' +
+              '</div>' : '')).join('')
+          : FIELDS.map(([k, lbl, ph]) =>
               '<div style="margin-bottom:8px;">' +
                 '<label style="display:block;font-size:10px;font-weight:500;color:#9A9AA8;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;">' + lbl + '</label>' +
                 '<textarea data-field="' + c.id + '|' + sceneObj.id + '|' + s.id + '|' + k + '" rows="2" placeholder="' + ph + '" ' +
                   'style="width:100%;background:#fff;border:1px solid rgba(16,16,32,0.10);border-radius:6px;padding:6px 8px;font-family:inherit;font-size:12px;line-height:1.5;color:#16161D;resize:vertical;outline:none;">' + esc(b[k] || '') + '</textarea>' +
-              '</div>').join('') +
+              '</div>').join('');
+        // Clip length. The only field a reusing shot owns for itself — the same
+        // frame runs 6s in the hero film and 2s in the cutdown — and the only
+        // place in the app it can be set by hand at all.
+        const durationRow =
+          '<div style="margin-bottom:8px;">' +
+            '<label style="display:block;font-size:10px;font-weight:500;color:#9A9AA8;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;">Clip length' + (ru && ru.ok ? ' (this cut)' : '') + '</label>' +
+            '<select data-duration="' + c.id + '|' + sceneObj.id + '|' + s.id + '" style="height:30px;background:#fff;border:1px solid rgba(16,16,32,0.10);border-radius:6px;padding:0 8px;font-family:inherit;font-size:12px;color:#16161D;outline:none;">' +
+              '<option value=""' + (b.duration ? '' : ' selected') + '>— not set —</option>' +
+              (window.Store && Store.shotDurations ? Store.shotDurations() : []).map((v) =>
+                '<option value="' + esc(v) + '"' + (b.duration === v ? ' selected' : '') + '>' + esc(v) + 's</option>').join('') +
+            '</select>' +
+          '</div>';
+        const reuseBanner = !ru ? ''
+          : (ru.ok
+            ? '<div style="display:flex;gap:8px;align-items:flex-start;background:#EEF0FF;border:1px solid rgba(2,23,211,0.15);border-radius:8px;padding:9px 11px;margin-bottom:10px;">' +
+                '<p style="font-size:11.5px;color:#5A5A6B;line-height:1.5;">This shot <strong style="color:#0217D3;font-weight:500;">reuses ' + esc(ru.concept || 'another concept') + ' ' + esc(ru.label) + '</strong> — the same frame, re-cut here. Its content is edited on the original, so it can never drift out of step. Only the clip length below belongs to this cut.</p>' +
+              '</div>'
+            : '<div style="background:#FFECEF;border:1px solid rgba(255,0,46,0.20);border-radius:8px;padding:9px 11px;margin-bottom:10px;">' +
+                '<p style="font-size:11.5px;color:#5A5A6B;line-height:1.5;"><strong style="color:#FF002E;font-weight:500;">Broken reuse link.</strong> This shot points at ' + esc(ru.concept || 'a concept') + ' ' + esc(ru.label) + ', which no longer exists. Fill its fields in to make it a shot of its own, or delete it.</p>' +
+              '</div>');
+        const detail = !open ? '' :
+          '<div style="padding:10px 12px 12px;margin:2px 0 6px;background:#F7F5EF;border:1px solid rgba(16,16,32,0.07);border-radius:8px;">' +
+            reuseBanner + fieldRows + durationRow +
             // Imported from the handoff plan — what this shot needs on the day.
             (s.breakdown
               ? '<div style="margin-bottom:8px;">' +
@@ -397,18 +447,24 @@ class Component extends DCLogic {
             // Correctable here, deliberately not in the prompt builder: the
             // plan sets purpose, and this is where you fix it if it got it
             // wrong. Never reaches a prompt — it drives the continuity checks.
-            '<div style="margin-bottom:8px;">' +
-              '<label style="display:block;font-size:10px;font-weight:500;color:#9A9AA8;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;">Editorial purpose</label>' +
-              '<select data-purpose="' + c.id + '|' + sceneObj.id + '|' + s.id + '" style="height:30px;background:#fff;border:1px solid rgba(16,16,32,0.10);border-radius:6px;padding:0 8px;font-family:inherit;font-size:12px;color:#16161D;outline:none;">' +
-                '<option value=""' + (b.purpose ? '' : ' selected') + '>— not set —</option>' +
-                (window.Store && Store.shotPurposes ? Store.shotPurposes() : []).map((v) =>
-                  '<option value="' + esc(v) + '"' + (b.purpose === v ? ' selected' : '') + '>' + esc(v) + '</option>').join('') +
-              '</select>' +
-            '</div>' +
+            (ru && ru.ok
+              ? (b.purpose
+                ? '<p style="font-size:11px;color:#9A9AA8;margin-bottom:8px;">Editorial purpose: ' + esc(b.purpose) + ' — set on the original.</p>'
+                : '')
+              : '<div style="margin-bottom:8px;">' +
+                  '<label style="display:block;font-size:10px;font-weight:500;color:#9A9AA8;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;">Editorial purpose</label>' +
+                  '<select data-purpose="' + c.id + '|' + sceneObj.id + '|' + s.id + '" style="height:30px;background:#fff;border:1px solid rgba(16,16,32,0.10);border-radius:6px;padding:0 8px;font-family:inherit;font-size:12px;color:#16161D;outline:none;">' +
+                    '<option value=""' + (b.purpose ? '' : ' selected') + '>— not set —</option>' +
+                    (window.Store && Store.shotPurposes ? Store.shotPurposes() : []).map((v) =>
+                      '<option value="' + esc(v) + '"' + (b.purpose === v ? ' selected' : '') + '>' + esc(v) + '</option>').join('') +
+                  '</select>' +
+                '</div>') +
             // Everything this shot trips — continuity findings addressed to its
             // label, plus its own control-coherence checks.
             (window.Findings ? Findings.render(F.perShot[s.id], { title: 'Worth checking' }) : '') +
-            '<button data-open-shot="' + c.id + '|' + sceneObj.id + '|' + s.id + '" style="margin-top:10px;height:28px;padding:0 12px;background:#fff;border:1px solid rgba(16,16,32,0.12);border-radius:6px;font-family:inherit;font-size:12px;font-weight:500;color:#16161D;cursor:pointer;">Open in builder</button>' +
+            (ru && ru.ok
+              ? '<button data-open-shot="' + ru.sourceIds.conceptId + '|' + ru.sourceIds.sceneId + '|' + ru.sourceIds.shotId + '" style="margin-top:10px;height:28px;padding:0 12px;background:#fff;border:1px solid rgba(16,16,32,0.12);border-radius:6px;font-family:inherit;font-size:12px;font-weight:500;color:#16161D;cursor:pointer;">Open the original in builder</button>'
+              : '<button data-open-shot="' + c.id + '|' + sceneObj.id + '|' + s.id + '" style="margin-top:10px;height:28px;padding:0 12px;background:#fff;border:1px solid rgba(16,16,32,0.12);border-radius:6px;font-family:inherit;font-size:12px;font-weight:500;color:#16161D;cursor:pointer;">Open in builder</button>') +
           '</div>';
         return '<div>' +
           '<div style="display:flex;align-items:center;gap:6px;padding:3px 0;">' +
@@ -418,6 +474,12 @@ class Component extends DCLogic {
             // the detail is inside. Without this the findings are invisible
             // until you happen to open the right shot.
             (window.Findings ? Findings.dot(F.perShot[s.id]) : '') +
+            // A pointer says so on the collapsed row — otherwise a cutdown reads
+            // as a shot list that someone forgot to fill in.
+            (!ru ? ''
+              : ru.ok
+                ? '<span title="Reuses ' + esc(ru.concept) + ' ' + esc(ru.label) + '" style="font-size:10px;font-weight:500;color:#0217D3;background:#EEF0FF;border-radius:999px;padding:1px 7px;flex-shrink:0;">↩ ' + esc(ru.concept || 'reused') + ' ' + esc(ru.label) + '</span>'
+                : '<span title="The shot this points at no longer exists" style="font-size:10px;font-weight:500;color:#FF002E;background:#FFECEF;border-radius:999px;padding:1px 7px;flex-shrink:0;">↩ broken link</span>') +
             // Editorial purpose (Phase 3) — set from the builder's chips, shown
             // here read-only so a shot list reads its own coverage at a glance.
             (b.purpose ? '<span style="font-size:10px;font-weight:500;color:#5A5A6B;background:#F0F1F4;border-radius:999px;padding:1px 7px;flex-shrink:0;">' + esc(b.purpose) + '</span>' : '') +
@@ -564,7 +626,16 @@ class Component extends DCLogic {
       const [cid, scnid, shotid] = parts(el, 'data-purpose');
       el.onchange = () => {
         Store.setShotPurpose({ projectId: id, conceptId: cid, sceneId: scnid, shotId: shotid }, el.value);
-        this.render();
+        this.renderOverview(id);
+      };
+    });
+    // Clip length. Re-renders because the concept's runtime total is summed from
+    // these — changing one silently would leave a stale total on screen.
+    mount.querySelectorAll('[data-duration]').forEach((el) => {
+      const [cid, scnid, shotid] = parts(el, 'data-duration');
+      el.onchange = () => {
+        Store.setShotDuration({ projectId: id, conceptId: cid, sceneId: scnid, shotId: shotid }, el.value);
+        this.renderOverview(id);
       };
     });
     mount.querySelectorAll('[data-add-scene]').forEach((el) => {
@@ -639,7 +710,14 @@ class Component extends DCLogic {
         const s = sc && (sc.shots || []).filter((x) => x.id === sid)[0];
         if (!s) return;
         const what = (s.label || 'this shot') + (s.name ? ' · ' + s.name : '');
-        if (!window.confirm('Delete shot ' + what + '? Its prompt and fields go with it.')) return;
+        // Other concepts may be pointing at this shot for their content. Say so
+        // before it goes, or a cutdown quietly fills with broken links.
+        const deps = (Store.reuseDependents ? Store.reuseDependents(id, sid) : []);
+        const depWarn = deps.length
+          ? '\n\n' + deps.length + ' shot' + (deps.length === 1 ? '' : 's') + ' reuse' + (deps.length === 1 ? 's' : '') +
+            ' this one and will break: ' + deps.map((x) => (x.concept || 'a concept') + ' ' + x.label).join(', ') + '.'
+          : '';
+        if (!window.confirm('Delete shot ' + what + '? Its prompt and fields go with it.' + depWarn)) return;
         if (this._openShot === sid) this._openShot = null;
         Store.removeShot({ projectId: id, conceptId: cid, sceneId: scnid, shotId: sid });
         this.renderOverview(id);
@@ -705,7 +783,9 @@ class Component extends DCLogic {
     const sceneBlocks = (p.concepts || []).map((c) => {
       const inner = (c.scenes || []).map((sceneObj) => {
       const rows = (sceneObj.shots || []).map((s) => {
-        const b = s.builder || {};
+        // Resolved: a reused shot needs the same references as the frame it
+        // points at, so counting it as a gap would invent work that isn't there.
+        const b = (window.Store && Store.resolveShotIn) ? Store.resolveShotIn(p, s).builder : (s.builder || {});
         const cells = SLOTS.map((slot) => {
           const raw = b[slot.key];
           const ids = slot.many ? (Array.isArray(raw) ? raw : []) : (raw ? [raw] : []);

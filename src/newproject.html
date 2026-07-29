@@ -354,7 +354,19 @@ Exact format:
     }
       ]
     },
-    { "name": "Social cutdown", "kind": "video", "scenes": [ /* its own scenes and shots */ ] }
+    {
+      "name": "Social cutdown",
+      "kind": "video",
+      "scenes": [
+        {
+          "name": "Bodega, afternoon",
+          "shots": [
+            { "label": "1A", "reuseOf": { "concept": "Hero film", "label": "2C" }, "duration": "2" },
+            { "label": "1B", "name": "1B · Logo card", "subject": "…a shot that only exists in this cut, written out in full…" }
+          ]
+        }
+      ]
+    }
   ],
   "descriptions": [
     {
@@ -388,6 +400,16 @@ SHOT NAMES ARE SHORT AND LABEL-LED: "1A · Man enters the bodega". A label, a mi
 LABELS ARE REQUIRED: every shot carries a "label" — the scene number plus a sequential letter. Scene 1's shots are "1A", "1B", "1C"…; scene 2's are "2A", "2B"…. Labels restart in each concept, so every concept has its own 1A. Never skip or reuse a label within a concept; they are how the team calls shots on the board.
 
 ONE CONCEPT PER DELIVERABLE: don't put two videos' scenes in one concept, and don't split one video across two concepts. "kind" is "video" or "still".
+
+A CUTDOWN RE-CUTS THE HERO, IT DOES NOT RE-SHOOT IT. When a second concept uses a frame the first concept already has — a 15s social cut of a 60s film, a 6s bumper, a vertical version — do NOT restate that shot's subject / action / environment / offCamera / propState. Point at it instead:
+    { "label": "1A", "reuseOf": { "concept": "Hero film", "label": "2C" }, "duration": "2" }
+"concept" is the exact name of the concept you are borrowing from, "label" is that shot's label inside it. The app resolves the pointer and the frame is described in exactly one place, so a later change to it reaches every cut. Rules:
+  • "duration" is the ONE field a reusing shot may set for itself — the same frame runs 6s in the hero film and 2s in the cutdown. Set it; do not leave the cutdown running at the hero's lengths.
+  • Everything else on a reusing shot is ignored. Don't half-fill one.
+  • A shot that is genuinely NEW in this cut — an end card, a logo sting, a tighter alternate framing — is written out in full like any other shot. Reuse is for the SAME frame, not a similar one.
+  • Never point at a shot in the same concept, and never point at another pointer. If two shots in one concept want the same frame, they are one shot used twice in the edit, which is an edit decision and not a shot list one.
+  • Order the concepts so the one being borrowed FROM comes first. It reads better and it is how a producer expects to find it.
+Adding up a cutdown's durations is how the user checks it fits its slot, so a 15s cut whose shots sum to 38s is a real error — get the lengths right.
 
 FIELDS ARE DATA, NOT PROSE TO BE PASTED: subject / action / environment / offCamera / propState / negative are model-agnostic facts. Studio S turns them into prompts for whichever model the user picks. Facts, never prompt phrasing — but do not clip them short: together they must carry every continuity fact the shot needs in order to stand alone.
 

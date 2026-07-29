@@ -546,5 +546,55 @@ ok('the shot no-prompts rule is scoped to shots, not references',
   })());
 }
 
+// ── 7. The reuse instruction must match the importer that reads it ──
+// This is the same class of bug as `negative`: the handoff asks the planning
+// agent for a shape, and nothing on the app side understands it, so the work
+// evaporates without an error. Here the cost is worse than a lost field — a
+// cutdown whose shots silently arrive EMPTY.
+{
+  ok('the handoff teaches reuse', np.indexOf('A CUTDOWN RE-CUTS THE HERO') !== -1);
+  ok('the handoff names the field exactly as the importer reads it',
+    np.indexOf('"reuseOf"') !== -1 || np.indexOf('"reuseOf":') !== -1);
+  ok('the reuse example carries both concept and label',
+    /"reuseOf":\s*\{\s*"concept":\s*"[^"]+",\s*"label":\s*"[^"]+"\s*\}/.test(np));
+  ok('the handoff says duration is the one per-use field',
+    np.indexOf('"duration" is the ONE field a reusing shot may set') !== -1);
+  // The example lives in the SECOND concept on purpose: section 1 above parses
+  // the first shot block for a field list, and reuseOf is a different SHAPE of
+  // shot rather than another field of an ordinary one.
+  ok('reuseOf is kept out of the ordinary-shot field list', asked.indexOf('reuseOf') === -1);
+
+  // End to end: the documented example imports and resolves.
+  const rid = Store.createProject({ name: 'Handoff reuse' }).id;
+  Store.scaffoldFromPlan(rid, JSON.stringify({ concepts: [
+    { name: 'Hero film', kind: 'video', scenes: [{ name: 'Bodega', shots: [
+      { label: '1A' }, { label: '1B' },
+      { label: '2C', subject: 'the frame the cutdown wants', duration: '6' }
+    ] }] },
+    { name: 'Social cutdown', kind: 'video', scenes: [{ name: 'Bodega', shots: [
+      { label: '1A', reuseOf: { concept: 'Hero film', label: '2C' }, duration: '2' }
+    ] }] }
+  ] }));
+  const rp = Store.getProject(rid);
+  const rcut = rp.concepts[1];
+  const rres = Store.resolveShot({ projectId: rid, conceptId: rcut.id,
+    sceneId: rcut.scenes[0].id, shotId: rcut.scenes[0].shots[0].id });
+  ok('the documented reuse example resolves to the hero shot',
+    !!rres && rres.reuse && rres.reuse.ok === true
+    && rres.builder.subject === 'the frame the cutdown wants');
+  ok('the documented example takes its own duration', rres.builder.duration === '2');
+
+  // The builder must FOLLOW a pointer rather than open it as a blank shot —
+  // typing into a pointer forks the frame, which is what reuse prevents.
+  ok('the builder follows a reuse pointer to its source',
+    pb.indexOf('a.shot.reuseOf') !== -1 && pb.indexOf('Store.resolveShot(') !== -1);
+
+  const pv2 = fs.readFileSync(path.join(__dirname, '..', 'src', 'projects.html'), 'utf8');
+  ok('the project view resolves reuse rather than reading builders raw',
+    pv2.indexOf('Store.resolveShotIn') !== -1);
+  ok('the project view warns before deleting a shot others reuse',
+    pv2.indexOf('Store.reuseDependents(') !== -1);
+}
+
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail ? 1 : 0);

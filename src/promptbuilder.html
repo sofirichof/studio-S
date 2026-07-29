@@ -458,8 +458,22 @@ class Component extends DCLogic {
 
   seedFromActive() {
     if (!window.Store) return;
-    const a = Store.getActive();
+    let a = Store.getActive();
     this._ids = { projectId: a.projectId, conceptId: a.conceptId, sceneId: a.sceneId, shotId: a.shotId };
+    // A reused shot is a POINTER at another concept's shot, not a copy of it —
+    // it holds no content of its own. Editing it here would fork the frame in
+    // two, which is the exact thing reuse exists to prevent, so the builder
+    // follows the pointer and edits the original.
+    this._followedReuse = null;
+    if (a.shot && a.shot.reuseOf && Store.resolveShot) {
+      const r = Store.resolveShot(this._ids);
+      if (r && r.reuse && r.reuse.ok) {
+        this._followedReuse = { from: a.shot.label || '', concept: (a.concept && a.concept.name) || '' };
+        Store.setActive(r.reuse.sourceIds);
+        this._ids = Object.assign({}, r.reuse.sourceIds);
+        a = Store.getActive();
+      }
+    }
     const b = (a.shot && a.shot.builder) || null;
     if (b) {
       this.builderKeys().forEach((k) => {
@@ -667,6 +681,13 @@ class Component extends DCLogic {
           (a.scene ? '<br>' + esc(a.scene.name || 'Untitled scene') : '') +
           (a.concept ? ' · ' + esc(a.concept.name || '') : '') +
           '<br>Status: ' + esc(a.shot.status || 'draft') + '</p>' +
+        // Say why the builder is on a different shot than the one that was
+        // clicked — a silent redirect reads as the app losing your place.
+        (this._followedReuse
+          ? '<p style="font-size:11.5px;color:#0217D3;line-height:1.5;margin-top:8px;">' +
+              esc(this._followedReuse.concept) + ' ' + esc(this._followedReuse.from) +
+              ' reuses this shot, so you’re editing the original. Your change lands in both.</p>'
+          : '') +
       '</div>') : '';
 
     el.innerHTML =

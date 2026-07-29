@@ -690,6 +690,127 @@
     return updateShotBuilder(ids, { purpose: v });
   }
 
+  // Clip length in seconds, validated against SHOT_CONTROLS.duration. The
+  // project view is the ONLY place a human can set this — the builder has no
+  // duration control — and it is the one field a reusing shot owns for itself.
+  // '' clears it.
+  function setShotDuration(ids, value) {
+    var v = String(value == null ? '' : value).trim();
+    if (v && SHOT_CONTROLS.duration.indexOf(v) === -1) return null;
+    return updateShotBuilder(ids, { duration: v });
+  }
+
+  // ── concept reuse ───────────────────────────────────────────────────────────
+  // A social cutdown RE-CUTS the hero film; it does not re-shoot it. So a shot in
+  // one concept may POINT AT another concept's shot instead of restating its
+  // content: the frame is described once, and every concept using it stays in
+  // step when it changes. Duration is the single exception — the same frame runs
+  // 6s in the hero and 2s in the cutdown, and that is a property of the use, not
+  // of the shot.
+  //
+  // Stored as { concept, label, conceptId, shotId }. Resolution goes by ID, so
+  // renaming a concept can't break the link; the name and label are kept so a
+  // link that IS broken can say what it was looking for.
+  function readReuse(sh) {
+    var r = sh && sh.reuseOf;
+    if (!r || typeof r !== 'object') return null;
+    var label = String(r.label || r.shot || '').trim().toUpperCase();
+    if (!label) return null;    // a pointer with no target is not a pointer
+    return {
+      concept: String(r.concept || r.conceptName || '').trim(),
+      label: label, conceptId: '', shotId: ''
+    };
+  }
+  // Resolve every pointer to real ids, once all the concepts exist — a plan may
+  // name a concept that appears later in the file, so this cannot run per-shot.
+  function linkReuse(p) {
+    var concepts = p.concepts || [];
+    var byName = {};
+    concepts.forEach(function (c) { byName[String(c.name || '').trim().toLowerCase()] = c; });
+    concepts.forEach(function (c) {
+      (c.scenes || []).forEach(function (sc) {
+        (sc.shots || []).forEach(function (sh) {
+          var r = sh.reuseOf;
+          if (!r) return;
+          // A named concept that exists narrows the search to it. A name that
+          // matches nothing still resolves by label alone: a planner who
+          // mistyped the concept title has still said which shot it means.
+          var named = byName[String(r.concept || '').toLowerCase()];
+          var pool = (named ? [named] : concepts).filter(function (c2) { return c2 !== c; });
+          var hit = null;
+          pool.forEach(function (c2) {
+            (c2.scenes || []).forEach(function (sc2) {
+              (sc2.shots || []).forEach(function (sh2) {
+                // Never point at another pointer — one hop, always, so "where
+                // does this content live" is answerable by looking in one place.
+                if (hit || sh2.reuseOf) return;
+                if (String(sh2.label || '').toUpperCase() === r.label) hit = { c: c2, sh: sh2 };
+              });
+            });
+          });
+          r.conceptId = hit ? hit.c.id : '';
+          r.shotId = hit ? hit.sh.id : '';
+        });
+      });
+    });
+  }
+  function findShotById(p, shotId) {
+    var out = null;
+    (p.concepts || []).forEach(function (c) {
+      (c.scenes || []).forEach(function (s) {
+        (s.shots || []).forEach(function (sh) {
+          if (!out && sh.id === shotId) out = { c: c, s: s, sh: sh };
+        });
+      });
+    });
+    return out;
+  }
+  function resolveIn(p, sh) {
+    var own = sh.builder || defaultBuilder();
+    var r = sh.reuseOf;
+    if (!r) return { shot: sh, builder: own, reuse: null };
+    var src = r.shotId ? findShotById(p, r.shotId) : null;
+    // A pointer at a shot that no longer exists keeps its own (empty) builder
+    // and says so. Silently rendering it as a blank shot would hide the break.
+    if (!src) {
+      return { shot: sh, builder: own,
+        reuse: { concept: r.concept, label: r.label, ok: false, source: null, sourceIds: null } };
+    }
+    var merged = Object.assign({}, src.sh.builder || defaultBuilder());
+    if (own.duration) merged.duration = own.duration;
+    return { shot: sh, builder: merged, reuse: {
+      concept: src.c.name || '', label: src.sh.label || '', ok: true, source: src.sh,
+      sourceIds: { projectId: p.id, conceptId: src.c.id, sceneId: src.s.id, shotId: src.sh.id }
+    } };
+  }
+  // What this shot actually IS once reuse is followed. Any reader that needs a
+  // shot's CONTENT goes through here rather than reading sh.builder directly —
+  // a reused shot reads as an empty one otherwise.
+  function resolveShot(ids) {
+    ids = ids || {};
+    var doc = load();
+    var f = locate(doc, ids.projectId, ids.conceptId, ids.sceneId, ids.shotId);
+    if (!f || !f.sh) return null;
+    return resolveIn(f.p, f.sh);
+  }
+  // Who breaks if this shot goes. Deleting isn't blocked on it — the project
+  // view asks first, because that is the only place a human sees the cost.
+  function reuseDependents(projectId, shotId) {
+    var p = getProject(projectId);
+    if (!p) return [];
+    var out = [];
+    (p.concepts || []).forEach(function (c) {
+      (c.scenes || []).forEach(function (s) {
+        (s.shots || []).forEach(function (sh) {
+          if (sh.reuseOf && sh.reuseOf.shotId === shotId) {
+            out.push({ concept: c.name || '', label: sh.label || '' });
+          }
+        });
+      });
+    });
+    return out;
+  }
+
   function updateShotFields(ids, patch) {
     ids = ids || {};
     var clean = {};
@@ -1234,7 +1355,7 @@
           if (look) { b.dp = look; b.lookMode = 'dp'; }
           // Camera setup, when the plan chose one — otherwise the defaults hold.
           applyShotControls(b, sh);
-          return {
+          var out = {
             id: newId('shot'),
             // Authored by the planning agent, not by hand. Continuity only
             // demands an editorial purpose of these: a director building a shot
@@ -1247,10 +1368,18 @@
             breakdown: String(sh.breakdown || ''),
             builder: b
           };
+          // A pointer at another concept's shot. Left off entirely on ordinary
+          // shots so the stored doc doesn't carry a null on every one of them.
+          var reuse = readReuse(sh);
+          if (reuse) out.reuseOf = reuse;
+          return out;
         })
       };
       });
     }
+
+    // Every concept now exists, so the cross-concept pointers can be resolved.
+    linkReuse(p);
 
     var c0 = p.concepts[0];
     if (c0) {
@@ -1281,7 +1410,13 @@
     removeConcept: removeConcept, removeScene: removeScene, removeShot: removeShot,
     reorderConcept: reorderConcept, reorderScene: reorderScene, reorderShot: reorderShot,
     updateShotFields: updateShotFields, setShotPurpose: setShotPurpose, shotFields: function () { return SHOT_FIELDS.slice(); },
+    setShotDuration: setShotDuration,
+    shotDurations: function () { return SHOT_CONTROLS.duration.slice(); },
     shotPurposes: function () { return SHOT_PURPOSES.slice(); },
+    // concept reuse. resolveShotIn is the same resolution against a project
+    // object the caller already holds — the project view resolves every shot on
+    // every render, and resolveShot re-reads and re-parses localStorage per call.
+    resolveShot: resolveShot, resolveShotIn: resolveIn, reuseDependents: reuseDependents,
     lookLabels: function () { return Object.keys(LOOK_LABELS).slice(); },
     resolveLook: resolveLook,
     lockShotPrompt: lockShotPrompt, unlockShotPrompt: unlockShotPrompt,
