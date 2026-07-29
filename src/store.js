@@ -643,7 +643,12 @@
     'noir chiaroscuro': 'khondji',
     'warm documentary': 'morrison',
     'crisp anamorphic': 'pfister',
-    'storybook symmetry': 'anderson'
+    'storybook symmetry': 'anderson',
+    // Was missing while the look existed in dpTraits(), dpPresets() and
+    // multishot's dpLabel() — an omission, not a decision, so a plan simply
+    // could not choose it. Additive: no input reached this key before, so
+    // nothing can regress.
+    'monolithic minimal': 'villeneuve'
   };
   function resolveLook(v) {
     var k = String(v == null ? '' : v).trim().toLowerCase();

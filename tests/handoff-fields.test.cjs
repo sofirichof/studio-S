@@ -414,14 +414,19 @@ ok('the shot no-prompts rule is scoped to shots, not references',
   ok('duration never reaches a stills prompt',
     PC.compileReferencePrompt('prop', 'x', {}).stills.indexOf('Duration:') === -1);
 
-  ok('seedance gets the technical block',
-    withDur.indexOf('Technical: 24fps smooth motion. 8K detail. No jitter.') !== -1);
+  // The old VIDEO_TAILS blocks are gone. 'seedance' is a RETIRED id — normalizeModel
+  // coerces it to 'higgsfield' on load, and that adapter emits Technical: and Audio:
+  // as proper slots instead of trailing sentences. See tests/seedance.test.cjs.
+  ok('the retired seedance id no longer gets a trailing technical block',
+    withDur.indexOf('Technical:') === -1);
   ok('kling is left untouched',
     PC.compileVideo({}, { scene: 'A wide shot', model: 'kling' }).indexOf('Technical:') === -1);
-  ok('the technical block trails the duration',
-    withDur.indexOf('Duration:') < withDur.indexOf('Technical:'));
-  ok('audio is deliberately still unspecified — remove this when the field lands',
-    withDur.toLowerCase().indexOf('audio') === -1 && withDur.toLowerCase().indexOf('sound') === -1);
+  ok('the adapter emits Technical: as a slot, with no resolution token',
+    /^Technical: 24fps smooth motion\. No jitter\.$/m.test(
+      PC.compileVideo({ action: 'she turns' }, { model: 'higgsfield' })));
+  ok('audio is now specified — Seedance generates sound, so silence invents music',
+    PC.compileVideo({ action: 'she turns' }, { model: 'higgsfield' })
+      .indexOf('Audio: Environmental SFX only. No music. No subtitles.') !== -1);
 
   // duration is a validated control, so a junk value from a plan is dropped.
   const src = fs.readFileSync(path.join(__dirname, '..', 'src', 'store.js'), 'utf8');

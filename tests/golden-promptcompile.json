@@ -1,0 +1,676 @@
+{
+ "compileVideo/kling": "A wide establishing shot of a woman, subject centred in frame. the bag held out. Camera: the camera pushes in slowly, following the action; one camera move only, no cuts. Ambient motion stays subtle and physical — air, light and background life move naturally within bodega interior, counter frame right. Hold the framing; same subject, wardrobe and lighting for the full shot. Duration: 6 seconds.",
+ "compileVideo/noScene/kling": "Animate the still with natural motion true to the scene. the bag held out. Camera: the camera pushes in slowly, following the action; one camera move only, no cuts. Ambient motion stays subtle and physical — air, light and background life move naturally within bodega interior, counter frame right. Hold the framing; same subject, wardrobe and lighting for the full shot. Duration: 6 seconds.",
+ "compileVideo/bare/kling": "Animate the still with natural motion true to the scene. Camera: the camera moves subtly; one camera move only, no cuts. Ambient motion stays subtle and physical — air, light and background life move naturally. Hold the framing; same subject, wardrobe and lighting for the full shot.",
+ "compileVideo/unknown": "A wide establishing shot of a woman, subject centred in frame. the bag held out. Camera: the camera pushes in slowly, following the action; one camera move only, no cuts. Ambient motion stays subtle and physical — air, light and background life move naturally within bodega interior, counter frame right. Hold the framing; same subject, wardrobe and lighting for the full shot. Duration: 6 seconds.",
+ "compileVideo/noScene/unknown": "Animate the still with natural motion true to the scene. the bag held out. Camera: the camera pushes in slowly, following the action; one camera move only, no cuts. Ambient motion stays subtle and physical — air, light and background life move naturally within bodega interior, counter frame right. Hold the framing; same subject, wardrobe and lighting for the full shot. Duration: 6 seconds.",
+ "compileVideo/bare/unknown": "Animate the still with natural motion true to the scene. Camera: the camera moves subtly; one camera move only, no cuts. Ambient motion stays subtle and physical — air, light and background life move naturally. Hold the framing; same subject, wardrobe and lighting for the full shot.",
+ "compileVideo/undefined": "A wide establishing shot of a woman, subject centred in frame. the bag held out. Camera: the camera pushes in slowly, following the action; one camera move only, no cuts. Ambient motion stays subtle and physical — air, light and background life move naturally within bodega interior, counter frame right. Hold the framing; same subject, wardrobe and lighting for the full shot. Duration: 6 seconds.",
+ "compileVideo/noScene/undefined": "Animate the still with natural motion true to the scene. the bag held out. Camera: the camera pushes in slowly, following the action; one camera move only, no cuts. Ambient motion stays subtle and physical — air, light and background life move naturally within bodega interior, counter frame right. Hold the framing; same subject, wardrobe and lighting for the full shot. Duration: 6 seconds.",
+ "compileVideo/bare/undefined": "Animate the still with natural motion true to the scene. Camera: the camera moves subtly; one camera move only, no cuts. Ambient motion stays subtle and physical — air, light and background life move naturally. Hold the framing; same subject, wardrobe and lighting for the full shot.",
+ "stillLead/gpt/noAr": {
+  "pre": "Photorealistic. ",
+  "post": ""
+ },
+ "stillLead/gpt/16:9": {
+  "pre": "Photorealistic. ",
+  "post": " 16:9."
+ },
+ "stillLead/gpt/9:16": {
+  "pre": "Photorealistic. ",
+  "post": " 9:16."
+ },
+ "stillLead/gpt/1:1": {
+  "pre": "Photorealistic. ",
+  "post": " 1:1."
+ },
+ "stillLead/gpt/2.39:1": {
+  "pre": "Photorealistic. ",
+  "post": " 2.39:1."
+ },
+ "stillLead/nano/noAr": {
+  "pre": "Photograph. ",
+  "post": " 4K."
+ },
+ "stillLead/nano/16:9": {
+  "pre": "Photograph. ",
+  "post": " 16:9, 4K."
+ },
+ "stillLead/nano/9:16": {
+  "pre": "Photograph. ",
+  "post": " 9:16, 4K."
+ },
+ "stillLead/nano/1:1": {
+  "pre": "Photograph. ",
+  "post": " 1:1, 4K."
+ },
+ "stillLead/nano/2.39:1": {
+  "pre": "Photograph. ",
+  "post": " 2.39:1, 4K."
+ },
+ "stillLead/seedream/noAr": {
+  "pre": "",
+  "post": " Ultra-sharp 4K, accurate materials."
+ },
+ "stillLead/seedream/16:9": {
+  "pre": "",
+  "post": " Ultra-sharp 4K, accurate materials, 16:9."
+ },
+ "stillLead/seedream/9:16": {
+  "pre": "",
+  "post": " Ultra-sharp 4K, accurate materials, 9:16."
+ },
+ "stillLead/seedream/1:1": {
+  "pre": "",
+  "post": " Ultra-sharp 4K, accurate materials, 1:1."
+ },
+ "stillLead/seedream/2.39:1": {
+  "pre": "",
+  "post": " Ultra-sharp 4K, accurate materials, 2.39:1."
+ },
+ "stillLead/unknown/noAr": {
+  "pre": "",
+  "post": ""
+ },
+ "stillLead/unknown/16:9": {
+  "pre": "",
+  "post": ""
+ },
+ "stillLead/unknown/9:16": {
+  "pre": "",
+  "post": ""
+ },
+ "stillLead/unknown/1:1": {
+  "pre": "",
+  "post": ""
+ },
+ "stillLead/unknown/2.39:1": {
+  "pre": "",
+  "post": ""
+ },
+ "term/angle/eye/gpt": "shot at eye level",
+ "term/angle/eye/nano": "shot at eye level",
+ "term/angle/eye/seedream": "shot at eye level",
+ "term/angle/eye/kling": "shot at eye level",
+ "term/angle/eye/seedance": "shot at eye level",
+ "term/angle/eye/higgsfield": "shot at eye level",
+ "term/angle/eye/undefined": "shot at eye level",
+ "term/angle/low/gpt": "low-angle shot looking up at the subject",
+ "term/angle/low/nano": "low-angle shot looking up at the subject",
+ "term/angle/low/seedream": "low-angle shot looking up at the subject",
+ "term/angle/low/kling": "low-angle shot looking up at the subject",
+ "term/angle/low/seedance": "low-angle shot looking up at the subject",
+ "term/angle/low/higgsfield": "low-angle shot looking up at the subject",
+ "term/angle/low/undefined": "low-angle shot looking up at the subject",
+ "term/angle/high/gpt": "high-angle shot looking down at the subject",
+ "term/angle/high/nano": "high-angle shot looking down at the subject",
+ "term/angle/high/seedream": "high-angle shot looking down at the subject",
+ "term/angle/high/kling": "high-angle shot looking down at the subject",
+ "term/angle/high/seedance": "high-angle shot looking down at the subject",
+ "term/angle/high/higgsfield": "high-angle shot looking down at the subject",
+ "term/angle/high/undefined": "high-angle shot looking down at the subject",
+ "term/angle/dutch/gpt": "canted dutch-angle framing",
+ "term/angle/dutch/nano": "canted dutch-angle framing",
+ "term/angle/dutch/seedream": "canted dutch-angle framing",
+ "term/angle/dutch/kling": "canted dutch-angle framing",
+ "term/angle/dutch/seedance": "canted dutch-angle framing",
+ "term/angle/dutch/higgsfield": "canted dutch-angle framing",
+ "term/angle/dutch/undefined": "canted dutch-angle framing",
+ "term/depth/shallow/gpt": "shallow depth of field, background thrown soft",
+ "term/depth/shallow/nano": "shallow depth of field, background thrown soft",
+ "term/depth/shallow/seedream": "shallow depth of field, background thrown soft",
+ "term/depth/shallow/kling": "shallow depth of field, background thrown soft",
+ "term/depth/shallow/seedance": "shallow depth of field, background thrown soft",
+ "term/depth/shallow/higgsfield": "shallow depth of field, background thrown soft",
+ "term/depth/shallow/undefined": "shallow depth of field, background thrown soft",
+ "term/depth/layered/gpt": "layered depth, foreground, midground and background all legible",
+ "term/depth/layered/nano": "layered depth, foreground, midground and background all legible",
+ "term/depth/layered/seedream": "layered depth, foreground, midground and background all legible",
+ "term/depth/layered/kling": "layered depth, foreground, midground and background all legible",
+ "term/depth/layered/seedance": "layered depth, foreground, midground and background all legible",
+ "term/depth/layered/higgsfield": "layered depth, foreground, midground and background all legible",
+ "term/depth/layered/undefined": "layered depth, foreground, midground and background all legible",
+ "term/depth/deep/gpt": "deep focus, sharp from front to back",
+ "term/depth/deep/nano": "deep focus, sharp from front to back",
+ "term/depth/deep/seedream": "deep focus, sharp from front to back",
+ "term/depth/deep/kling": "deep focus, sharp from front to back",
+ "term/depth/deep/seedance": "deep focus, sharp from front to back",
+ "term/depth/deep/higgsfield": "deep focus, sharp from front to back",
+ "term/depth/deep/undefined": "deep focus, sharp from front to back",
+ "term/move/static/gpt": "the camera is locked off, no camera move",
+ "term/move/static/nano": "the camera is locked off, no camera move",
+ "term/move/static/seedream": "the camera is locked off, no camera move",
+ "term/move/static/kling": "the camera is locked off, no camera move",
+ "term/move/static/seedance": "the camera is locked off, no camera move",
+ "term/move/static/higgsfield": "the camera is locked off, no camera move",
+ "term/move/static/undefined": "the camera is locked off, no camera move",
+ "term/move/push/gpt": "the camera pushes in slowly",
+ "term/move/push/nano": "the camera pushes in slowly",
+ "term/move/push/seedream": "the camera pushes in slowly",
+ "term/move/push/kling": "the camera pushes in slowly",
+ "term/move/push/seedance": "the camera pushes in slowly",
+ "term/move/push/higgsfield": "the camera pushes in slowly",
+ "term/move/push/undefined": "the camera pushes in slowly",
+ "term/move/pan/gpt": "the camera pans gently",
+ "term/move/pan/nano": "the camera pans gently",
+ "term/move/pan/seedream": "the camera pans gently",
+ "term/move/pan/kling": "the camera pans gently",
+ "term/move/pan/seedance": "the camera pans gently",
+ "term/move/pan/higgsfield": "the camera pans gently",
+ "term/move/pan/undefined": "the camera pans gently",
+ "term/move/tracking/gpt": "the camera tracks with the subject",
+ "term/move/tracking/nano": "the camera tracks with the subject",
+ "term/move/tracking/seedream": "the camera tracks with the subject",
+ "term/move/tracking/kling": "the camera tracks with the subject",
+ "term/move/tracking/seedance": "the camera tracks with the subject",
+ "term/move/tracking/higgsfield": "the camera tracks with the subject",
+ "term/move/tracking/undefined": "the camera tracks with the subject",
+ "term/move/handheld/gpt": "the camera is subtly handheld",
+ "term/move/handheld/nano": "the camera is subtly handheld",
+ "term/move/handheld/seedream": "the camera is subtly handheld",
+ "term/move/handheld/kling": "the camera is subtly handheld",
+ "term/move/handheld/seedance": "the camera is subtly handheld",
+ "term/move/handheld/higgsfield": "the camera is subtly handheld",
+ "term/move/handheld/undefined": "the camera is subtly handheld",
+ "term/comp/tl/gpt": "subject placed top-left",
+ "term/comp/tl/nano": "subject placed top-left",
+ "term/comp/tl/seedream": "subject placed top-left",
+ "term/comp/tl/kling": "subject placed top-left",
+ "term/comp/tl/seedance": "subject placed top-left",
+ "term/comp/tl/higgsfield": "subject placed top-left",
+ "term/comp/tl/undefined": "subject placed top-left",
+ "term/comp/tc/gpt": "subject placed top-centre",
+ "term/comp/tc/nano": "subject placed top-centre",
+ "term/comp/tc/seedream": "subject placed top-centre",
+ "term/comp/tc/kling": "subject placed top-centre",
+ "term/comp/tc/seedance": "subject placed top-centre",
+ "term/comp/tc/higgsfield": "subject placed top-centre",
+ "term/comp/tc/undefined": "subject placed top-centre",
+ "term/comp/tr/gpt": "subject placed top-right",
+ "term/comp/tr/nano": "subject placed top-right",
+ "term/comp/tr/seedream": "subject placed top-right",
+ "term/comp/tr/kling": "subject placed top-right",
+ "term/comp/tr/seedance": "subject placed top-right",
+ "term/comp/tr/higgsfield": "subject placed top-right",
+ "term/comp/tr/undefined": "subject placed top-right",
+ "term/comp/ml/gpt": "subject on the left third",
+ "term/comp/ml/nano": "subject on the left third",
+ "term/comp/ml/seedream": "subject on the left third",
+ "term/comp/ml/kling": "subject on the left third",
+ "term/comp/ml/seedance": "subject on the left third",
+ "term/comp/ml/higgsfield": "subject on the left third",
+ "term/comp/ml/undefined": "subject on the left third",
+ "term/comp/mc/gpt": "subject centred in frame",
+ "term/comp/mc/nano": "subject centred in frame",
+ "term/comp/mc/seedream": "subject centred in frame",
+ "term/comp/mc/kling": "subject centred in frame",
+ "term/comp/mc/seedance": "subject centred in frame",
+ "term/comp/mc/higgsfield": "subject centred in frame",
+ "term/comp/mc/undefined": "subject centred in frame",
+ "term/comp/mr/gpt": "subject on the right third",
+ "term/comp/mr/nano": "subject on the right third",
+ "term/comp/mr/seedream": "subject on the right third",
+ "term/comp/mr/kling": "subject on the right third",
+ "term/comp/mr/seedance": "subject on the right third",
+ "term/comp/mr/higgsfield": "subject on the right third",
+ "term/comp/mr/undefined": "subject on the right third",
+ "term/comp/bl/gpt": "subject placed bottom-left",
+ "term/comp/bl/nano": "subject placed bottom-left",
+ "term/comp/bl/seedream": "subject placed bottom-left",
+ "term/comp/bl/kling": "subject placed bottom-left",
+ "term/comp/bl/seedance": "subject placed bottom-left",
+ "term/comp/bl/higgsfield": "subject placed bottom-left",
+ "term/comp/bl/undefined": "subject placed bottom-left",
+ "term/comp/bc/gpt": "subject placed bottom-centre",
+ "term/comp/bc/nano": "subject placed bottom-centre",
+ "term/comp/bc/seedream": "subject placed bottom-centre",
+ "term/comp/bc/kling": "subject placed bottom-centre",
+ "term/comp/bc/seedance": "subject placed bottom-centre",
+ "term/comp/bc/higgsfield": "subject placed bottom-centre",
+ "term/comp/bc/undefined": "subject placed bottom-centre",
+ "term/comp/br/gpt": "subject placed bottom-right",
+ "term/comp/br/nano": "subject placed bottom-right",
+ "term/comp/br/seedream": "subject placed bottom-right",
+ "term/comp/br/kling": "subject placed bottom-right",
+ "term/comp/br/seedance": "subject placed bottom-right",
+ "term/comp/br/higgsfield": "subject placed bottom-right",
+ "term/comp/br/undefined": "subject placed bottom-right",
+ "term/framing/Symmetrical/gpt": "symmetrical composition",
+ "term/framing/Symmetrical/nano": "symmetrical composition",
+ "term/framing/Symmetrical/seedream": "symmetrical composition",
+ "term/framing/Symmetrical/kling": "symmetrical composition",
+ "term/framing/Symmetrical/seedance": "symmetrical composition",
+ "term/framing/Symmetrical/higgsfield": "symmetrical composition",
+ "term/framing/Symmetrical/undefined": "symmetrical composition",
+ "term/framing/lead/gpt": "strong leading lines",
+ "term/framing/lead/nano": "strong leading lines",
+ "term/framing/lead/seedream": "strong leading lines",
+ "term/framing/lead/kling": "strong leading lines",
+ "term/framing/lead/seedance": "strong leading lines",
+ "term/framing/lead/higgsfield": "strong leading lines",
+ "term/framing/lead/undefined": "strong leading lines",
+ "term/framing/frame/gpt": "a frame-within-a-frame composition",
+ "term/framing/frame/nano": "a frame-within-a-frame composition",
+ "term/framing/frame/seedream": "a frame-within-a-frame composition",
+ "term/framing/frame/kling": "a frame-within-a-frame composition",
+ "term/framing/frame/seedance": "a frame-within-a-frame composition",
+ "term/framing/frame/higgsfield": "a frame-within-a-frame composition",
+ "term/framing/frame/undefined": "a frame-within-a-frame composition",
+ "term/framing/Negative space/gpt": "generous negative space",
+ "term/framing/Negative space/nano": "generous negative space",
+ "term/framing/Negative space/seedream": "generous negative space",
+ "term/framing/Negative space/kling": "generous negative space",
+ "term/framing/Negative space/seedance": "generous negative space",
+ "term/framing/Negative space/higgsfield": "generous negative space",
+ "term/framing/Negative space/undefined": "generous negative space",
+ "term/framing/ots/gpt": "over-the-shoulder framing",
+ "term/framing/ots/nano": "over-the-shoulder framing",
+ "term/framing/ots/seedream": "over-the-shoulder framing",
+ "term/framing/ots/kling": "over-the-shoulder framing",
+ "term/framing/ots/seedance": "over-the-shoulder framing",
+ "term/framing/ots/higgsfield": "over-the-shoulder framing",
+ "term/framing/ots/undefined": "over-the-shoulder framing",
+ "term/density/none/gpt": "no people in frame, the space is empty",
+ "term/density/none/nano": "no people in frame, the space is empty",
+ "term/density/none/seedream": "no people in frame, the space is empty",
+ "term/density/none/kling": "no people in frame, the space is empty",
+ "term/density/none/seedance": "no people in frame, the space is empty",
+ "term/density/none/higgsfield": "no people in frame, the space is empty",
+ "term/density/none/undefined": "no people in frame, the space is empty",
+ "term/density/single/gpt": "a lone figure",
+ "term/density/single/nano": "a lone figure",
+ "term/density/single/seedream": "a lone figure",
+ "term/density/single/kling": "a lone figure",
+ "term/density/single/seedance": "a lone figure",
+ "term/density/single/higgsfield": "a lone figure",
+ "term/density/single/undefined": "a lone figure",
+ "term/density/few/gpt": "a few figures",
+ "term/density/few/nano": "a few figures",
+ "term/density/few/seedream": "a few figures",
+ "term/density/few/kling": "a few figures",
+ "term/density/few/seedance": "a few figures",
+ "term/density/few/higgsfield": "a few figures",
+ "term/density/few/undefined": "a few figures",
+ "term/density/crowd/gpt": "set among a dense crowd",
+ "term/density/crowd/nano": "set among a dense crowd",
+ "term/density/crowd/seedream": "set among a dense crowd",
+ "term/density/crowd/kling": "set among a dense crowd",
+ "term/density/crowd/seedance": "set among a dense crowd",
+ "term/density/crowd/higgsfield": "set among a dense crowd",
+ "term/density/crowd/undefined": "set among a dense crowd",
+ "chipClause/tod/0": "at dawn",
+ "chipClause/tod/1": "at golden hour",
+ "chipClause/tod/2": "in flat midday light",
+ "chipClause/tod/3": "at dusk",
+ "chipClause/tod/4": "at night",
+ "chipClauses/tod": [
+  "at dawn",
+  "in flat midday light"
+ ],
+ "chipClause/light/0": "natural light",
+ "chipClause/light/1": "soft diffused light",
+ "chipClause/light/2": "hard directional light",
+ "chipClause/light/3": "lit by practical sources",
+ "chipClause/light/4": "controlled studio lighting",
+ "chipClauses/light": [
+  "natural light",
+  "hard directional light"
+ ],
+ "chipClause/feel/0": "warm naturalistic light, soft contrast, honest colour",
+ "chipClause/feel/1": "moody low-key lighting, deep shadows, high contrast",
+ "chipClause/feel/2": "soft diffused light, gentle haze, dreamy pastel tones",
+ "chipClause/feel/3": "bold saturated colour, punchy contrast, vivid light",
+ "chipClause/feel/4": "naturalistic documentary look, available light, true-to-life skin",
+ "chipClause/feel/5": "clean commercial lighting, crisp and bright, polished finish",
+ "chipClause/feel/6": "nostalgic film look, warm faded grade, fine grain",
+ "chipClauses/feel": [
+  "warm naturalistic light, soft contrast, honest colour",
+  "soft diffused light, gentle haze, dreamy pastel tones"
+ ],
+ "chipClause/grade/0": "warm colour grade",
+ "chipClause/grade/1": "cool colour grade",
+ "chipClause/grade/2": "muted, desaturated grade",
+ "chipClause/grade/3": "high-contrast grade",
+ "chipClause/grade/4": "teal-and-orange grade",
+ "chipClause/grade/5": "soft pastel grade",
+ "chipClauses/grade": [
+  "warm colour grade",
+  "muted, desaturated grade"
+ ],
+ "chipClause/realism/0": "natural motion blur",
+ "chipClause/realism/1": "fine film grain and subtle chromatic aberration",
+ "chipClause/realism/2": "gentle lens flare",
+ "chipClause/realism/3": "visible breath in the air",
+ "chipClause/realism/4": "dust particles drifting in the light",
+ "chipClause/realism/5": "creamy bokeh and layered depth",
+ "chipClause/realism/6": "wet reflective ground",
+ "chipClause/realism/7": "natural cloth movement",
+ "chipClause/realism/8": "fine micro-texture on skin and surfaces",
+ "chipClause/realism/9": "natural imperfections, no plastic sheen",
+ "chipClause/realism/10": "candid, unposed framing",
+ "chipClauses/realism": [
+  "natural motion blur",
+  "gentle lens flare"
+ ],
+ "chipClause/ar/0": "16:9",
+ "chipClause/ar/1": "9:16",
+ "chipClause/ar/2": "1:1",
+ "chipClause/ar/3": "2.39:1",
+ "chipClauses/ar": [
+  "16:9",
+  "1:1"
+ ],
+ "realismBaseline/people": [
+  "natural imperfections",
+  "candid, unposed moment",
+  "subtle film grain",
+  "slight chromatic aberration at frame edges",
+  "visible skin pores and fabric weave detail",
+  "flyaway hair strands",
+  "realistic eye reflections, subtle asymmetry",
+  "avoid supermodel perfection",
+  "naturalistic performance, no exaggerated expressions"
+ ],
+ "realismBaseline/peopleTrue": [
+  "natural imperfections",
+  "candid, unposed moment",
+  "subtle film grain",
+  "slight chromatic aberration at frame edges",
+  "visible skin pores and fabric weave detail",
+  "flyaway hair strands",
+  "realistic eye reflections, subtle asymmetry",
+  "avoid supermodel perfection",
+  "naturalistic performance, no exaggerated expressions"
+ ],
+ "realismBaseline/peopleFalse": [
+  "natural imperfections",
+  "candid, unposed moment",
+  "subtle film grain",
+  "slight chromatic aberration at frame edges"
+ ],
+ "cameraCraft": [
+  "shot on a large-sensor cinema camera",
+  "wide dynamic range",
+  "natural colour and skin tones",
+  "film-like highlight rolloff"
+ ],
+ "weave/charOnly/undefined/atfalse": {
+  "stills": "A wide establishing shot of a woman — featuring Maya Chen (mid-30s, cropped dark hair).",
+  "video": "Animate the still: slow push-in Featured references stay a 100% match: Maya Chen (mid-30s, cropped dark hair)."
+ },
+ "weave/charOnly/undefined/attrue": {
+  "stills": "A wide establishing shot of a woman — featuring @MayaChen (mid-30s, cropped dark hair).",
+  "video": "@MayaChen (mid-30s, cropped dark hair). Animate the still: slow push-in. Each tagged reference stays a 100% match."
+ },
+ "weave/charOnly/frame/atfalse": {
+  "stills": "A wide establishing shot of a woman — featuring Maya Chen (mid-30s, cropped dark hair).",
+  "video": "Animate the still: slow push-in The starting frame already establishes Maya Chen — keep them identical for the full shot."
+ },
+ "weave/charOnly/frame/attrue": {
+  "stills": "A wide establishing shot of a woman — featuring @MayaChen (mid-30s, cropped dark hair).",
+  "video": "Animate the still: slow push-in The starting frame already establishes Maya Chen — keep them identical for the full shot."
+ },
+ "weave/charOnly/array/atfalse": {
+  "stills": "A wide establishing shot of a woman — featuring Maya Chen (mid-30s, cropped dark hair).",
+  "video": "Animate the still: slow push-in Featured references stay a 100% match: Maya Chen (mid-30s, cropped dark hair)."
+ },
+ "weave/charOnly/array/attrue": {
+  "stills": "A wide establishing shot of a woman — featuring @MayaChen (mid-30s, cropped dark hair).",
+  "video": "@MayaChen (mid-30s, cropped dark hair). Animate the still: slow push-in. Each tagged reference stays a 100% match."
+ },
+ "weave/charLoc/undefined/atfalse": {
+  "stills": "A wide establishing shot of a woman — featuring Maya Chen (mid-30s); set in Loft Kitchen.",
+  "video": "Animate the still: slow push-in Featured references stay a 100% match: Maya Chen (mid-30s); Loft Kitchen."
+ },
+ "weave/charLoc/undefined/attrue": {
+  "stills": "A wide establishing shot of a woman — featuring @MayaChen (mid-30s); set in @LoftKitchen.",
+  "video": "@MayaChen (mid-30s) · @LoftKitchen. Animate the still: slow push-in. Each tagged reference stays a 100% match."
+ },
+ "weave/charLoc/frame/atfalse": {
+  "stills": "A wide establishing shot of a woman — featuring Maya Chen (mid-30s); set in Loft Kitchen.",
+  "video": "Animate the still: slow push-in The starting frame already establishes Maya Chen, Loft Kitchen — keep them identical for the full shot."
+ },
+ "weave/charLoc/frame/attrue": {
+  "stills": "A wide establishing shot of a woman — featuring @MayaChen (mid-30s); set in @LoftKitchen.",
+  "video": "Animate the still: slow push-in The starting frame already establishes Maya Chen, Loft Kitchen — keep them identical for the full shot."
+ },
+ "weave/charLoc/array/atfalse": {
+  "stills": "A wide establishing shot of a woman — featuring Maya Chen (mid-30s); set in Loft Kitchen.",
+  "video": "Animate the still: slow push-in Featured references stay a 100% match: Maya Chen (mid-30s); Loft Kitchen."
+ },
+ "weave/charLoc/array/attrue": {
+  "stills": "A wide establishing shot of a woman — featuring @MayaChen (mid-30s); set in @LoftKitchen.",
+  "video": "@MayaChen (mid-30s) · @LoftKitchen. Animate the still: slow push-in. Each tagged reference stays a 100% match."
+ },
+ "weave/all/undefined/atfalse": {
+  "stills": "A wide establishing shot of a woman — featuring Maya (Loop lead) (mid-30s); Paper bag (kraft); set in Warm restaurant — birthday dinner (night); in the style of Filmic.",
+  "video": "Animate the still: slow push-in Featured references stay a 100% match: Maya (Loop lead) (mid-30s); Paper bag (kraft); Warm restaurant — birthday dinner (night)."
+ },
+ "weave/all/undefined/attrue": {
+  "stills": "A wide establishing shot of a woman — featuring @MayaLooplead (mid-30s); @Paperbag (kraft); set in @Warmrestaurantbirthdaydinnernight; in the style of @Filmic.",
+  "video": "@MayaLooplead (mid-30s) · @Paperbag (kraft) · @Warmrestaurantbirthdaydinnernight. Animate the still: slow push-in. Each tagged reference stays a 100% match."
+ },
+ "weave/all/frame/atfalse": {
+  "stills": "A wide establishing shot of a woman — featuring Maya (Loop lead) (mid-30s); Paper bag (kraft); set in Warm restaurant — birthday dinner (night); in the style of Filmic.",
+  "video": "Animate the still: slow push-in The starting frame already establishes Maya (Loop lead), Paper bag, Warm restaurant — birthday dinner (night) — keep them identical for the full shot."
+ },
+ "weave/all/frame/attrue": {
+  "stills": "A wide establishing shot of a woman — featuring @MayaLooplead (mid-30s); @Paperbag (kraft); set in @Warmrestaurantbirthdaydinnernight; in the style of @Filmic.",
+  "video": "Animate the still: slow push-in The starting frame already establishes Maya (Loop lead), Paper bag, Warm restaurant — birthday dinner (night) — keep them identical for the full shot."
+ },
+ "weave/all/array/atfalse": {
+  "stills": "A wide establishing shot of a woman — featuring Maya (Loop lead) (mid-30s); Paper bag (kraft); set in Warm restaurant — birthday dinner (night); in the style of Filmic.",
+  "video": "Animate the still: slow push-in Featured references stay a 100% match: Maya (Loop lead) (mid-30s); Paper bag (kraft); Warm restaurant — birthday dinner (night)."
+ },
+ "weave/all/array/attrue": {
+  "stills": "A wide establishing shot of a woman — featuring @MayaLooplead (mid-30s); @Paperbag (kraft); set in @Warmrestaurantbirthdaydinnernight; in the style of @Filmic.",
+  "video": "@MayaLooplead (mid-30s) · @Paperbag (kraft) · @Warmrestaurantbirthdaydinnernight. Animate the still: slow push-in. Each tagged reference stays a 100% match."
+ },
+ "weave/empty/undefined/atfalse": {
+  "stills": "A wide establishing shot of a woman.",
+  "video": "Animate the still: slow push-in."
+ },
+ "weave/empty/undefined/attrue": {
+  "stills": "A wide establishing shot of a woman.",
+  "video": "Animate the still: slow push-in."
+ },
+ "weave/empty/frame/atfalse": {
+  "stills": "A wide establishing shot of a woman.",
+  "video": "Animate the still: slow push-in."
+ },
+ "weave/empty/frame/attrue": {
+  "stills": "A wide establishing shot of a woman.",
+  "video": "Animate the still: slow push-in."
+ },
+ "weave/empty/array/atfalse": {
+  "stills": "A wide establishing shot of a woman.",
+  "video": "Animate the still: slow push-in."
+ },
+ "weave/empty/array/attrue": {
+  "stills": "A wide establishing shot of a woman.",
+  "video": "Animate the still: slow push-in."
+ },
+ "refPrompt/character": {
+  "stills": "Character reference — Test name: a person, neutral background, even soft light, full detail on face and wardrobe for identity consistency.",
+  "video": "Reference asset — attach the generated still to image-to-video shots that feature it; no standalone animation needed."
+ },
+ "fieldsFor/character": [
+  "desc",
+  "wardrobe",
+  "features",
+  "mood"
+ ],
+ "refPrompt/prop": {
+  "stills": "Prop reference — Test name: an object, clean studio plate, accurate materials and proportions.",
+  "video": "Reference asset — attach the generated still to image-to-video shots that feature it; no standalone animation needed."
+ },
+ "fieldsFor/prop": [
+  "desc",
+  "material",
+  "scale"
+ ],
+ "refPrompt/product": {
+  "stills": "Product reference — Test name: a product, clean studio lighting, true-to-life colour.",
+  "video": "Reference asset — attach the generated still to image-to-video shots that feature it; no standalone animation needed."
+ },
+ "fieldsFor/product": [
+  "desc",
+  "material",
+  "preserve"
+ ],
+ "refPrompt/location": {
+  "stills": "Location reference — Test name: an interior space, wide coverage of the space, no people.",
+  "video": "Reference asset — attach the generated still to image-to-video shots that feature it; no standalone animation needed."
+ },
+ "fieldsFor/location": [
+  "desc",
+  "tod",
+  "light",
+  "dressing"
+ ],
+ "refPrompt/look": {
+  "stills": "Style reference — Test name: a cinematic look.",
+  "video": "Reference asset — attach the generated still to image-to-video shots that feature it; no standalone animation needed."
+ },
+ "fieldsFor/look": [
+  "desc",
+  "grade",
+  "texture"
+ ],
+ "refPrompt/bogus": {
+  "stills": "Product reference — Test name: a product, clean studio lighting, true-to-life colour.",
+  "video": "Reference asset — attach the generated still to image-to-video shots that feature it; no standalone animation needed."
+ },
+ "fieldsFor/bogus": [
+  "desc",
+  "wardrobe",
+  "features",
+  "mood"
+ ],
+ "kinds": [
+  {
+   "id": "character",
+   "label": "Character"
+  },
+  {
+   "id": "location",
+   "label": "Location"
+  },
+  {
+   "id": "prop",
+   "label": "Prop"
+  },
+  {
+   "id": "look",
+   "label": "Style look"
+  },
+  {
+   "id": "product",
+   "label": "Product"
+  }
+ ],
+ "stillAction/empty": "",
+ "stillAction/the bag held out": "the bag held out",
+ "stillAction/trailing period.": "trailing period",
+ "OPTS/order": {
+  "tod": [
+   "Dawn",
+   "Golden hour",
+   "Midday",
+   "Dusk",
+   "Night"
+  ],
+  "light": [
+   "Natural",
+   "Soft / diffused",
+   "Hard / direct",
+   "Practical",
+   "Studio"
+  ],
+  "feel": [
+   "Warm & natural",
+   "Moody & contrasty",
+   "Soft & dreamy",
+   "Bold & saturated",
+   "Naturalistic doc",
+   "Clean & commercial",
+   "Nostalgic film"
+  ],
+  "grade": [
+   "Warm",
+   "Cool",
+   "Muted",
+   "High contrast",
+   "Teal & orange",
+   "Pastel"
+  ],
+  "realism": [
+   "Motion blur",
+   "Film grain + CA",
+   "Lens flare",
+   "Visible breath",
+   "Dust particles",
+   "Bokeh + parallax",
+   "Wet ground",
+   "Cloth physics",
+   "Micro-texture",
+   "Natural imperfections",
+   "Candid / unposed"
+  ],
+  "ar": [
+   "16:9",
+   "9:16",
+   "1:1",
+   "2.39:1"
+  ]
+ },
+ "DICT/order": {
+  "angle": [
+   "eye",
+   "low",
+   "high",
+   "dutch"
+  ],
+  "depth": [
+   "shallow",
+   "layered",
+   "deep"
+  ],
+  "comp": [
+   "tl",
+   "tc",
+   "tr",
+   "ml",
+   "mc",
+   "mr",
+   "bl",
+   "bc",
+   "br"
+  ],
+  "framing": [
+   "Symmetrical",
+   "lead",
+   "frame",
+   "Negative space",
+   "ots"
+  ],
+  "density": [
+   "none",
+   "single",
+   "few",
+   "crowd"
+  ],
+  "move": [
+   "static",
+   "push",
+   "pan",
+   "tracking",
+   "handheld"
+  ]
+ },
+ "videoRefMode/kling": "frame",
+ "videoRefMode/seedance": "array",
+ "videoRefMode/higgsfield": "array",
+ "videoRefMode/unknown": "array",
+ "videoRefMode/undefined": "array"
+}

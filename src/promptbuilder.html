@@ -496,7 +496,7 @@ class Component extends DCLogic {
   // Retired model ids (Sora, Runway, FLUX, Midjourney) → nearest surviving model.
   normalizeModel(id, profiles, fallback) {
     if (id && profiles.some((p) => p.id === id)) return id;
-    return ({ sora: 'kling', runway: 'kling', flux: 'gpt', mj: 'gpt' })[id] || fallback;
+    return ({ sora: 'kling', runway: 'kling', flux: 'gpt', mj: 'gpt', seedance: 'higgsfield' })[id] || fallback;
   }
 
   persistBuilder() {
@@ -522,6 +522,16 @@ class Component extends DCLogic {
   // @-handles only mean something to Higgsfield, so the toggle only bites there.
   usesAtTags() {
     return this.state.videoModel === 'higgsfield' && this.state.atTags !== false;
+  }
+
+  // The reference assets attached to this shot, in slot order. Resolved in one
+  // place because two consumers now need them: the prose weave that runs AFTER
+  // compilation, and the Seedance adapter, which composes them into its slots and
+  // therefore needs them as an input.
+  attachedRefs(s) {
+    if (!window.Store || !Store.getReference) return [];
+    const ids = (s.charRefIds || []).concat(s.propRefIds || [], [s.locRefId, s.styleRefId]);
+    return ids.filter(Boolean).map((id) => Store.getReference(id)).filter(Boolean);
   }
 
   // Single source of truth for the compiled prompt, built from real builder state.
@@ -584,7 +594,10 @@ class Component extends DCLogic {
       stills = parts.join(' ').replace(/ ,/g, ',') + '.';
       // Video reuses the CLEAN scene (before any per-model stills wrapping), so the
       // image-to-video prompt carries subject/look/lens without the stills lead/flags.
-      video = (PC && PC.compileVideo) ? PC.compileVideo(s, { scene: stills, model: s.videoModel })
+      // Resolved here rather than after the compile: the Seedance adapter composes
+      // references INTO its slots, so it needs them as input, not as a prose weave
+      // applied to a finished string.
+      video = (PC && PC.compileVideo) ? PC.compileVideo(s, { scene: stills, model: s.videoModel, refs: this.attachedRefs(s) })
         : 'Animate the still: natural ambient motion, hold the framing.';
       // Project style prefix leads every shot unless this shot overrides it.
       let pre = '';
@@ -599,10 +612,20 @@ class Component extends DCLogic {
     }
     let compiled = { stills: stills, video: video };
     // Weave attached references (characters, props/products, location, style look).
+    const seedance = s.videoModel === 'higgsfield';
     if (window.PromptCompile && window.Store) {
-      const ids = (s.charRefIds || []).concat(s.propRefIds || [], [s.locRefId, s.styleRefId]);
-      const refs = ids.filter(Boolean).map((id) => Store.getReference(id)).filter(Boolean);
-      compiled = PromptCompile.weaveReferences(compiled, refs, { atTags: this.usesAtTags(), videoRefMode: PromptCompile.videoRefMode(s.videoModel) });
+      const refs = this.attachedRefs(s);
+      const woven = PromptCompile.weaveReferences(compiled, refs, { atTags: this.usesAtTags(), videoRefMode: PromptCompile.videoRefMode(s.videoModel) });
+      // Seedance already carries every reference in Characters: and Scene:, with its
+      // own @handles. Weaving them again as prose would state each one twice — so
+      // the video half keeps the adapter's output and the stills half is untouched.
+      compiled = seedance ? { stills: woven.stills, video: compiled.video } : woven;
+    }
+    // The attachment-order line rides alongside the prompt, never inside it: the
+    // Review copy button reads compiled.video only, so this cannot be pasted by
+    // accident into a generator that would read it as an instruction.
+    if (seedance && window.PromptCompile && PromptCompile.videoNote) {
+      compiled.videoNote = PromptCompile.videoNote(s, { model: s.videoModel, refs: this.attachedRefs(s) });
     }
     // Continuity tail (Phase 2). Appended like `negative` — never woven into the
     // scene clause-join above, which stays exactly as it compiled before. Order
@@ -613,7 +636,9 @@ class Component extends DCLogic {
       if (!has(v)) return;
       const clause = ' ' + label + ': ' + String(v).trim().replace(/\.$/, '') + '.';
       if (has(compiled.stills)) compiled.stills += clause;
-      if (has(compiled.video)) compiled.video += clause;
+      // offCamera lands in Scene: and propState splits across Scene:/CUT 1 for
+      // Seedance, so appending them here too would restate both.
+      if (!seedance && has(compiled.video)) compiled.video += clause;
     };
     tail('Off camera', s.offCamera);
     tail('Continuity', s.propState);
@@ -760,13 +785,16 @@ class Component extends DCLogic {
       { id:'kling', label:'Kling 3.0', tag:'image-to-video',
         prompt:'Slow push-in. Subject: commuters crossing the intersection at a natural pace. Scene: downtown at golden hour, warm light holds. Subtle foreground parallax, gentle background traffic. Camera: smooth dolly-in, eye level. Preserve the source framing and signage.',
         rule:'Camera instruction first; the still is an anchor. Kling spends its budget on subject + camera motion, so environmental events are kept minimal.' },
-      { id:'seedance', label:'Seedance', tag:'image-to-video',
-        prompt:'Commuters cross the intersection at an easy pace. Camera: slow, smooth push-in, then a subtle rise. Warm golden-hour grade, ultra-sharp 4K detail. Gentle, calm rhythm throughout.',
-        rule:'Rhythmic language (\u201cslow, smooth, gentle\u201d) instead of lens specs; one primary camera move, secondary move described after.' },
       // id stays 'higgsfield' on purpose \u2014 it is the SURFACE key that usesAtTags(),
       // PromptCompile.videoRefMode() and the motion-realism tail all read. Only the
-      // user-facing label is "Cinema Studio". See the Phase 4 spec.
-      { id:'higgsfield', label:'Cinema Studio', tag:'image-to-video',
+      // user-facing label is user-facing. See the Phase 4 spec.
+      //
+      // Seedance and Cinema Studio were two chips for one target. They behave the
+      // same in use, and the split was actively harmful: usesAtTags() only fires on
+      // 'higgsfield', so picking the Seedance chip emitted NO @handles at all \u2014
+      // every attached reference silently ignored, which looks exactly like drift.
+      // normalizeModel() coerces the retired id, so stored shots keep working.
+      { id:'higgsfield', label:'Seedance / Cinema Studio', tag:'image-to-video',
         prompt:'Slow Push In. @Commuters cross the intersection at an easy pace, coats moving in the wind. Golden-hour light holds on the signage behind them.',
         rule:'Camera-motion preset first, then one clear subject action \u2014 Cinema Studio rewards a single strong move over dense paragraphs. Saved elements are addressed by @handle.' },
     ];
@@ -978,6 +1006,15 @@ class Component extends DCLogic {
     const src = (window.PromptCompile && PromptCompile.OPTS && PromptCompile.OPTS[name]) || [];
     return this.chips(name, src.map((o) => ({ label: this.escHtml(o.label) })), multi);
   }
+  // The shared option list for a chip group. PromptCompile.CHIP_OPTS is the single
+  // source read by BOTH this renderer and the Seedance adapter — a single-select
+  // chip stores an index, so any consumer resolving a label needs the same
+  // ordered array the UI drew, and the same `on` default it displayed.
+  chipOpts(name) {
+    const src = (window.PromptCompile && PromptCompile.CHIP_OPTS && PromptCompile.CHIP_OPTS[name]) || [];
+    return src.map((o) => (o.on ? { label: o.label, on: true } : { label: o.label }));
+  }
+
   chips(name, opts, multi) {
     // Selections live in this.state.chips[name] (single: index; multi: array of
     // indices) so they survive re-render / step navigation. Fall back to each
@@ -1057,7 +1094,10 @@ class Component extends DCLogic {
         // carry (a reaction needs less blocking than a master).
                 this.field('Subject description', this.textarea('subject', this.state.subject, 'Who or what is in the shot — be specific. e.g. A lone commuter crossing a downtown intersection at dawn.'), 'The clearer the subject, the more consistent your stills.') +
         this.field('What happens in the shot', this.textarea('action', this.state.action, 'The beat across the clip — subject motion, separate from the camera. e.g. She pours the coffee, then looks up as the door opens.'), 'The video prompt is composed from this. Movement of the camera is set later, in Camera.') +
-        this.field('Subject type', this.chips('type', [{label:'People'},{label:'Product'},{label:'Architecture'},{label:'Landscape'},{label:'Vehicle'},{label:'Abstract'}]), '') +
+        // Option lists come from PromptCompile.CHIP_OPTS so the renderer and the
+        // Seedance adapter read ONE array. Single-select chips store an index, so
+        // an adapter comparing to a label needs the same ordered list the UI drew.
+        this.field('Subject type', this.chips('type', this.chipOpts('type')), '') +
         this.field('Density', densityRow + crowdPanel, '') +
         this.field('Character reference &nbsp;<span style="font-weight:400;color:#9A9AA8;">optional</span>', this.attachRef('Lock a recurring face or wardrobe', 'charRefIds', ['character'], true), 'Attached refs are sent to models that support identity consistency \u2014 Nano Banana Pro, Seedream, Kling.') +
         this.field('Prop / product references &nbsp;<span style="font-weight:400;color:#9A9AA8;">optional</span>', this.attachRef('Lock a recurring prop or product', 'propRefIds', ['prop', 'product'], true), '');
@@ -1079,14 +1119,16 @@ class Component extends DCLogic {
       const cm = this.state.camMode;
       const preset = this.activePreset();
       const dpLabel = preset ? (this.dpTraits().find(t => t.id === this.state.dp) || {}).label : null;
-      const bodyOpts = ['ARRI Alexa 35','RED V-Raptor','Sony Venice 2','35mm film','16mm film'];
       const presetBody = preset ? preset.body : 'ARRI Alexa 35';
       let cameraField;
       if (cm === 'auto') {
-        cameraField = this.chips('campick', [{label:'Filmic', on:true},{label:'Crisp digital'},{label:'Vintage'},{label:'Documentary'},{label:'Anamorphic widescreen'}]) +
+        cameraField = this.chips('campick', this.chipOpts('campick')) +
           '<p style="font-size:12px;color:#9A9AA8;margin-top:8px;">Pick a feel \u2014 Studio S maps it to the right camera, stock and lens characteristics for you.</p>';
       } else {
-        cameraField = this.chips('cambody', bodyOpts.map(b => ({label:b, on: b === presetBody}))) +
+        // cambody is the one group whose default is COMPUTED per look rather than
+        // literal, so the labels come from CHIP_OPTS and the `on` flag is derived
+        // here. The adapter reads the same default off its look table's `body`.
+        cameraField = this.chips('cambody', this.chipOpts('cambody').map(o => ({label:o.label, on: o.label === presetBody}))) +
           '<p style="font-size:12px;color:#9A9AA8;margin-top:8px;">Body &amp; format drive sensor look, grain and depth rendering in the prompt.</p>';
       }
       const banner = preset ?
@@ -1107,7 +1149,7 @@ class Component extends DCLogic {
         '<div style="margin-bottom:24px;"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;"><label style="font-size:12px;font-weight:500;color:#16161D;">Camera &amp; format</label>' +
           this.seg('camMode', [{val:'auto',label:'For me'},{val:'specific',label:'Specific camera'}], cm) +
           '</div>' + cameraField + '</div>' +
-        this.field('Lens format', this.chips('lensformat', [{label:'Spherical', on:true},{label:'Anamorphic'}]), 'Anamorphic is a lens, not a camera body — it adds the wide squeeze, oval bokeh and horizontal flares on top of whichever body you pick.') +
+        this.field('Lens format', this.chips('lensformat', this.chipOpts('lensformat')), 'Anamorphic is a lens, not a camera body — it adds the wide squeeze, oval bokeh and horizontal flares on top of whichever body you pick.') +
         this.field('Movement', this.schips('move', [{val:'static',label:'Static'},{val:'push',label:'Slow push'},{val:'pan',label:'Pan'},{val:'tracking',label:'Tracking'},{val:'handheld',label:'Handheld'}]), 'Movement is interpreted at the image-to-video step.') +
         // Camera intent — the fourth descriptive field, editable here and in the
         // project view. Held as DATA (the motivation), not composed prompt text.
@@ -1153,7 +1195,7 @@ class Component extends DCLogic {
         // ORDER MUST MATCH videoProfiles() \u2014 the chip handler resolves the model by
         // index into that array, not by label.
         this.field('Video model \u2014 image-to-video', this.chips('vmodel', [{label:'Kling 3.0', on:true},{label:'Seedance'},{label:'Cinema Studio'}], true), 'The stills you pick are animated with these. Kling, Seedance and Nano Banana Pro run natively in Palmier too.') +
-        this.field('Aspect ratio', this.chips('ar', [{label:'16:9', on:true},{label:'9:16'},{label:'1:1'},{label:'2.39:1'}]), '') +
+        this.field('Aspect ratio', this.chips('ar', this.chipOpts('ar')), '') +
         this.field('Stills per model', this.chips('count', [{label:'2'},{label:'4', on:true},{label:'6'},{label:'8'}]), '') +
         this.field('Negative prompt', this.textarea('negative', this.state.negative, 'Optional \u2014 what to avoid. e.g. blurry, distorted hands, text artifacts, oversaturated'), 'Optional \u2014 applies to both stages.');
     }
@@ -1178,6 +1220,18 @@ class Component extends DCLogic {
       const on = p.id === activeId;
       return '<button data-model="' + p.id + '" style="padding:6px 12px;border:1px solid ' + (on ? '#0217D3' : 'rgba(16,16,32,0.12)') + ';border-radius:999px;background:' + (on ? '#EEF0FF' : '#fff') + ';color:' + (on ? '#0217D3' : '#5A5A6B') + ';font-family:inherit;font-size:12px;font-weight:500;cursor:pointer;white-space:nowrap;">' + p.label + '</button>';
     };
+    // The attachment-order line. HANDOFF text, not prompt text: one corpus reference
+    // form is positional, so the likeliest real failure is attaching elements in a
+    // different order than the prompt assumes. Rendered ABOVE the prompt box and
+    // outside it, because the copy path reads compiled.video/.stills only — a
+    // generator must never receive this as an instruction.
+    const noteRow = (!isStills && compiled.videoNote)
+      ? '<div style="padding:11px 18px;border-bottom:1px solid rgba(16,16,32,0.06);background:#FFFBF2;display:flex;gap:8px;align-items:flex-start;">' +
+          '<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#9A5B00;margin-top:5px;flex-shrink:0;"></span>' +
+          '<p style="font-size:11.5px;line-height:1.5;color:#9A5B00;">' + this.escHtml(compiled.videoNote) +
+          ' <span style="color:#B98A3E;">— not part of the prompt; the copy button never includes it.</span></p>' +
+        '</div>'
+      : '';
     const atOn = this.state.atTags !== false;
     const atRow = active.id !== 'higgsfield' ? '' :
       '<div style="padding:12px 18px;border-top:1px solid rgba(16,16,32,0.06);display:flex;align-items:center;justify-content:space-between;gap:12px;">' +
@@ -1208,7 +1262,8 @@ class Component extends DCLogic {
           '<span style="font-size:13px;font-weight:500;color:#16161D;">' + active.label + ' &nbsp;<span style="font-weight:400;color:#9A9AA8;">' + active.tag + '</span></span>' +
           '<span style="font-size:11px;font-weight:500;background:#E8F7F1;color:#1D9E75;padding:2px 8px;border-radius:999px;">Tailored</span>' +
         '</div>' +
-        '<div style="padding:16px 18px;"><p style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;color:#16161D;line-height:1.7;">' + (shownPrompt ? this.escHtml(shownPrompt) : '<span style="color:#9A9AA8;">Fill in the earlier steps and your prompt builds here.</span>') + '</p></div>' + atRow +
+        noteRow +
+        '<div style="padding:16px 18px;"><p style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;color:#16161D;line-height:1.7;white-space:pre-wrap;">' + (shownPrompt ? this.escHtml(shownPrompt) : '<span style="color:#9A9AA8;">Fill in the earlier steps and your prompt builds here.</span>') + '</p></div>' + atRow +
         '<div style="padding:12px 18px;border-top:1px solid rgba(16,16,32,0.06);background:#F7F5EF;display:flex;gap:9px;align-items:flex-start;">' +
           '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#0217D3" stroke-width="1.5" stroke-linecap="round" style="flex-shrink:0;margin-top:1px;"><circle cx="8" cy="8" r="6.5"></circle><path d="M8 7v3.5M8 5v.2"></path></svg>' +
           '<p style="font-size:12px;color:#5A5A6B;line-height:1.55;"><strong style="color:#16161D;">Why it\u2019s tailored \u2014</strong> ' + active.rule + '</p>' +

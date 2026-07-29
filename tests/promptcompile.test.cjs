@@ -188,17 +188,20 @@ ok('camera: carries the real craft (dynamic range + rolloff)', cc.join(', ').ind
 ok('camera: brand/name-free (legal)', !/ARRI|Alexa|RED|Sony|Venice|Blackmagic|Kodak|Fuji|Vision3|Eterna/i.test(cc.join(' ')));
 ok('camera: deterministic', JSON.stringify(PC.cameraCraft()) === JSON.stringify(PC.cameraCraft()));
 
-// ── P. video motion-realism tail — Higgsfield only, Kling untouched ──
+// ── P. Seedance / Cinema Studio adapter vs the legacy clause-join ──
+// 'higgsfield' no longer gets the old prose tail: it composes 14 labelled slots
+// from source fields instead. What still has to hold is that NOTHING else moved.
 const vhf = PC.compileVideo({ move: 'push', action: 'she waves' }, { model: 'higgsfield' });
 const vkl = PC.compileVideo({ move: 'push', action: 'she waves' }, { model: 'kling' });
-ok('video tail: higgsfield gets performance + physics', vhf.indexOf('pore-level skin realism') !== -1 && vhf.indexOf('mass and inertia') !== -1);
-ok('video tail: kling left alone', vkl.indexOf('pore-level skin realism') === -1);
-ok('video tail: higgsfield and kling now differ', vhf !== vkl);
-ok('video tail: no model -> no tail', PC.compileVideo({ move: 'push' }).indexOf('pore-level') === -1);
-// skill rules: positive phrasing only, and no equipment/DP names
-ok('video tail: positive phrasing (no "no X" prohibitions in the tail)', !/\bno (AI|exaggerated|plastic)\b/i.test(vhf.slice(vhf.indexOf('Performance:'))));
-ok('video tail: brand/name-free (legal + skill rule)', !/ARRI|Alexa|Kodak|Fuji|RED|Sony|Deakins|Lubezki/i.test(vhf));
-ok('video tail: deterministic', PC.compileVideo({ move: 'push', action: 'she waves' }, { model: 'higgsfield' }) === vhf);
+ok('adapter: higgsfield emits labelled slots, not prose', /^Style: /.test(vhf) && vhf.indexOf('\nCUT 1 — ') !== -1);
+ok('adapter: the old prose tail is gone', vhf.indexOf('Performance: pore-level skin realism') === -1);
+ok('adapter: kling still gets the clause-join', vkl.indexOf('Camera: the camera pushes in slowly') !== -1);
+ok('adapter: kling never sees a slot label', vkl.indexOf('\nStyle: ') === -1 && vkl.indexOf('CUT 1') === -1);
+ok('adapter: higgsfield and kling differ', vhf !== vkl);
+ok('adapter: no model -> legacy path', PC.compileVideo({ move: 'push' }).indexOf('CUT 1') === -1);
+// Still load-bearing: a body name is a trademark and must never reach a prompt.
+ok('adapter: brand/name-free (legal)', !/ARRI|Alexa|Kodak|Fuji|RED V-Raptor|Sony|Venice|Deakins|Lubezki|Khondji|Anderson/i.test(vhf));
+ok('adapter: deterministic', PC.compileVideo({ move: 'push', action: 'she waves' }, { model: 'higgsfield' }) === vhf);
 
 console.log(pass + ' passed, ' + fail + ' failed');
 process.exit(fail ? 1 : 0);
