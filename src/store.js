@@ -1475,8 +1475,11 @@
       }
     }).catch(function () {});
   }
-  if (tauriInvoke()) {
-    syncFromConnector();
+  // window.__TAURI__ may not be injected yet while this script evaluates, so the
+  // first sync waits for the page load; syncFromConnector no-ops outside Tauri.
+  if (window.addEventListener) {
+    if (typeof document !== 'undefined' && document.readyState === 'complete') syncFromConnector();
+    else window.addEventListener('load', syncFromConnector);
     window.addEventListener('focus', syncFromConnector);
   }
 
