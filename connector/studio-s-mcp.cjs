@@ -69,7 +69,8 @@ function shotView(Store, p, c, sc, sh) {
     stillModel: b.stillModel || '', videoModel: b.videoModel || '',
     fields, locked: !!sh.locked,
     reuseOf: r.reuse ? { concept: r.reuse.concept, label: r.reuse.label, ok: r.reuse.ok } : null,
-    outputs: (sh.outputs || []).map((o) => ({ kind: o.kind, url: o.url, path: o.path, source: o.source, generationId: o.generationId, model: o.model }))
+    outputs: (sh.outputs || []).map((o) => ({ id: o.id, kind: o.kind, url: o.url, path: o.path, source: o.source, generationId: o.generationId, model: o.model,
+      promptVersion: o.promptVersion || '', cost: o.cost || null, verdict: o.verdict || null, note: o.note || '', createdAt: o.createdAt ? new Date(o.createdAt).toISOString() : '' }))
   };
 }
 function projectView(Store, p) {
@@ -199,15 +200,28 @@ const TOOLS = [
   },
   {
     name: 'attach_output',
-    description: 'Record a generated still or clip on the shot it was made for (Higgsfield result URL or local file path, generation id, model, the prompt used). Studio S does not generate — call this after generating elsewhere.',
+    description: 'Record a generated still or clip on the shot it was made for (Higgsfield result URL or local file path, generation id, model, the prompt used, what it cost). Studio S does not generate — call this after generating elsewhere. Every generation should be logged this way.',
     inputSchema: { type: 'object', required: ['ids', 'kind'], properties: {
       ids: IDS, kind: { type: 'string', enum: ['still', 'video'] },
       url: { type: 'string' }, path: { type: 'string' }, source: { type: 'string', description: 'e.g. higgsfield' },
-      generationId: { type: 'string' }, model: { type: 'string' }, prompt: { type: 'string' } } },
+      generationId: { type: 'string' }, model: { type: 'string' }, prompt: { type: 'string', description: 'The exact prompt that was run (from compile_prompts). Versioned by hash.' },
+      cost: { type: 'object', description: 'What it cost: { amount, unit: "credits"|"usd", estimated: true if a quote rather than a bill }.', properties: { amount: { type: 'number' }, unit: { type: 'string', enum: ['credits', 'usd'] }, estimated: { type: 'boolean' } } },
+      note: { type: 'string' } } },
     run: (a) => withStore((Store) => {
       const rec = Store.attachShotOutput(a.ids, a);
       if (!rec) throw new Error('Could not attach: check the ids, and pass url or path.');
       return rec;
+    }, { write: true })
+  },
+  {
+    name: 'set_output_verdict',
+    description: 'Mark a logged generation keep / mix / discard (or clear it with null) and optionally note what went wrong. outputId comes from get_project outputs[].id.',
+    inputSchema: { type: 'object', required: ['ids', 'outputId'], properties: {
+      ids: IDS, outputId: { type: 'string' }, verdict: { type: ['string', 'null'], enum: ['keep', 'mix', 'discard', null] }, note: { type: 'string' } } },
+    run: (a) => withStore((Store) => {
+      const r = Store.setOutputVerdict(a.ids, a.outputId, a.verdict === undefined ? null : a.verdict, a.note);
+      if (!r) throw new Error('Could not set verdict: check ids/outputId, verdict must be keep, mix, discard or null.');
+      return r;
     }, { write: true })
   }
 ];

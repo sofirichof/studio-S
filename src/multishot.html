@@ -126,7 +126,7 @@ class Component extends DCLogic {
             '<div style="display:flex;flex-wrap:wrap;gap:4px;">'+looktags+override+'</div>' +
             '<div style="display:flex;flex-wrap:wrap;gap:4px;">'+(models||'<span style="font-size:11px;color:#9A9AA8;">—</span>')+'</div>' +
             this.statusPill(s.status) +
-          '</div>';
+          '</div>' + this.logBlock(s, c.id, sc.id, modelName, esc);
       }).join('');
       }).join('');
       return '<div style="background:#fff;border:1px solid rgba(16,16,32,.08);border-radius:12px;overflow:hidden;margin-bottom:12px;">' +
@@ -178,9 +178,57 @@ class Component extends DCLogic {
         window.location.href = 'promptbuilder.html';
       });
     });
+    mount.querySelectorAll('[data-log]').forEach((d)=>{
+      const ids = { projectId: a.projectId, conceptId: d.getAttribute('data-concept'), sceneId: d.getAttribute('data-scene'), shotId: d.getAttribute('data-log') };
+      d.querySelectorAll('[data-verdict]').forEach((b)=>{
+        b.addEventListener('click', (e)=>{
+          e.preventDefault();
+          const cur = b.style.background !== 'rgb(255, 255, 255)' && b.style.background !== '#fff';
+          // Clicking the active verdict clears it.
+          Store.setOutputVerdict(ids, b.getAttribute('data-out'), cur ? null : b.getAttribute('data-verdict'));
+          this.renderAll();
+          const again = mount.querySelector('[data-log="' + ids.shotId + '"]'); if (again) again.open = true;
+        });
+      });
+      d.querySelectorAll('[data-note]').forEach((inp)=>{
+        inp.addEventListener('change', ()=>{
+          const o = (Store.resolveShot(ids) || {}).shot; const rec = o && (o.outputs || []).filter((x)=>x.id===inp.getAttribute('data-note'))[0];
+          Store.setOutputVerdict(ids, inp.getAttribute('data-note'), rec ? rec.verdict : null, inp.value);
+        });
+      });
+    });
     mount.querySelectorAll('[data-addto]').forEach((b)=>{
       b.addEventListener('click', (e)=>{ e.stopPropagation(); Store.addShot(a.projectId, b.getAttribute('data-addto'), b.getAttribute('data-addscene'), { builder: Store.defaultBuilder() }); this.renderAll(); });
     });
+  }
+
+  // Slice 1: the generation log under a shot row. What was asked, which model,
+  // what it cost, and the verdict. Rendered as a sibling of the row (not inside
+  // it) so clicks here never trigger the row's open-in-builder handler.
+  logBlock(s, conceptId, sceneId, modelName, esc) {
+    const outs = (s.outputs || []).slice().sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    if (!outs.length) return '';
+    const cost = (o) => !o.cost ? '<span style="color:#9A9AA8;">—</span>' : (o.cost.unit === 'usd' ? '$' + o.cost.amount.toFixed(2) : o.cost.amount + ' cr') + (o.cost.estimated ? '<span title="Quoted, not billed" style="color:#9A9AA8;"> est.</span>' : '');
+    const when = (o) => o.createdAt ? new Date(o.createdAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '';
+    const verdictBtn = (o, v, label, col, bg) => '<button data-verdict="' + v + '" data-out="' + o.id + '" style="font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid ' + (o.verdict === v ? col : 'rgba(16,16,32,.12)') + ';background:' + (o.verdict === v ? bg : '#fff') + ';color:' + (o.verdict === v ? col : '#5A5A6B') + ';cursor:pointer;font-family:inherit;">' + label + '</button>';
+    const rows = outs.map((o) => {
+      const href = o.url || (o.path ? 'file://' + o.path : '');
+      const thumb = href
+        ? '<a href="' + esc(href) + '" target="_blank" rel="noopener" title="Open" style="display:block;width:48px;height:27px;border-radius:4px;overflow:hidden;background:#ECEDF0;flex-shrink:0;">' + (o.kind === 'still' && o.url ? '<img src="' + esc(o.url) + '" alt="" style="width:100%;height:100%;object-fit:cover;display:block;">' : '<span style="display:flex;align-items:center;justify-content:center;height:100%;font-size:10px;color:#5A5A6B;">' + (o.kind === 'video' ? '▶' : 'img') + '</span>') + '</a>'
+        : '<div style="width:48px;height:27px;border-radius:4px;background:#ECEDF0;flex-shrink:0;"></div>';
+      return '<div data-logrow="' + o.id + '" style="display:grid;grid-template-columns:48px 1.1fr .8fr .7fr auto 1.4fr;gap:10px;align-items:center;padding:6px 0;border-top:1px solid rgba(16,16,32,.05);">' +
+        thumb +
+        '<div><span style="font-size:12px;color:#16161D;">' + esc(modelName[o.model] || o.model || '—') + '</span><br><span style="font-size:10px;color:#9A9AA8;">' + esc(o.source || '') + (o.source && when(o) ? ' · ' : '') + when(o) + '</span></div>' +
+        '<span title="' + esc(o.prompt || '') + '" style="font-size:11px;font-family:ui-monospace,monospace;color:#5A5A6B;">' + (o.promptVersion ? 'v ' + esc(o.promptVersion.slice(0, 7)) : '—') + '</span>' +
+        '<span style="font-size:12px;color:#16161D;">' + cost(o) + '</span>' +
+        '<div style="display:flex;gap:4px;">' + verdictBtn(o, 'keep', 'Keep', '#1D9E75', '#E8F7F1') + verdictBtn(o, 'mix', 'Mix', '#B8761A', '#FFF4E3') + verdictBtn(o, 'discard', 'Discard', '#FF002E', '#FFECEF') + '</div>' +
+        '<input data-note="' + o.id + '" value="' + esc(o.note || '') + '" placeholder="What went wrong / what to keep" style="font-size:11px;font-family:inherit;color:#16161D;background:#F7F5EF;border:1px solid rgba(16,16,32,.08);border-radius:6px;padding:4px 8px;outline:none;width:100%;">' +
+      '</div>';
+    }).join('');
+    return '<details data-log="' + s.id + '" data-concept="' + conceptId + '" data-scene="' + sceneId + '" style="padding:0 16px 8px;border-bottom:1px solid rgba(16,16,32,.05);background:#FBFAF7;">' +
+      '<summary style="font-size:11px;font-weight:500;color:#5A5A6B;cursor:pointer;padding:6px 0;list-style:none;">Log · ' + outs.length + ' generation' + (outs.length === 1 ? '' : 's') + '</summary>' +
+      '<div style="display:grid;grid-template-columns:48px 1.1fr .8fr .7fr auto 1.4fr;gap:10px;font-size:10px;color:#9A9AA8;padding:2px 0 4px;"><span></span><span>Model</span><span>Prompt</span><span>Cost</span><span>Verdict</span><span>Note</span></div>' +
+      rows + '</details>';
   }
 
   sumRow(label, val, col){

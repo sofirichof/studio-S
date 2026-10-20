@@ -220,6 +220,7 @@
           (c.scenes || []).forEach(function (sc, si) {
             (sc.shots || []).forEach(function (sh, shi) {
               if (!sh.label) sh.label = shotLabel(si, shi);
+              (sh.outputs || []).forEach(backfillOutput);
             });
           });
         });
@@ -1484,6 +1485,34 @@
   // Studio S never generates. When a still or clip is generated elsewhere
   // (Higgsfield, by hand) its record is attached to the shot it came from, so the
   // project knows which takes exist and where they live.
+  // The log line the demo reads out: what was asked, which model, what it cost.
+  var OUTPUT_VERDICTS = ['keep', 'mix', 'discard'];
+  // Short stable hash of the prompt as it was at run time, so the log can tell
+  // "same prompt, different seed" from "prompt changed" without storing it twice.
+  function promptVersion(text) {
+    var str = String(text || '');
+    if (!str) return '';
+    var h = 5381;
+    for (var i = 0; i < str.length; i++) h = ((h << 5) + h + str.charCodeAt(i)) | 0;
+    return (h >>> 0).toString(16);
+  }
+  function normalizeCost(c) {
+    if (!c || typeof c !== 'object') return null;
+    var amount = Number(c.amount);
+    if (!isFinite(amount)) return null;
+    return { amount: amount, unit: c.unit === 'usd' ? 'usd' : 'credits', estimated: !!c.estimated };
+  }
+  // Outputs written before the log existed carry only the first six fields.
+  // Idempotent — called from load() on every output.
+  function backfillOutput(o) {
+    if (!o || typeof o !== 'object') return;
+    if (!o.createdAt) o.createdAt = o.at || 0;
+    if (o.verdict === undefined || (o.verdict && OUTPUT_VERDICTS.indexOf(o.verdict) === -1)) o.verdict = null;
+    if (typeof o.note !== 'string') o.note = '';
+    if (!o.promptVersion) o.promptVersion = promptVersion(o.prompt);
+    if (o.cost !== null && o.cost !== undefined) o.cost = normalizeCost(o.cost);
+    else o.cost = null;
+  }
   function attachShotOutput(ids, out) {
     ids = ids || {}; out = out || {};
     if (!out.url && !out.path) return null;
@@ -1491,17 +1520,70 @@
     var f = locate(doc, ids.projectId, ids.conceptId, ids.sceneId, ids.shotId);
     if (!f || !f.sh) return null;
     if (!Array.isArray(f.sh.outputs)) f.sh.outputs = [];
+    var t = now();
     var rec = {
       id: newId('out'),
       kind: out.kind === 'video' ? 'video' : 'still',
       url: String(out.url || ''), path: String(out.path || ''),
       source: String(out.source || ''), generationId: String(out.generationId || ''),
       model: String(out.model || ''), prompt: String(out.prompt || ''),
-      at: now()
+      promptVersion: String(out.promptVersion || '') || promptVersion(out.prompt),
+      cost: normalizeCost(out.cost),
+      verdict: OUTPUT_VERDICTS.indexOf(out.verdict) !== -1 ? out.verdict : null,
+      note: String(out.note == null ? '' : out.note),
+      createdAt: t, at: t
     };
     f.sh.outputs.push(rec);
     f.p.updatedAt = now(); save(doc);
     return rec;
+  }
+  // verdict: 'keep' | 'mix' | 'discard' | null (clears). note is optional; pass
+  // undefined to leave it alone.
+  function setOutputVerdict(ids, outputId, verdict, note) {
+    ids = ids || {};
+    var v = verdict == null || verdict === '' ? null : String(verdict);
+    if (v !== null && OUTPUT_VERDICTS.indexOf(v) === -1) return null;
+    var doc = load();
+    var f = locate(doc, ids.projectId, ids.conceptId, ids.sceneId, ids.shotId);
+    if (!f || !f.sh) return null;
+    var o = byId(f.sh.outputs || [], outputId);
+    if (!o) return null;
+    o.verdict = v;
+    if (note !== undefined) o.note = String(note == null ? '' : note);
+    f.p.updatedAt = now(); save(doc);
+    return o;
+  }
+  // Rollup for the project header: how many generations, what they cost, by
+  // model. Costs sum per unit (credits and usd never add together).
+  // `estimated` is true if any counted cost was a quote rather than a bill.
+  function projectCost(projectId) {
+    var p = getProject(projectId);
+    var out = { count: 0, credits: 0, usd: 0, uncosted: 0, estimated: false, byModel: {} };
+    if (!p) return out;
+    (p.concepts || []).forEach(function (c) {
+      (c.scenes || []).forEach(function (sc) {
+        (sc.shots || []).forEach(function (sh) {
+          (sh.outputs || []).forEach(function (o) {
+            var m = o.model || 'unknown';
+            var row = out.byModel[m] || (out.byModel[m] = { count: 0, credits: 0, usd: 0 });
+            out.count++; row.count++;
+            if (o.cost && isFinite(o.cost.amount)) {
+              out[o.cost.unit] += o.cost.amount; row[o.cost.unit] += o.cost.amount;
+              if (o.cost.estimated) out.estimated = true;
+            } else out.uncosted++;
+          });
+        });
+      });
+    });
+    return out;
+  }
+  // Two runs in the same millisecond tie on createdAt; array order breaks the
+  // tie (outputs are appended, so later index = later run).
+  function latestOutput(sh, model) {
+    var list = (sh && sh.outputs || []).filter(function (o) { return !model || o.model === model; });
+    var best = null;
+    list.forEach(function (o) { if (!best || (o.createdAt || 0) >= (best.createdAt || 0)) best = o; });
+    return best;
   }
 
   window.Store = {
@@ -1531,7 +1613,9 @@
     lookLabels: function () { return Object.keys(LOOK_LABELS).slice(); },
     resolveLook: resolveLook,
     lockShotPrompt: lockShotPrompt, unlockShotPrompt: unlockShotPrompt,
-    attachShotOutput: attachShotOutput,
+    attachShotOutput: attachShotOutput, setOutputVerdict: setOutputVerdict,
+    projectCost: projectCost, latestOutput: latestOutput,
+    outputVerdicts: function () { return OUTPUT_VERDICTS.slice(); },
     // deliverables
     listDeliverables: listDeliverables, getDeliverable: getDeliverable,
     createDeliverable: createDeliverable, updateDeliverable: updateDeliverable, deleteDeliverable: deleteDeliverable,
