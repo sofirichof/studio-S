@@ -36,33 +36,46 @@
   <!-- Content -->
   <div style="flex:1; overflow-y:auto; padding:40px 48px;">
     <div style="max-width:680px; margin:0 auto;">
-      <h2 style="font-size:22px; font-weight:500; color:#16161D; margin-bottom:6px; letter-spacing:-0.01em;">Plan this project with Claude</h2>
-      <p style="font-size:14px; color:#5A5A6B; margin-bottom:24px; line-height:1.6;">Name it, hand Claude the script or brief, and Claude builds the concepts and shots straight into this project through the Studio S connector. Nothing to paste back.</p>
+      <h2 style="font-size:22px; font-weight:500; color:#16161D; margin-bottom:6px; letter-spacing:-0.01em;">New project</h2>
+      <p style="font-size:14px; color:#5A5A6B; margin-bottom:24px; line-height:1.6;">Drop the project folder, paste the script, hit Break down. The concepts and shots land here with their prompts ready. Claude is one click away for everything after that.</p>
 
-      <!-- Project name -->
+      <!-- 1: Project folder (drop zone) + name -->
       <div style="background:#fff; border:1px solid rgba(16,16,32,0.10); border-radius:12px; padding:20px; margin-bottom:16px;">
-        <p style="font-size:12px; font-weight:500; color:#16161D; margin-bottom:10px;">Project name</p>
-        <input id="np-name" type="text" oninput="{{ nameChanged }}" placeholder="e.g. US Bank — Rotation 4" style="width:100%; height:36px; background:#F7F5EF; border:1px solid rgba(16,16,32,0.08); border-radius:10px; padding:0 12px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:13px; color:#16161D; outline:none;" />
-        <p style="font-size:12px; color:#9A9AA8; margin-top:10px; line-height:1.5;">Give this project a name. If you leave it blank we'll name it after the folder.</p>
-      </div>
-
-      <!-- 1: Folder picker -->
-      <div style="background:#fff; border:1px solid rgba(16,16,32,0.10); border-radius:12px; padding:20px; margin-bottom:16px;">
-        <p style="font-size:12px; font-weight:500; color:#16161D; margin-bottom:12px;"><span style="display:inline-flex; width:18px; height:18px; background:#0217D3; border-radius:50%; align-items:center; justify-content:center; margin-right:6px; font-size:10px; color:#fff; font-weight:500; vertical-align:middle;">1</span>Choose your assets folder</p>
-        <div style="display:flex; gap:10px; align-items:center;">
-          <div style="flex:1; height:36px; background:#F7F5EF; border:1px solid rgba(16,16,32,0.08); border-radius:10px; padding:0 12px; display:flex; align-items:center; gap:8px; overflow:hidden;">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#9A9AA8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M1 4.5C1 3.67 1.67 3 2.5 3h2.29a1 1 0 0 1 .7.29L6.71 4.5H11.5c.83 0 1.5.67 1.5 1.5v5c0 .83-.67 1.5-1.5 1.5h-9C1.67 12.5 1 11.83 1 11v-6.5z"/></svg>
-            <span style="font-size:13px; color:#9A9AA8; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" id="folder-path-display">No folder selected</span>
-          </div>
-          <button onclick="{{ pickFolder }}" style="height:36px; padding:0 16px; background:#fff; border:1px solid rgba(16,16,32,0.12); border-radius:8px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:13px; font-weight:500; color:#16161D; cursor:pointer; white-space:nowrap; flex-shrink:0;" onmouseover="this.style.background='#F0F1F4'" onmouseout="this.style.background='#fff'">Choose folder</button>
+        <p style="font-size:12px; font-weight:500; color:#16161D; margin-bottom:12px;"><span style="display:inline-flex; width:18px; height:18px; background:#0217D3; border-radius:50%; align-items:center; justify-content:center; margin-right:6px; font-size:10px; color:#fff;">1</span>Project folder</p>
+        <div id="np-drop" style="border:1.5px dashed rgba(2,23,211,0.35); border-radius:12px; padding:22px 16px; text-align:center; background:#F7F5EF; transition:background .12s, border-color .12s;">
+          <p style="font-size:14px; font-weight:500; color:#16161D;">Drop your project folder here</p>
+          <p style="font-size:12px; color:#9A9AA8; margin-top:4px; line-height:1.5;">Brief, script, references in one folder — or just the script file.</p>
+          <button onclick="{{ pickFolder }}" style="margin-top:12px; height:34px; padding:0 16px; background:#fff; border:1px solid rgba(16,16,32,0.12); border-radius:8px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:13px; font-weight:500; color:#16161D; cursor:pointer;">Choose folder</button>
         </div>
-        <p style="font-size:12px; color:#9A9AA8; margin-top:10px; line-height:1.5;">Optional. Drop your brief, storyboard, references, and scripts in one folder so you can point Claude at it. The copy-and-paste fallback below needs it.</p>
+        <div style="display:flex; gap:10px; align-items:center; margin-top:12px;">
+          <div style="flex:1; height:36px; background:#F7F5EF; border:1px solid rgba(16,16,32,0.08); border-radius:10px; padding:0 12px; display:flex; align-items:center; gap:8px; overflow:hidden;">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#9A9AA8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M1 4.5C1 3.67 1.67 3 2.5 3h2.29a1 1 0 0 1 .7.3l.72.7a1 1 0 0 0 .7.3H11.5c.83 0 1.5.67 1.5 1.5v5c0 .83-.67 1.5-1.5 1.5h-9A1.5 1.5 0 0 1 1 10.8z"/></svg>
+            <span style="font-size:13px; color:#9A9AA8; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" id="folder-path-display">No folder yet</span>
+          </div>
+        </div>
+        <div style="margin-top:12px;">
+          <p style="font-size:11px; color:#9A9AA8; margin-bottom:6px;">Project name</p>
+          <input id="np-name" type="text" oninput="{{ nameChanged }}" placeholder="Named after the folder unless you type one" style="width:100%; height:36px; background:#F7F5EF; border:1px solid rgba(16,16,32,0.08); border-radius:10px; padding:0 12px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:13px; color:#16161D; outline:none;">
+        </div>
       </div>
 
-      <!-- 2: Open in Claude (primary path: the connector) -->
-      <div id="claude-panel" style="background:#EEF0FF; border:1px solid rgba(2,23,211,0.15); border-radius:12px; padding:20px; margin-bottom:16px;">
+      <!-- 2: Script → Break down (in-app; the model call goes through the Rust proxy) -->
+      <div style="background:#fff; border:1px solid rgba(16,16,32,0.10); border-radius:12px; padding:20px; margin-bottom:16px;">
+        <p style="font-size:12px; font-weight:500; color:#16161D; margin-bottom:12px;"><span style="display:inline-flex; width:18px; height:18px; background:#0217D3; border-radius:50%; align-items:center; justify-content:center; margin-right:6px; font-size:10px; color:#fff;">2</span>Paste the script</p>
+        <div id="np-script-files" style="display:none; flex-wrap:wrap; gap:6px; margin-bottom:8px;"></div>
+        <textarea id="np-script" placeholder="Script, treatment or brief. If the folder holds a .txt or .md script it loads here on its own." style="width:100%; height:190px; background:#F7F5EF; border:1px solid rgba(16,16,32,0.08); border-radius:10px; padding:12px 14px; font-family:ui-monospace,monospace; font-size:12px; color:#16161D; line-height:1.6; resize:vertical; outline:none;"></textarea>
+        <div style="display:flex; gap:12px; align-items:center; margin-top:14px;">
+          <button onclick="{{ breakdown }}" id="breakdown-btn" style="height:38px; padding:0 22px; background:#0217D3; border:none; border-radius:8px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:13px; font-weight:500; color:#fff; cursor:pointer;">Break down</button>
+          <span id="breakdown-status" style="font-size:12px; color:#9A9AA8; line-height:1.5;"></span>
+        </div>
+        <p id="breakdown-key-note" style="display:none; font-size:12px; color:#9A5B00; background:#FFF7E6; border:1px solid rgba(154,91,0,0.18); border-radius:8px; padding:10px 12px; margin-top:12px; line-height:1.5;">Breaking down in the app uses your Claude API key. Add it in <a href="aisetup.html" style="color:#0217D3; font-weight:500; text-decoration:none;">AI setup</a>, or use the Claude card below instead.</p>
+        <p style="font-size:11px; color:#9A9AA8; margin-top:10px; line-height:1.5;">Claude plans the concepts, scenes and shots; Studio S writes every prompt itself. Coverage and script options are under the fallback below if you want to change them.</p>
+      </div>
+
+      <!-- 3: Or work on it in Claude (the connector) -->
+      <div id="claude-panel" style="background:#fff; border:1px solid rgba(16,16,32,0.10); border-radius:12px; padding:20px; margin-bottom:16px;">
         <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:4px;">
-          <p style="font-size:12px; font-weight:500; color:#0217D3;"><span style="display:inline-flex; width:18px; height:18px; background:#0217D3; border-radius:50%; align-items:center; justify-content:center; margin-right:6px; font-size:10px; color:#fff; font-weight:500; vertical-align:middle;">2</span>Open in Claude</p>
+          <p style="font-size:12px; font-weight:500; color:#0217D3;"><span style="display:inline-flex; width:18px; height:18px; background:#0217D3; border-radius:50%; align-items:center; justify-content:center; margin-right:6px; font-size:10px; color:#fff; font-weight:500; vertical-align:middle;">3</span>Or work on it in Claude</p>
           <span id="claude-conn-pill" style="display:none; align-items:center; gap:6px; font-size:11px; font-weight:500; border-radius:999px; padding:3px 10px;"></span>
         </div>
         <p style="font-size:12px; color:#5A5A6B; margin-bottom:14px; line-height:1.5;">Claude Desktop opens with this project waiting in Studio S. Say the line below, attach or paste the script if it isn't in the folder, and the concepts and shots land here on their own.</p>
@@ -178,8 +191,77 @@ class Component extends DCLogic {
   componentDidMount() {
     this._assetsFolder = '';
     this._createdProjectId = null;
+    this._scriptFiles = [];
     this.refreshSay();
     this.checkConnection();
+    this.initDrop();
+  }
+
+  // ── Folder intake ──
+  // Tauri's window-level drag events carry real paths (HTML5 drop events in a
+  // webview don't), so the drop zone listens to those. A dropped file works
+  // too: its parent becomes the folder and, if it's text, it's the script.
+  initDrop() {
+    const t = window.__TAURI__;
+    if (!(t && t.event && t.event.listen)) return;
+    const zone = () => document.getElementById('np-drop');
+    const hl = (on) => { const z = zone(); if (!z) return; z.style.borderColor = on ? '#0217D3' : 'rgba(2,23,211,0.35)'; z.style.background = on ? '#EEF0FF' : '#F7F5EF'; };
+    t.event.listen('tauri://drag-enter', () => hl(true));
+    t.event.listen('tauri://drag-leave', () => hl(false));
+    t.event.listen('tauri://drag-drop', (e) => {
+      hl(false);
+      const paths = (e && e.payload && e.payload.paths) || [];
+      if (paths[0]) this.intake(paths[0]);
+    });
+  }
+  async intake(path) {
+    const t = window.__TAURI__;
+    let info = null;
+    try { info = await t.core.invoke('read_script_files', { path }); }
+    catch (e) { this.sayBreakdown('Couldn\u2019t read that: ' + ((e && e.message) || e), '#FF002E'); return; }
+    this.setFolder(info.dir);
+    this._scriptFiles = info.files || [];
+    this.renderScriptFiles();
+    const ta = document.getElementById('np-script');
+    if (ta && !ta.value.trim() && this._scriptFiles.length) ta.value = this._scriptFiles[0].content;
+  }
+  renderScriptFiles() {
+    const box = document.getElementById('np-script-files');
+    if (!box) return;
+    const esc = (v) => String(v == null ? '' : v).replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+    if (!this._scriptFiles.length) { box.style.display = 'none'; box.innerHTML = ''; return; }
+    box.style.display = 'flex';
+    box.innerHTML = '<span style="font-size:11px;color:#9A9AA8;align-self:center;">In the folder:</span>' + this._scriptFiles.map((f, i) =>
+      '<button data-script-file="' + i + '" style="font-size:11px;padding:3px 9px;border-radius:999px;border:1px solid rgba(2,23,211,0.25);background:#EEF0FF;color:#0217D3;cursor:pointer;font-family:inherit;">' + esc(f.name) + '</button>').join('');
+    box.querySelectorAll('[data-script-file]').forEach((b) => b.addEventListener('click', () => {
+      const f = this._scriptFiles[Number(b.getAttribute('data-script-file'))];
+      const ta = document.getElementById('np-script');
+      if (f && ta) ta.value = f.content;
+    }));
+  }
+  setFolder(dir) {
+    const display = document.getElementById('folder-path-display');
+      this._assetsFolder = dir;
+      this.refreshSay();
+      if (display) { display.textContent = dir; display.style.color = '#16161D'; }
+      if (this._createdProjectId && window.Store) {
+        const created = Store.getProject(this._createdProjectId);
+        if (created && !created.assetsFolder) Store.updateProject(created.id, { assetsFolder: dir });
+      }
+      const instrPanel = document.getElementById('plan-instructions-panel');
+      const scanPanel = document.getElementById('plan-scan-panel');
+      if (instrPanel) instrPanel.style.display = 'block';
+      if (scanPanel) scanPanel.style.display = 'block';
+      const needs = document.getElementById('fallback-needs-folder');
+      if (needs) needs.style.display = 'none';
+      const textarea = document.getElementById('plan-instructions-text');
+      if (textarea) textarea.value = this.buildClaudeInstructions(dir);
+      this.renderModelAdvice();
+      this.refreshSay();
+  }
+  sayBreakdown(msg, col) {
+    const el = document.getElementById('breakdown-status');
+    if (el) { el.textContent = msg || ''; el.style.color = col || '#9A9AA8'; }
   }
 
   async pickDir() {
@@ -318,7 +400,11 @@ class Component extends DCLogic {
     };
   }
 
-  buildClaudeInstructions(folderPath, setup) {
+  buildClaudeInstructions(folderPath, setup, opts) {
+    // mode 'api': the same instructions for the in-app breakdown — the script
+    // arrives in the message and the plan comes back as the response, so the
+    // two file-bound steps change wording. Everything else is identical.
+    const api = !!(opts && opts.mode === 'api');
     // The planning agent runs against the user's OWN project folder, which will
     // never contain the reference-sheet research doc — and the app has no
     // filesystem write command to put it there. So the templates ship in
@@ -411,7 +497,7 @@ DO NOT WRITE GENERATION PROMPTS FOR SHOTS. Studio S composes every image and vid
 
 THE ONE EXCEPTION IS REFERENCE SHEETS. Character, prop/product and location reference sheets ARE written by you, as finished prompt text, in the "prompt" field of each entry in "descriptions". Studio S does not compose those — the shot-prompt builder was never built to produce them. Use the templates in REFERENCE SHEET TEMPLATES at the end of these instructions, verbatim, filling every bracket. This exception covers reference sheets and nothing else.
 
-STEP 1 — Read everything in the folder: brief, storyboard, references, mood boards, and especially any SCRIPT, treatment, or scene breakdown.
+${api ? 'STEP 1 — The script (or brief) is in the user message after these instructions. Work from it; you cannot open the assets folder, it is named only for context.' : 'STEP 1 — Read everything in the folder: brief, storyboard, references, mood boards, and especially any SCRIPT, treatment, or scene breakdown.'}
 
 STEP 2 — Work out the concepts first: what separate deliverables does the brief actually ask for? Then build each concept out, scene by scene, shot by shot.
 
@@ -428,7 +514,7 @@ STEP 2B — DIRECT IT. Whether the script arrived in the folder or you just wrot
   • Vary the coverage — a scene built only from people doing things cuts badly. Earn reactions, inserts, product details, location texture, empty-frame transitions.
 Split a long scene into multiple shots. Record that craft in the descriptive FIELDS below, not in the shot name. ${shotsDirective}
 
-STEP 3 — Write the plan as JSON to: ${folderPath}/studio-s-plan.json
+${api ? 'STEP 3 — Respond with the plan as ONE JSON document and nothing else: no prose before or after it, no code fences.' : 'STEP 3 — Write the plan as JSON to: ' + folderPath + '/studio-s-plan.json'}
 
 Exact format:
 {
@@ -653,22 +739,7 @@ ${refTemplates}`;
         }
         const dir = await this.pickDir();
         if (!dir) return;
-        this._assetsFolder = dir;
-        if (display) { display.textContent = dir; display.style.color = '#16161D'; }
-        if (this._createdProjectId && window.Store) {
-          const created = Store.getProject(this._createdProjectId);
-          if (created && !created.assetsFolder) Store.updateProject(created.id, { assetsFolder: dir });
-        }
-        const instrPanel = document.getElementById('plan-instructions-panel');
-        const scanPanel = document.getElementById('plan-scan-panel');
-        if (instrPanel) instrPanel.style.display = 'block';
-        if (scanPanel) scanPanel.style.display = 'block';
-        const needs = document.getElementById('fallback-needs-folder');
-        if (needs) needs.style.display = 'none';
-        const textarea = document.getElementById('plan-instructions-text');
-        if (textarea) textarea.value = this.buildClaudeInstructions(dir);
-        this.renderModelAdvice();
-        this.refreshSay();
+        await this.intake(dir);
       },
       copyInstructions: () => {
         const textarea = document.getElementById('plan-instructions-text');
@@ -683,6 +754,42 @@ ${refTemplates}`;
           setTimeout(() => {
             btn.innerHTML = '<svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="6" height="6" rx="1"/><path d="M1.5 7.5V2a1 1 0 0 1 1-1h5.5"/></svg> Copy';
           }, 2000);
+        }
+      },
+      breakdown: async () => {
+        if (!(window.Store && window.Breakdown)) return;
+        const ta = document.getElementById('np-script');
+        const script = ((ta && ta.value) || '').trim();
+        const settings = Store.getSettings ? Store.getSettings() : {};
+        const note = document.getElementById('breakdown-key-note');
+        if (!settings.claudeApiKey) { if (note) note.style.display = 'block'; this.sayBreakdown('Add a Claude API key first.', '#9A5B00'); return; }
+        if (note) note.style.display = 'none';
+        if (!script) { this.sayBreakdown('Paste the script (or brief) first \u2014 or drop a folder that has one.', '#9A5B00'); return; }
+        const btn = document.getElementById('breakdown-btn');
+        if (btn) { btn.disabled = true; btn.style.opacity = '0.6'; }
+        this.ensureProject();
+        const p = this._createdProjectId ? Store.getProject(this._createdProjectId) : null;
+        if (!p) { this.sayBreakdown('Couldn\u2019t create the project.', '#FF002E'); if (btn) { btn.disabled = false; btn.style.opacity = '1'; } return; }
+        const started = Date.now();
+        this.sayBreakdown('Breaking down\u2026 Claude is reading the script.');
+        try {
+          // Same planning instructions as the handoff, in API mode: the script
+          // is in the message and the answer is the JSON itself, not a file.
+          const system = this.buildClaudeInstructions(this._assetsFolder || '', this.readSetup(), { mode: 'api' });
+          const res = await Breakdown.run({
+            apiKey: settings.claudeApiKey, system: system, script: script,
+            projectName: this.projectName(), folder: this._assetsFolder || '',
+            onProgress: (pr) => this.sayBreakdown('Breaking down\u2026 ' + Math.round((pr.chars || 0) / 4).toLocaleString() + ' tokens of plan so far (' + Math.round((Date.now() - started) / 1000) + 's).')
+          });
+          Store.scaffoldFromPlan(p.id, JSON.stringify(res.plan));
+          const q = Store.getProject(p.id);
+          let n = 0; (q.concepts || []).forEach((c) => (c.scenes || []).forEach((sc) => { n += (sc.shots || []).length; }));
+          const cs = (q.concepts || []).length;
+          this.sayBreakdown('\u2713 ' + n + ' shot' + (n === 1 ? '' : 's') + ' across ' + cs + ' concept' + (cs === 1 ? '' : 's') + '. Opening the project\u2026', '#0217D3');
+          setTimeout(() => this.finish(p.id), 600);
+        } catch (e) {
+          this.sayBreakdown((e && e.message) || String(e), '#FF002E');
+          if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
         }
       },
       scanForPlan: async () => {
@@ -730,6 +837,7 @@ ${refTemplates}`;
 }
 </script>
 <script src="./store.js"></script>
+<script src="./breakdown.js"></script>
 <script src="./reftemplates.js"></script>
 <script src="./updater.js"></script>
 </body>
