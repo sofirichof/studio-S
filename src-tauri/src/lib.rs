@@ -32,21 +32,18 @@ async fn anthropic_messages(api_key: String, body: serde_json::Value, betas: Opt
     Ok(text)
 }
 
-// Streaming variant for long outputs (the in-app breakdown: a plan can run
-// 25k+ tokens, which a single buffered response would time out on and leave
-// the page silent for minutes). Reads the SSE stream, collects the text
-// deltas, emits "anthropic-stream" {chars} every ~400 chars so the page can
-// show progress, and returns {text, stop_reason, usage}. Same key handling
-// as anthropic_messages; the request shape is the frontend's.
-#[tauri::command]
-async fn anthropic_messages_stream(
-    app: tauri::AppHandle,
+// Streaming Messages call for long outputs (a plan can run 25k+ tokens, which
+// a single buffered response would time out on). Reads the SSE stream,
+// collects the text deltas, reports progress through `on_progress(chars)`,
+// and returns (text, stop_reason, usage). Same key handling as
+// anthropic_messages; the request shape is the frontend's.
+async fn stream_messages(
     api_key: String,
     mut body: serde_json::Value,
     betas: Option<String>,
-) -> Result<serde_json::Value, String> {
+    mut on_progress: impl FnMut(usize, &str),
+) -> Result<(String, String, serde_json::Value), String> {
     use futures_util::StreamExt;
-    use tauri::Emitter;
     body["stream"] = serde_json::Value::Bool(true);
     let client = reqwest::Client::new();
     let mut req = client
@@ -108,11 +105,121 @@ async fn anthropic_messages_stream(
             }
             if text.len() >= emitted_at + 400 {
                 emitted_at = text.len();
-                let _ = app.emit("anthropic-stream", serde_json::json!({ "chars": text.len() }));
+                on_progress(text.len(), &text);
             }
         }
     }
+    Ok((text, stop_reason, usage))
+}
+
+// Page-bound streaming call: emits "anthropic-stream" {chars} and returns
+// {text, stop_reason, usage}. The caller's page must stay open for the
+// duration; for work that should survive navigation use breakdown_start.
+#[tauri::command]
+async fn anthropic_messages_stream(
+    app: tauri::AppHandle,
+    api_key: String,
+    body: serde_json::Value,
+    betas: Option<String>,
+) -> Result<serde_json::Value, String> {
+    use tauri::Emitter;
+    let (text, stop_reason, usage) = stream_messages(api_key, body, betas, |chars, _| {
+        let _ = app.emit("anthropic-stream", serde_json::json!({ "chars": chars }));
+    })
+    .await?;
     Ok(serde_json::json!({ "text": text, "stop_reason": stop_reason, "usage": usage }))
+}
+
+// ── Breakdown jobs ─────────────────────────────────────────────────────────
+// An app keeps working when you click around. The breakdown runs here, in the
+// shell, as a job the pages can leave and come back to: breakdown_start spawns
+// it and returns an id; breakdown_status reads it; "breakdown-progress" events
+// carry live char counts. Results stay in memory until the app quits — the
+// frontend imports the plan into the store as soon as it sees "done".
+#[derive(Clone, serde::Serialize)]
+struct BreakdownJob {
+    status: String, // running | done | error
+    chars: usize,
+    tail: String, // the last ~800 chars written, for the live line in the UI
+    text: Option<String>,
+    stop_reason: Option<String>,
+    usage: Option<serde_json::Value>,
+    error: Option<String>,
+    started_at: u64,
+}
+#[derive(Default)]
+struct BreakdownJobs(std::sync::Mutex<std::collections::HashMap<String, BreakdownJob>>);
+
+// The last `n` bytes of `text`, cut on a char boundary.
+fn tail_of(text: &str, n: usize) -> String {
+    let mut start = text.len().saturating_sub(n);
+    while start < text.len() && !text.is_char_boundary(start) {
+        start += 1;
+    }
+    text[start..].to_string()
+}
+
+fn now_ms() -> u64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_millis() as u64)
+        .unwrap_or(0)
+}
+
+#[tauri::command]
+fn breakdown_start(
+    app: tauri::AppHandle,
+    jobs: tauri::State<'_, BreakdownJobs>,
+    api_key: String,
+    body: serde_json::Value,
+    betas: Option<String>,
+) -> Result<String, String> {
+    use tauri::{Emitter, Manager};
+    let id = format!("bd_{:x}", now_ms());
+    jobs.0.lock().map_err(|_| "job table poisoned")?.insert(
+        id.clone(),
+        BreakdownJob { status: "running".into(), chars: 0, tail: String::new(), text: None, stop_reason: None, usage: None, error: None, started_at: now_ms() },
+    );
+    let job_id = id.clone();
+    tauri::async_runtime::spawn(async move {
+        let progress_app = app.clone();
+        let progress_id = job_id.clone();
+        let result = stream_messages(api_key, body, betas, move |chars, text| {
+            let tail = tail_of(text, 800);
+            if let Ok(mut map) = progress_app.state::<BreakdownJobs>().0.lock() {
+                if let Some(j) = map.get_mut(&progress_id) {
+                    j.chars = chars;
+                    j.tail = tail.clone();
+                }
+            }
+            let _ = progress_app.emit("breakdown-progress", serde_json::json!({ "jobId": progress_id, "chars": chars, "tail": tail }));
+        })
+        .await;
+        if let Ok(mut map) = app.state::<BreakdownJobs>().0.lock() {
+            if let Some(j) = map.get_mut(&job_id) {
+                match result {
+                    Ok((text, stop_reason, usage)) => {
+                        j.status = "done".into();
+                        j.chars = text.len();
+                        j.text = Some(text);
+                        j.stop_reason = Some(stop_reason);
+                        j.usage = Some(usage);
+                    }
+                    Err(e) => {
+                        j.status = "error".into();
+                        j.error = Some(e);
+                    }
+                }
+            }
+        }
+        let _ = app.emit("breakdown-done", serde_json::json!({ "jobId": job_id }));
+    });
+    Ok(id)
+}
+
+#[tauri::command]
+fn breakdown_status(jobs: tauri::State<'_, BreakdownJobs>, id: String) -> Result<Option<BreakdownJob>, String> {
+    Ok(jobs.0.lock().map_err(|_| "job table poisoned")?.get(&id).cloned())
 }
 
 // What the New-project page needs from a dropped or chosen path: the folder
@@ -314,6 +421,7 @@ fn read_connector_heartbeat(app: tauri::AppHandle) -> Result<Option<String>, Str
 pub fn run() {
     #[allow(unused_mut)]
     let mut builder = tauri::Builder::default()
+        .manage(BreakdownJobs::default())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_process::init());
@@ -325,7 +433,7 @@ pub fn run() {
     }
 
     builder
-        .invoke_handler(tauri::generate_handler![anthropic_messages, anthropic_messages_stream, read_script_files, scan_plan_folder, open_claude_app, mirror_store, read_connector_store, open_connector_installer, read_connector_heartbeat])
+        .invoke_handler(tauri::generate_handler![anthropic_messages, anthropic_messages_stream, breakdown_start, breakdown_status, read_script_files, scan_plan_folder, open_claude_app, mirror_store, read_connector_store, open_connector_installer, read_connector_heartbeat])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

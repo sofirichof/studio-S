@@ -62,35 +62,54 @@
     return plan;
   }
 
-  // Run the breakdown. Resolves { plan, text, stopReason, usage }.
-  // onProgress({ chars }) fires as output streams in.
-  function run(opts) {
+  // Start the breakdown as a shell-side job (survives navigation). Resolves
+  // the job id. Progress arrives as "breakdown-progress" {jobId, chars} events
+  // and through status().
+  function start(opts) {
     opts = opts || {};
     var t = tauri();
     if (!t) return Promise.reject(new Error('Breakdown runs in the Studio S desktop app only.'));
     var apiKey = String(opts.apiKey || '').trim();
     if (!apiKey) return Promise.reject(new Error('No Claude API key — add one in AI setup.'));
-    var req = buildRequest(opts);
-    var unlisten = null;
-    var listening = (t.event && t.event.listen)
-      ? t.event.listen('anthropic-stream', function (e) {
-          try { if (opts.onProgress) opts.onProgress(e.payload || {}); } catch (err) {}
-        }).then(function (fn) { unlisten = fn; })
-      : Promise.resolve();
-    return listening.then(function () {
-      return t.core.invoke('anthropic_messages_stream', { apiKey: apiKey, body: req.body, betas: req.betas });
-    }).then(function (res) {
-      if (unlisten) { try { unlisten(); } catch (e) {} }
-      res = res || {};
-      if (res.stop_reason === 'refusal') throw new Error('Claude declined to break this one down.');
-      if (res.stop_reason === 'max_tokens') throw new Error('The plan ran past the output limit — split the script and try again.');
-      var plan = parsePlan(res.text);
-      return { plan: plan, text: res.text, stopReason: res.stop_reason || '', usage: res.usage || null };
-    }, function (err) {
-      if (unlisten) { try { unlisten(); } catch (e) {} }
-      throw err;
+    var req;
+    try { req = buildRequest(opts); } catch (e) { return Promise.reject(e); }
+    return t.core.invoke('breakdown_start', { apiKey: apiKey, body: req.body, betas: req.betas });
+  }
+  function status(jobId) {
+    var t = tauri();
+    if (!t) return Promise.resolve(null);
+    return t.core.invoke('breakdown_status', { id: jobId });
+  }
+  // Turn a finished job into a plan, or a clear error.
+  function finish(job) {
+    job = job || {};
+    if (job.status === 'error') throw new Error(job.error || 'The breakdown failed.');
+    if (job.stop_reason === 'refusal') throw new Error('Claude declined to break this one down.');
+    if (job.stop_reason === 'max_tokens') throw new Error('The plan ran past the output limit — split the script and try again.');
+    var plan = parsePlan(job.text);
+    return { plan: plan, text: job.text, stopReason: job.stop_reason || '', usage: job.usage || null };
+  }
+  // Run to completion from one page: start, then poll until done.
+  // onProgress({ chars }) fires as output streams in. Resolves finish(job).
+  function run(opts) {
+    opts = opts || {};
+    return start(opts).then(function (jobId) {
+      return new Promise(function (resolve, reject) {
+        var tick = function () {
+          status(jobId).then(function (job) {
+            if (!job) return reject(new Error('The breakdown job vanished.'));
+            if (job.status === 'running') {
+              try { if (opts.onProgress) opts.onProgress({ chars: job.chars || 0 }); } catch (e) {}
+              setTimeout(tick, opts.pollMs || 700);
+              return;
+            }
+            try { resolve(finish(job)); } catch (e) { reject(e); }
+          }, reject);
+        };
+        tick();
+      });
     });
   }
 
-  window.Breakdown = { MODEL: MODEL, MAX_TOKENS: MAX_TOKENS, buildRequest: buildRequest, parsePlan: parsePlan, run: run };
+  window.Breakdown = { MODEL: MODEL, MAX_TOKENS: MAX_TOKENS, buildRequest: buildRequest, parsePlan: parsePlan, start: start, status: status, finish: finish, run: run };
 })();

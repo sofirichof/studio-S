@@ -262,7 +262,39 @@
     }
   }
 
-  function init() { markCursors(); decorateProjectName(); initProjectSelect(); initHomeRow(); initTheme(); initClaudeStatus(); }
+  // ── Drop a folder anywhere ──
+  // The app's front door: a folder dropped on any page becomes a project and
+  // its breakdown starts (Intake.start). Tauri's window-level drag events
+  // carry real paths; HTML5 drop events in the webview don't. The overlay is
+  // created once per page and only shows while something is being dragged in.
+  function initDropAnywhere() {
+    var t = window.__TAURI__;
+    if (!(t && t.event && t.event.listen && window.Intake)) return;
+    if (document.getElementById('sg-drop-overlay')) return;
+    var ov = document.createElement('div');
+    ov.id = 'sg-drop-overlay';
+    ov.style.cssText = 'display:none;position:fixed;inset:0;z-index:9999;background:rgba(2,23,211,.08);pointer-events:none;align-items:center;justify-content:center;';
+    ov.innerHTML = '<div style="border:2px dashed #0217D3;border-radius:16px;background:#fff;padding:26px 34px;box-shadow:0 8px 30px rgba(16,16,32,.12);text-align:center;">' +
+      '<p style="font-size:16px;font-weight:500;color:#16161D;">Drop the project folder</p>' +
+      '<p style="font-size:12px;color:#9A9AA8;margin-top:4px;">It becomes a project and the script in it gets broken down.</p></div>';
+    document.body.appendChild(ov);
+    var show = function () { ov.style.display = 'flex'; };
+    var hide = function () { ov.style.display = 'none'; };
+    t.event.listen('tauri://drag-enter', show);
+    t.event.listen('tauri://drag-leave', hide);
+    t.event.listen('tauri://drag-drop', function (e) {
+      hide();
+      var paths = (e && e.payload && e.payload.paths) || [];
+      if (paths[0]) Intake.start(paths[0]);
+    });
+  }
+
+  function init() {
+    markCursors(); decorateProjectName(); initProjectSelect(); initHomeRow(); initTheme(); initClaudeStatus();
+    initDropAnywhere();
+    // A breakdown started on another page keeps going; pick it up here.
+    if (window.Intake && Intake.resume) Intake.resume();
+  }
   if (document.readyState !== 'loading') init();
   else document.addEventListener('DOMContentLoaded', init);
   // Re-run cosmetics after the DC runtime re-renders (navigation itself is delegated).

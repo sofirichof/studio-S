@@ -151,6 +151,11 @@ class Component extends DCLogic {
   componentDidMount() {
     this.renderProjects();
     this.renderSelector();
+    // Intake's "Open the shot list" lands straight on that project's overview.
+    try {
+      const want = window.sessionStorage.getItem('sg-open-overview');
+      if (want) { window.sessionStorage.removeItem('sg-open-overview'); if (Store.getProject(want)) this.openOverview(want); }
+    } catch (e) {}
   }
 
   shotCount(p) {
@@ -901,6 +906,10 @@ class Component extends DCLogic {
 <script src="./coherence.js"></script>
 <script src="./findings.js"></script>
 <script src="./store.js"></script>
+<script src="./breakdown.js"></script>
+<script src="./reftemplates.js"></script>
+<script src="./planinstructions.js"></script>
+<script src="./intake.js"></script>
 <script src="./nav.js"></script>
 </body>
 </html>

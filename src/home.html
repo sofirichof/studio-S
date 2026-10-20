@@ -117,14 +117,16 @@ class Component extends DCLogic {
             '<svg width="24" height="24" viewBox="0 0 16 16" fill="none" stroke="#0217D3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6.5L8 2l6 4.5V13a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6.5z"/></svg>' +
           '</div>' +
           '<p style="font-size:17px;font-weight:500;color:#16161D;margin-bottom:6px;">Welcome to Studio S</p>' +
-          '<p style="font-size:14px;color:#5A5A6B;max-width:380px;line-height:1.6;margin-bottom:20px;">Create your first project — point Claude at your assets folder and the studio scaffolds concepts and shots for you.</p>' +
-          '<button data-home="new" style="height:38px;padding:0 20px;background:#0217D3;border:none;border-radius:8px;font-family:inherit;font-size:13px;font-weight:500;color:#fff;cursor:pointer;">Create a project</button>' +
+          '<p style="font-size:14px;color:#5A5A6B;max-width:380px;line-height:1.6;margin-bottom:20px;">Drop a project folder anywhere in this window — or choose one. The script inside it becomes concepts and shots here, prompts ready.</p>' +
+          '<button data-home="new" style="height:38px;padding:0 20px;background:#0217D3;border:none;border-radius:8px;font-family:inherit;font-size:13px;font-weight:500;color:#fff;cursor:pointer;">Choose a project folder</button>' +
         '</div>';
       this.bind(mount);
       return;
     }
 
-    const p = active.project || projects[0];
+    const intake = (window.Intake && Intake.state) ? Intake.state() : null;
+    // A folder just dropped is the project to look at, whatever was active.
+    const p = (intake && intake.projectId && Store.getProject(intake.projectId)) || active.project || projects[0];
     const stats = this.shotStats(p);
     const pct = stats.total ? Math.round((stats.prompted / stats.total) * 100) : 0;
     const refs = Store.listReferences(p.id);
@@ -177,13 +179,16 @@ class Component extends DCLogic {
         '<div style="height:5px;background:#ECEDF0;border-radius:999px;overflow:hidden;margin-top:16px;">' +
           '<div style="height:100%;width:' + pct + '%;background:#0217D3;border-radius:999px;"></div>' +
         '</div>' +
-        // No shots yet → the next step is the Claude path (connector), not a todo.
-        (!stats.total
+        // The intake (folder → breakdown job) reports on this card: running,
+        // done, no script, no key, error. Otherwise the usual next step.
+        (intake && intake.projectId === p.id
+          ? Intake.cardHtml(intake)
+          : (!stats.total
           ? '<p style="font-size:12px;color:#9A9AA8;margin-top:10px;line-height:1.6;">Next up: <span style="color:#5A5A6B;">no shots yet. ' +
-              '<a href="#" data-home="claude" style="color:#0217D3;font-weight:500;text-decoration:none;">Open Claude</a> and say ' +
-              '<span style="color:#16161D;">\u201CBreak this script down into my Studio S project \u2018' + this.esc(p.name) + '\u2019.\u201D</span> ' +
-              'The concepts and shots land here through the connector.</span></p>'
-          : (nextTodo ? '<p style="font-size:12px;color:#9A9AA8;margin-top:10px;">Next up: <span style="color:#5A5A6B;">' + this.esc(nextTodo.label) + '</span></p>' : '')) +
+              '<a href="#" data-home="new" style="color:#0217D3;font-weight:500;text-decoration:none;">Drop the project folder</a> on this window (or choose it) and the script in it gets broken down here. ' +
+              'Or <a href="#" data-home="claude" style="color:#0217D3;font-weight:500;text-decoration:none;">open Claude</a> and say ' +
+              '<span style="color:#16161D;">\u201CBreak this script down into my Studio S project \u2018' + this.esc(p.name) + '\u2019.\u201D</span></span></p>'
+          : (nextTodo ? '<p style="font-size:12px;color:#9A9AA8;margin-top:10px;">Next up: <span style="color:#5A5A6B;">' + this.esc(nextTodo.label) + '</span></p>' : ''))) +
       '</div>' +
 
       // Project grid
@@ -217,11 +222,19 @@ class Component extends DCLogic {
   }
 
   bind(mount) {
+    mount.querySelectorAll('[data-intake]').forEach((el) => {
+      el.onclick = (ev) => { if (ev && ev.preventDefault) ev.preventDefault(); if (window.Intake) Intake.act(el.getAttribute('data-intake')); };
+    });
+    if (!this._intakeWired) {
+      this._intakeWired = true;
+      window.addEventListener('intake-changed', () => this.renderHome());
+    }
     mount.querySelectorAll('[data-home]').forEach((el) => {
       el.onclick = (ev) => {
         if (ev && ev.preventDefault) ev.preventDefault();
         const act = el.getAttribute('data-home');
-        if (act === 'new') window.location.href = 'newproject.html';
+        if (act === 'new') { if (window.Intake) Intake.pick(); else window.location.href = 'newproject.html'; }
+        else if (act === 'advanced') window.location.href = 'newproject.html';
         else if (act === 'go') window.location.href = el.getAttribute('data-dest');
         else if (act === 'claude') { if (Store.openClaudeApp) Store.openClaudeApp().catch(() => {}); }
         else if (act === 'switch') {
@@ -234,12 +247,16 @@ class Component extends DCLogic {
 
   renderVals() {
     return {
-      newProject: () => { window.location.href = 'newproject.html'; }
+      newProject: () => { if (window.Intake) Intake.pick(); else window.location.href = 'newproject.html'; }
     };
   }
 }
 </script>
 <script src="./store.js"></script>
+<script src="./breakdown.js"></script>
+<script src="./reftemplates.js"></script>
+<script src="./planinstructions.js"></script>
+<script src="./intake.js"></script>
 <script src="./nav.js"></script>
 <script src="./updater.js"></script>
 </body>

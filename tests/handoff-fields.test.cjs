@@ -28,7 +28,9 @@ function ok(name, cond) { if (cond) { pass++; } else { fail++; console.log('  �
 // ── 1. Every shot key the handoff template asks for must survive import ──
 // Parsed out of the template literal in newproject.html rather than hardcoded,
 // so adding a key to the instructions without wiring it fails here.
-const np = fs.readFileSync(path.join(__dirname, '..', 'src', 'newproject.html'), 'utf8');
+// newproject.html + planinstructions.js: the planning instructions moved into the
+// latter (shared with the app-wide intake), so source checks read both.
+const np = fs.readFileSync(path.join(__dirname, '..', 'src', 'newproject.html'), 'utf8') + '\n' + fs.readFileSync(path.join(__dirname, '..', 'src', 'planinstructions.js'), 'utf8');
 const shotBlock = np.slice(np.indexOf('"label": "1A"'), np.indexOf('"breakdown"'));
 const asked = [...new Set([...shotBlock.matchAll(/"([a-zA-Z]+)":/g)].map(m => m[1]))]
   .filter(k => k !== 'label' && k !== 'name');
