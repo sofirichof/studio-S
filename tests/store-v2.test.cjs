@@ -801,20 +801,35 @@ async function claudePathChecks() {
   ok('connectorStatus: null outside Tauri (indicator renders nothing)', (await S.connectorStatus()) === null);
   ok('openClaudeApp: false outside Tauri', (await S.openClaudeApp()) === false);
   const calls = [];
-  const tauri = (file) => ({ __TAURI__: { core: { invoke: async (cmd) => { calls.push(cmd); if (cmd === 'read_connector_store') return file; } } } });
+  // "Connected" means Claude Desktop has launched the connector (it writes
+  // heartbeat.json); the mirror file alone only says the bridge exists.
+  const tauri = (file, hb) => ({ __TAURI__: { core: { invoke: async (cmd) => { calls.push(cmd); if (cmd === 'read_connector_store') return file; if (cmd === 'read_connector_heartbeat') return hb === undefined ? null : hb; } } } });
   S = storeWith(tauri(null));
   let st = await S.connectorStatus();
-  ok('connectorStatus: no mirror file → connected:false', st && st.connected === false);
+  ok('connectorStatus: nothing on disk → connected:false, no bridge', st && st.connected === false && st.bridge === false);
   const at = Date.now() - 3 * 60000;
   S = storeWith(tauri(JSON.stringify({ rev: 7, writer: 'app', at, doc: {} })));
   st = await S.connectorStatus();
-  ok('connectorStatus: mirror present → connected, rev, at', st && st.connected === true && st.rev === 7 && st.at === at);
-  ok('connectorStatus: ageMs from envelope `at`', st && st.ageMs >= 3 * 60000 && st.ageMs < 4 * 60000);
-  ok('connectorStatus: "last sync" label', S.connectorAgeLabel(st.ageMs) === '3 min ago');
-  ok('connectorStatus: reads, never writes', !calls.some((c) => c === 'mirror_store'));
-  S = storeWith(tauri('{not json'));
+  ok('connectorStatus: mirror but no heartbeat → bridge:true, connected:false', st && st.connected === false && st.bridge === true);
+  S = storeWith(tauri(JSON.stringify({ rev: 7, writer: 'app', at, doc: {} }), JSON.stringify({ at, version: '0.4.3', from: 'mcpb' })));
   st = await S.connectorStatus();
-  ok('connectorStatus: unreadable envelope → connected:false, no throw', st && st.connected === false);
+  ok('connectorStatus: heartbeat → connected, rev, at, version', st && st.connected === true && st.rev === 7 && st.at === at && st.connectorVersion === '0.4.3' && st.heartbeatAt === at);
+  ok('connectorStatus: ageMs from the heartbeat when Claude never wrote', st && st.lastClaudeAt === 0 && st.ageMs >= 3 * 60000 && st.ageMs < 4 * 60000);
+  ok('connectorStatus: "3 min ago" label', S.connectorAgeLabel(st.ageMs) === '3 min ago');
+  // Once Claude has written through the bridge, the store remembers when and
+  // that wins over the heartbeat as the "last activity" reference.
+  const wrote = Date.now() - 60000;
+  S = storeWith(Object.assign(tauri(JSON.stringify({ rev: 9, writer: 'app', at, doc: {} }), JSON.stringify({ at: at - 3600000, version: '0.4.3' })),
+    { localStorage: { getItem: (k) => k === 'aifs.v1' ? JSON.stringify({ projects: [], ui: { connectorLastSeenAt: wrote } }) : null, setItem() {}, removeItem() {} } }));
+  st = await S.connectorStatus();
+  ok('connectorStatus: lastClaudeAt from the store, ageMs from it', st && st.lastClaudeAt === wrote && st.ageMs >= 60000 && st.ageMs < 120000);
+  ok('connectorStatus: reads, never writes', !calls.some((c) => c === 'mirror_store'));
+  S = storeWith(tauri('{not json', '{nope'));
+  st = await S.connectorStatus();
+  ok('connectorStatus: unreadable files → connected:false, no throw', st && st.connected === false);
+  S = storeWith(tauri(null));
+  ok('openConnectorInstaller: invokes open_connector_installer', (await S.openConnectorInstaller()) === true && calls.indexOf('open_connector_installer') !== -1);
+  ok('openConnectorInstaller: false outside Tauri', (await storeWith().openConnectorInstaller()) === false);
   S = storeWith(tauri(null));
   ok('openClaudeApp: invokes open_claude_app', (await S.openClaudeApp()) === true && calls.indexOf('open_claude_app') !== -1);
 }
@@ -827,7 +842,7 @@ async function claudePathChecks() {
 
   const nav = fs.readFileSync(path.join(__dirname, '..', 'src', 'nav.js'), 'utf8');
   ok('nav: indicator reads Store.connectorStatus', nav.indexOf('Store.connectorStatus()') !== -1);
-  ok('nav: connected state copy', nav.indexOf('Connected to Claude') !== -1 && nav.indexOf('Last sync ') !== -1);
+  ok('nav: connected state copy', nav.indexOf('Connected to Claude') !== -1 && nav.indexOf('Claude last wrote ') !== -1 && nav.indexOf('nothing written yet') !== -1);
   ok('nav: not-connected state links to the connector guide', nav.indexOf('Not connected') !== -1 && nav.indexOf('Set up the connector') !== -1 && nav.indexOf('Store.openConnectorGuide()') !== -1);
   ok('nav: no-op outside Tauri (null status renders nothing)', nav.indexOf("if (st === null) { box.style.display = 'none'; return; }") !== -1);
 
@@ -849,6 +864,67 @@ async function claudePathChecks() {
   const home = fs.readFileSync(path.join(__dirname, '..', 'src', 'home.html'), 'utf8');
   ok('home: shotless project points at the Claude path', home.indexOf('!stats.total') !== -1 && home.indexOf('Break this script down into my Studio S project') !== -1);
   ok('home: "Open Claude" launches the app through the helper', home.indexOf('data-home="claude"') !== -1 && home.indexOf('Store.openClaudeApp()') !== -1);
+}
+
+// ── R. Connector packaged as a Claude Desktop extension (.mcpb) ──
+// Teammates have the app, not a checkout, so the connector ships inside the
+// app as an .mcpb that Claude Desktop installs with one click. The bundle
+// layout is server/index.js + server/src/{store,promptcompile}.js + package.json.
+{
+  const cp = require('child_process');
+  const os = require('os');
+  const root = path.join(__dirname, '..');
+  const manifest = JSON.parse(fs.readFileSync(path.join(root, 'connector', 'mcpb', 'manifest.json'), 'utf8'));
+  ok('mcpb manifest: required fields', manifest.manifest_version && manifest.name === 'studio-s' && manifest.description && manifest.author && manifest.author.name);
+  ok('mcpb manifest: node server at server/index.js', manifest.server.type === 'node' && manifest.server.entry_point === 'server/index.js'
+    && manifest.server.mcp_config.command === 'node' && manifest.server.mcp_config.args[0] === '${__dirname}/server/index.js');
+  ok('mcpb manifest: declares every connector tool', ['list_projects', 'get_project', 'push_plan', 'update_shot', 'compile_prompts', 'attach_output', 'set_output_verdict']
+    .every((n) => manifest.tools.some((t) => t.name === n)));
+  ok('mcpb manifest: version is stamped at build time', manifest.version === '0.0.0');
+  const build = fs.readFileSync(path.join(root, 'connector', 'build-mcpb.sh'), 'utf8');
+  ok('build script: stages the bundle layout', build.indexOf('server/index.js') !== -1 && build.indexOf("src/store.js src/promptcompile.js") !== -1 && build.indexOf('package.json') !== -1);
+  ok('build script: default output is the bundled resource', build.indexOf('src-tauri/resources/studio-s.mcpb') !== -1);
+  const conf = JSON.parse(fs.readFileSync(path.join(root, 'src-tauri', 'tauri.conf.json'), 'utf8'));
+  ok('tauri: packs the connector before dev and build', /build-mcpb\.sh/.test(conf.build.beforeBuildCommand) && /build-mcpb\.sh/.test(conf.build.beforeDevCommand));
+  ok('tauri: bundles the package as a resource', (conf.bundle.resources || []).indexOf('resources/studio-s.mcpb') !== -1);
+  const rs = fs.readFileSync(path.join(root, 'src-tauri', 'src', 'lib.rs'), 'utf8');
+  ok('rust: open_connector_installer + read_connector_heartbeat registered', /generate_handler!\[[^\]]*open_connector_installer[^\]]*read_connector_heartbeat/.test(rs)
+    && rs.indexOf('BaseDirectory::Resource') !== -1 && rs.indexOf('heartbeat.json') !== -1);
+  const rel = fs.readFileSync(path.join(root, 'release.sh'), 'utf8');
+  ok('release.sh: ships studio-s.mcpb with each release', rel.indexOf('src-tauri/resources/studio-s.mcpb "$OUT/"') !== -1);
+  ok('gitignore: built package is not committed', fs.readFileSync(path.join(root, '.gitignore'), 'utf8').indexOf('src-tauri/resources/') !== -1);
+
+  // The connector itself runs from the bundle layout: same tools, heartbeat
+  // written next to the store file and marked as coming from the package.
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'studio-s-mcpb-'));
+  fs.mkdirSync(path.join(tmp, 'server', 'src'), { recursive: true });
+  fs.copyFileSync(path.join(root, 'connector', 'studio-s-mcp.cjs'), path.join(tmp, 'server', 'index.js'));
+  fs.copyFileSync(path.join(root, 'src', 'store.js'), path.join(tmp, 'server', 'src', 'store.js'));
+  fs.copyFileSync(path.join(root, 'src', 'promptcompile.js'), path.join(tmp, 'server', 'src', 'promptcompile.js'));
+  fs.writeFileSync(path.join(tmp, 'package.json'), JSON.stringify({ name: 'studio-s', version: '9.9.9' }));
+  const storeFile = path.join(tmp, 'data', 'store.json');
+  const input = JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'initialize', params: {} }) + '\n' + JSON.stringify({ jsonrpc: '2.0', id: 2, method: 'tools/list' }) + '\n';
+  const r = cp.spawnSync(process.execPath, [path.join(tmp, 'server', 'index.js')], { input, env: Object.assign({}, process.env, { STUDIO_S_STORE: storeFile }), encoding: 'utf8', timeout: 20000 });
+  const lines = (r.stdout || '').trim().split('\n').filter(Boolean).map((l) => JSON.parse(l));
+  ok('bundle layout: server boots with the bundled app files', r.status === 0 && lines[0] && lines[0].result.serverInfo.version === '9.9.9');
+  ok('bundle layout: all seven tools', lines[1] && lines[1].result.tools.length === 7);
+  let hb = null; try { hb = JSON.parse(fs.readFileSync(path.join(tmp, 'data', 'heartbeat.json'), 'utf8')); } catch (e) {}
+  ok('bundle layout: heartbeat written next to the store, from the package', hb && hb.at > 0 && hb.version === '9.9.9' && hb.from === 'mcpb');
+  // Stdout stays a clean JSON-RPC channel: nothing else may print there.
+  ok('bundle layout: stdout is JSON-RPC only', (r.stdout || '').trim().split('\n').every((l) => { try { JSON.parse(l); return true; } catch (e) { return false; } }));
+  fs.rmSync(tmp, { recursive: true, force: true });
+
+  // The app side: "Connected" means Claude has launched the connector (heartbeat),
+  // and setup is one click on the bundled package.
+  const st = fs.readFileSync(path.join(root, 'src', 'store.js'), 'utf8');
+  ok('store: connectorStatus reads the heartbeat', /function connectorStatus[\s\S]*?read_connector_heartbeat[\s\S]*?read_connector_store/.test(st));
+  ok('store: openConnectorInstaller exported', st.indexOf("invoke('open_connector_installer')") !== -1 && st.indexOf('openConnectorInstaller: openConnectorInstaller') !== -1);
+  ok('store: remembers when Claude last wrote', st.indexOf('connectorLastSeenAt') !== -1);
+  const nav = fs.readFileSync(path.join(root, 'src', 'nav.js'), 'utf8');
+  ok('nav: Set up the connector opens the installer', nav.indexOf('data-sg-connector-install') !== -1 && nav.indexOf('Store.openConnectorInstaller()') !== -1);
+  ok('nav: guide stays as the fallback after a failed open', nav.indexOf('data-sg-connector-guide') !== -1 && nav.indexOf('Store.openConnectorGuide()') !== -1);
+  const np = fs.readFileSync(path.join(root, 'src', 'newproject.html'), 'utf8');
+  ok('new project: fallback summary offers the one-click setup', np.indexOf('data-sg-connector-install') !== -1);
 }
 
 // ── P. Connector bridge: a never-bridged store must not be replaced ──

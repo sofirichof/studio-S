@@ -32,3 +32,6 @@ release-v*/
 
 # Internal research — never publish (public repo)
 docs/research/
+
+# Built Claude Desktop extension (connector/build-mcpb.sh output)
+src-tauri/resources/

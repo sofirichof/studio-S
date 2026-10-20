@@ -205,14 +205,19 @@
   function claudeStatusHtml(st) {
     if (st && st.connected) {
       var age = Store.connectorAgeLabel(st.ageMs);
+      var line = st.lastClaudeAt ? (age ? 'Claude last wrote ' + age : 'Claude wrote just now')
+        : (age ? 'Installed \u00B7 launched ' + age + ', nothing written yet' : 'Installed');
       return '<span style="display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:500;color:#1D9E75;background:#E8F7F1;border-radius:999px;padding:3px 10px;">' +
           '<span style="width:6px;height:6px;border-radius:50%;background:#1D9E75;flex-shrink:0;"></span>Connected to Claude</span>' +
-        '<p style="font-size:11px;color:#9A9AA8;margin-top:6px;padding-left:2px;">' + (age ? 'Last sync ' + age : 'Synced') + '</p>';
+        '<p style="font-size:11px;color:#9A9AA8;margin-top:6px;padding-left:2px;">' + line + '</p>';
     }
+    // Not set up: Claude Desktop has never launched the connector on this Mac.
+    // One click opens the bundled package; Claude Desktop shows its install dialog.
     return '<span style="display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:500;color:#9A9AA8;background:#F0F1F4;border-radius:999px;padding:3px 10px;">' +
         '<span style="width:6px;height:6px;border-radius:50%;background:#9A9AA8;flex-shrink:0;"></span>Not connected</span>' +
       '<p style="font-size:11px;color:#9A9AA8;margin-top:6px;padding-left:2px;line-height:1.5;">Claude can\'t see your projects yet. ' +
-        '<a href="#" data-sg-connector-guide style="color:#0217D3;font-weight:500;text-decoration:none;">Set up the connector →</a></p>';
+        '<a href="#" data-sg-connector-install style="color:#0217D3;font-weight:500;text-decoration:none;">Set up the connector \u2192</a>' +
+        '<span data-sg-connector-note style="display:block;margin-top:4px;"></span></p>';
   }
   function refreshClaudeStatus() {
     var box = document.getElementById('sg-claude-status');
@@ -238,10 +243,21 @@
       window.addEventListener('focus', refreshClaudeStatus);
       setInterval(refreshClaudeStatus, 60000);
       document.addEventListener('click', function (e) {
-        var a = e.target && e.target.closest ? e.target.closest('[data-sg-connector-guide]') : null;
-        if (!a) return;
+        var t = e.target && e.target.closest ? e.target : null;
+        var install = t && t.closest('[data-sg-connector-install]');
+        var guide = t && t.closest('[data-sg-connector-guide]');
+        if (!install && !guide) return;
         e.preventDefault();
-        Store.openConnectorGuide();
+        if (guide) { Store.openConnectorGuide(); return; }
+        var note = document.querySelector('[data-sg-connector-note]');
+        var say = function (msg) { if (note) note.textContent = msg; };
+        say('Opening the installer in Claude Desktop\u2026');
+        Store.openConnectorInstaller().then(function (ok) {
+          if (ok) say('In Claude Desktop, click Install. This indicator turns green once Claude has launched it.');
+          else say('Installing works in the Studio S desktop app only.');
+        }).catch(function () {
+          if (note) note.innerHTML = 'Couldn\u2019t open the installer. <a href="#" data-sg-connector-guide style="color:#0217D3;font-weight:500;text-decoration:none;">Open the setup guide \u2192</a>';
+        });
       }, true);
     }
   }
