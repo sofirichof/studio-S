@@ -243,6 +243,22 @@ class Component extends DCLogic {
   // project to-do column, concepts grid) driven entirely by Store data.
   // The to-do list is scaffolded from the Claude handoff plan (studio-s-plan.json
   // "todos") and toggleable here; progress is computed from it.
+  // Slice 1: project-level generation total. Count, cost summed per unit, split
+  // by model. Hidden until the project has at least one logged generation.
+  costLine(id, esc) {
+    if (!Store.projectCost) return '';
+    const c = Store.projectCost(id);
+    if (!c.count) return '';
+    const money = (r) => [r.credits ? r.credits + ' cr' : '', r.usd ? '$' + r.usd.toFixed(2) : ''].filter(Boolean).join(' + ') || '—';
+    const byModel = Object.keys(c.byModel).map((m) => esc(m) + ' ' + c.byModel[m].count + ' · ' + money(c.byModel[m])).join('  ·  ');
+    return '<p style="font-size:12px;color:#5A5A6B;margin:-6px 0 12px;">' +
+      '<strong style="font-weight:500;color:#16161D;">' + c.count + ' generation' + (c.count === 1 ? '' : 's') + '</strong> · ' + money(c) +
+      (c.estimated ? ' <span title="Includes quoted costs not yet billed" style="color:#9A9AA8;">(some est.)</span>' : '') +
+      (c.uncosted ? ' <span style="color:#9A9AA8;">· ' + c.uncosted + ' uncosted</span>' : '') +
+      (byModel ? '<br><span style="font-size:11px;color:#9A9AA8;">' + byModel + '</span>' : '') +
+    '</p>';
+  }
+
   renderOverview(id) {
     const mount = document.getElementById('projects-mount');
     if (!mount || !window.Store) return;
@@ -276,6 +292,7 @@ class Component extends DCLogic {
           '</div>' +
           (todos.length ? '<span style="font-size:13px;font-weight:500;color:#0217D3;">' + pct + '%</span>' : '') +
         '</div>' +
+        this.costLine(id, esc) +
         (todos.length
           ? '<div style="height:4px;background:#ECEDF0;border-radius:999px;overflow:hidden;">' +
               '<div style="width:' + pct + '%;height:100%;background:#FF002E;border-radius:999px;"></div>' +

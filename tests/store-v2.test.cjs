@@ -721,5 +721,70 @@ ok('scene name: no em-dash means no desc', ns[2].name === 'Just a plain name' &&
     durBlock.indexOf('R(s).builder.duration') !== -1 && durBlock.indexOf('s.builder') === -1);
 }
 
+// ── O. Slice 1: generation log — attach, verdict, cost rollup, migration ──
+// Studio S never generates; the log records what was generated elsewhere.
+{
+  reset();
+  const p = Store.createProject({ name: 'Log' });
+  const c = p.concepts[0], sc = c.scenes[0], sh = sc.shots[0];
+  const ids = { projectId: p.id, conceptId: c.id, sceneId: sc.id, shotId: sh.id };
+  ok('attach: needs url or path', Store.attachShotOutput(ids, { kind: 'still' }) === null);
+  const o1 = Store.attachShotOutput(ids, { kind: 'still', url: 'https://x/1.png', model: 'gpt', prompt: 'A wide shot.', cost: { amount: 4, unit: 'credits' } });
+  const o2 = Store.attachShotOutput(ids, { kind: 'still', url: 'https://x/2.png', model: 'gpt', prompt: 'A wide shot.', cost: { amount: 4, unit: 'credits', estimated: true } });
+  const o3 = Store.attachShotOutput(ids, { kind: 'video', url: 'https://x/3.mp4', model: 'kling', prompt: 'Animate.', cost: { amount: 0.5, unit: 'usd' } });
+  const o4 = Store.attachShotOutput(ids, { kind: 'video', path: '/tmp/4.mp4', model: 'kling', prompt: 'Animate, slower.' });
+  ok('attach: record shape', o1.id && o1.createdAt > 0 && o1.verdict === null && o1.note === '' && o1.cost.amount === 4 && o1.cost.unit === 'credits' && o1.cost.estimated === false);
+  ok('attach: promptVersion is a hash of the prompt', /^[0-9a-f]+$/.test(o1.promptVersion) && o1.promptVersion === o2.promptVersion && o3.promptVersion !== o4.promptVersion);
+  ok('attach: cost normalizes', o3.cost.unit === 'usd' && o4.cost === null);
+  ok('attach: bad cost dropped', Store.attachShotOutput(ids, { kind: 'still', url: 'u', cost: { amount: 'lots' } }).cost === null);
+  ok('attach: bogus verdict ignored', Store.attachShotOutput(ids, { kind: 'still', url: 'u', verdict: 'love' }).verdict === null);
+  const shotNow = () => Store.resolveShot(ids).shot;
+  ok('attach: six outputs on the shot', shotNow().outputs.length === 6);
+
+  ok('verdict: keep', Store.setOutputVerdict(ids, o1.id, 'keep').verdict === 'keep');
+  ok('verdict: mix with note', (() => { const r = Store.setOutputVerdict(ids, o2.id, 'mix', 'hands wrong'); return r.verdict === 'mix' && r.note === 'hands wrong'; })());
+  ok('verdict: note alone keeps verdict', (() => { const r = Store.setOutputVerdict(ids, o2.id, 'mix', 'hands still wrong'); return r.verdict === 'mix' && r.note === 'hands still wrong'; })());
+  ok('verdict: undefined note leaves note', Store.setOutputVerdict(ids, o2.id, 'discard').note === 'hands still wrong');
+  ok('verdict: null clears', Store.setOutputVerdict(ids, o1.id, null).verdict === null);
+  ok('verdict: invalid rejected', Store.setOutputVerdict(ids, o1.id, 'maybe') === null);
+  ok('verdict: unknown output rejected', Store.setOutputVerdict(ids, 'out_nope', 'keep') === null);
+  ok('verdict: persisted', shotNow().outputs.filter((o) => o.id === o2.id)[0].verdict === 'discard');
+
+  const cost = Store.projectCost(p.id);
+  ok('cost: count', cost.count === 6);
+  ok('cost: credits and usd never add together', cost.credits === 8 && cost.usd === 0.5);
+  ok('cost: estimated flag bubbles', cost.estimated === true);
+  ok('cost: uncosted counted', cost.uncosted === 3);
+  ok('cost: by model', cost.byModel.gpt.count === 2 && cost.byModel.gpt.credits === 8 && cost.byModel.kling.count === 2 && cost.byModel.kling.usd === 0.5 && cost.byModel.unknown.count === 2);
+  ok('cost: unknown project is empty', Store.projectCost('prj_nope').count === 0);
+  ok('latestOutput: newest first, by model', Store.latestOutput(shotNow(), 'kling').id === o4.id && Store.latestOutput(shotNow()).id !== o1.id && Store.latestOutput(shotNow(), 'nano') === null);
+  ok('outputVerdicts exposes the three', Store.outputVerdicts().join() === 'keep,mix,discard');
+
+  // Migration: outputs written by the first connector (six fields + at) gain
+  // the log fields on load, without losing anything, and only once.
+  const doc = Store.load();
+  const old = { id: 'out_old', kind: 'still', url: 'https://x/old.png', path: '', source: 'higgsfield', generationId: 'g1', model: 'gpt', prompt: 'Old prompt.', at: 1700000000000 };
+  doc.projects[0].concepts[0].scenes[0].shots[0].outputs.push(old);
+  mem['aifs.v1'] = JSON.stringify(doc);
+  const mig = Store.load().projects[0].concepts[0].scenes[0].shots[0].outputs.filter((o) => o.id === 'out_old')[0];
+  ok('migration: createdAt from at', mig.createdAt === 1700000000000);
+  ok('migration: verdict/note/cost defaults', mig.verdict === null && mig.note === '' && mig.cost === null);
+  ok('migration: promptVersion computed', mig.promptVersion && /^[0-9a-f]+$/.test(mig.promptVersion));
+  ok('migration: nothing lost', mig.url === 'https://x/old.png' && mig.generationId === 'g1' && mig.source === 'higgsfield');
+  const twice = Store.load().projects[0].concepts[0].scenes[0].shots[0].outputs.filter((o) => o.id === 'out_old')[0];
+  ok('migration: idempotent', JSON.stringify(twice) === JSON.stringify(mig));
+}
+
+// Slice 1 UI contract: the log lives in Multi-Shot as a sibling of the row,
+// and the project header reads Store.projectCost — not a second rollup.
+{
+  const ms = fs.readFileSync(path.join(__dirname, '..', 'src', 'multishot.html'), 'utf8');
+  ok('multishot renders a log block per shot', ms.indexOf('logBlock(s, c.id, sc.id') !== -1 && ms.indexOf('data-log="') !== -1);
+  ok('multishot: three verdict toggles', ['keep', 'mix', 'discard'].every((v) => ms.indexOf("'" + v + "'") !== -1) && ms.indexOf('Store.setOutputVerdict(') !== -1);
+  ok('multishot: inline note', ms.indexOf('data-note="') !== -1);
+  const pj = fs.readFileSync(path.join(__dirname, '..', 'src', 'projects.html'), 'utf8');
+  ok('projects header reads projectCost', pj.indexOf('Store.projectCost(') !== -1 && pj.indexOf('this.costLine(id, esc)') !== -1);
+}
+
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail ? 1 : 0);
