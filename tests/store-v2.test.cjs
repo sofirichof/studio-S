@@ -477,7 +477,9 @@ ok('scene name: no em-dash means no desc', ns[2].name === 'Just a plain name' &&
     ok('builderKeys persists ' + k, keys.indexOf("'" + k + "'") !== -1);
     ok('builder renders a field for ' + k, pb.indexOf("this.textarea('" + k + "'") !== -1);
   });
-  const body = (pb.split('compilePrompt() {')[1] || '').split('renderRail()')[0];
+  // The compiler moved from promptbuilder.html into PromptCompile.compileShot.
+  const pc = fs.readFileSync(path.join(__dirname, '..', 'src', 'promptcompile.js'), 'utf8');
+  const body = (pc.split('function compileShot(s, ctx) {')[1] || '').split('window.PromptCompile = {')[0];
   const iScene = body.indexOf('stills = pre +');
   const iOff = body.indexOf("tail('Off camera'");
   const iProp = body.indexOf("tail('Continuity'");
