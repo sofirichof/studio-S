@@ -95,7 +95,9 @@ if (firstShot && firstShot.builder) {
 // A field is "read" if it appears in the compile path or is a known
 // human-facing field. cameraIntent was removed from the handoff precisely
 // because it satisfied neither.
-const pb = fs.readFileSync(path.join(__dirname, '..', 'src', 'promptbuilder.html'), 'utf8');
+const pb = // promptbuilder.html + promptcompile.js: the shot compiler and DP_TRAITS moved
+// into the latter (PR #2), so source checks read both.
+(fs.readFileSync(path.join(__dirname, '..', 'src', 'promptbuilder.html'), 'utf8') + '\n' + fs.readFileSync(path.join(__dirname, '..', 'src', 'promptcompile.js'), 'utf8'));
 const pc = fs.readFileSync(path.join(__dirname, '..', 'src', 'promptcompile.js'), 'utf8');
 const compileSrc = pb.slice(pb.indexOf('compilePrompt()')) + pc;
 const NOT_COMPILED = {
@@ -149,8 +151,14 @@ ok('all() concatenates every template', RT.all().length > (RT.character.length +
 // reftemplates.js is a copy of docs/research/copy-paste-templates.md. Two
 // copies drift. This catches the realistic case: the research doc gets revised
 // and the shipped copy doesn't (or vice versa).
-{
-  const doc = fs.readFileSync(path.join(__dirname, '..', 'docs', 'research', 'copy-paste-templates.md'), 'utf8');
+// docs/research/ is gitignored on purpose (internal, public repo), so the doc
+// only exists in a working copy that has it. Without it this block is skipped
+// rather than crashing the whole suite on CI and in fresh checkouts.
+const RESEARCH_DOC = path.join(__dirname, '..', 'docs', 'research', 'copy-paste-templates.md');
+if (!fs.existsSync(RESEARCH_DOC)) {
+  console.log('  (skipped: docs/research/copy-paste-templates.md not in this checkout — drift check needs the private research doc)');
+} else {
+  const doc = fs.readFileSync(RESEARCH_DOC, 'utf8');
   const ANCHORS = [
     'Cinematic character reference sheet, split-frame layout, photorealistic',
     'plain solid grey background (#8a8a8a), seamless',
@@ -526,7 +534,10 @@ ok('the shot no-prompts rule is scoped to shots, not references',
   ok('the handoff offers every look the store accepts', offered.length === labels.length);
   offered.forEach(o => ok('handoff look "' + o + '" resolves', !!Store.resolveLook(o)));
 
-  const dpBlock = pb.slice(pb.indexOf('dpTraits() {'), pb.indexOf('dpTraits() {') + 2200);
+  // The DP table lives in promptcompile.js as DP_TRAITS now (the builder's
+  // dpTraits() just returns it); fall back to the old location for safety.
+  const dpAt = pb.indexOf('var DP_TRAITS = [') !== -1 ? pb.indexOf('var DP_TRAITS = [') : pb.indexOf('dpTraits() {');
+  const dpBlock = pb.slice(dpAt, dpAt + 2200);
   labels.forEach((l) => {
     const id = Store.resolveLook(l);
     ok('builder still has an entry for "' + l + '"', dpBlock.indexOf("id:'" + id + "'") !== -1);
