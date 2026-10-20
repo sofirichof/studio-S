@@ -786,6 +786,71 @@ ok('scene name: no em-dash means no desc', ns[2].name === 'Just a plain name' &&
   ok('projects header reads projectCost', pj.indexOf('Store.projectCost(') !== -1 && pj.indexOf('this.costLine(id, esc)') !== -1);
 }
 
+// ── Q. Claude path UI: connector indicator helper + the demoted fallback ──
+// The connector (connector/README.md) is the app's primary Claude path. The
+// sidebar indicator and newproject.html read the mirror envelope through
+// Store.connectorStatus(); the old copy-prompt → scan path must still exist,
+// behind a disclosure, for anyone without the connector.
+function storeWith(win) {
+  return (new Function('window', fs.readFileSync(path.join(__dirname, '..', 'src', 'store.js'), 'utf8') + '\nreturn window.Store;'))(Object.assign({
+    localStorage: { getItem: () => null, setItem() {}, removeItem() {} }, addEventListener() {}
+  }, win || {}));
+}
+async function claudePathChecks() {
+  let S = storeWith();
+  ok('connectorStatus: null outside Tauri (indicator renders nothing)', (await S.connectorStatus()) === null);
+  ok('openClaudeApp: false outside Tauri', (await S.openClaudeApp()) === false);
+  const calls = [];
+  const tauri = (file) => ({ __TAURI__: { core: { invoke: async (cmd) => { calls.push(cmd); if (cmd === 'read_connector_store') return file; } } } });
+  S = storeWith(tauri(null));
+  let st = await S.connectorStatus();
+  ok('connectorStatus: no mirror file → connected:false', st && st.connected === false);
+  const at = Date.now() - 3 * 60000;
+  S = storeWith(tauri(JSON.stringify({ rev: 7, writer: 'app', at, doc: {} })));
+  st = await S.connectorStatus();
+  ok('connectorStatus: mirror present → connected, rev, at', st && st.connected === true && st.rev === 7 && st.at === at);
+  ok('connectorStatus: ageMs from envelope `at`', st && st.ageMs >= 3 * 60000 && st.ageMs < 4 * 60000);
+  ok('connectorStatus: "last sync" label', S.connectorAgeLabel(st.ageMs) === '3 min ago');
+  ok('connectorStatus: reads, never writes', !calls.some((c) => c === 'mirror_store'));
+  S = storeWith(tauri('{not json'));
+  st = await S.connectorStatus();
+  ok('connectorStatus: unreadable envelope → connected:false, no throw', st && st.connected === false);
+  S = storeWith(tauri(null));
+  ok('openClaudeApp: invokes open_claude_app', (await S.openClaudeApp()) === true && calls.indexOf('open_claude_app') !== -1);
+}
+{
+  ok('connectorAgeLabel: just now / min / h / d', Store.connectorAgeLabel(10000) === 'just now' && Store.connectorAgeLabel(5 * 60000) === '5 min ago'
+    && Store.connectorAgeLabel(2 * 3600000) === '2 h ago' && Store.connectorAgeLabel(49 * 3600000) === '2 d ago' && Store.connectorAgeLabel(null) === '');
+  ok('connectorGuideUrl points at connector/README.md', /connector\/README\.md$/.test(Store.connectorGuideUrl()));
+  const rust = fs.readFileSync(path.join(__dirname, '..', 'src-tauri', 'src', 'lib.rs'), 'utf8');
+  ok('lib.rs still registers open_claude_app + read_connector_store', /generate_handler!\[[^\]]*open_claude_app[^\]]*\]/.test(rust) && /generate_handler!\[[^\]]*read_connector_store[^\]]*\]/.test(rust));
+
+  const nav = fs.readFileSync(path.join(__dirname, '..', 'src', 'nav.js'), 'utf8');
+  ok('nav: indicator reads Store.connectorStatus', nav.indexOf('Store.connectorStatus()') !== -1);
+  ok('nav: connected state copy', nav.indexOf('Connected to Claude') !== -1 && nav.indexOf('Last sync ') !== -1);
+  ok('nav: not-connected state links to the connector guide', nav.indexOf('Not connected') !== -1 && nav.indexOf('Set up the connector') !== -1 && nav.indexOf('Store.openConnectorGuide()') !== -1);
+  ok('nav: no-op outside Tauri (null status renders nothing)', nav.indexOf("if (st === null) { box.style.display = 'none'; return; }") !== -1);
+
+  const np = fs.readFileSync(path.join(__dirname, '..', 'src', 'newproject.html'), 'utf8');
+  const iPrimary = np.indexOf('id="open-claude-btn"');
+  const iFallback = np.indexOf('<details id="plan-fallback"');
+  ok('newproject: "Open in Claude" is the primary action', iPrimary !== -1 && np.indexOf('onclick="{{ openInClaude }}"') !== -1 && np.indexOf('Store.openClaudeApp()') !== -1);
+  ok('newproject: tells the user what to say in Claude', np.indexOf('Break this script down into my Studio S project') !== -1 && np.indexOf('id="claude-say"') !== -1);
+  ok('newproject: connection pill uses the shared helper', np.indexOf('Store.connectorStatus()') !== -1 && np.indexOf('id="claude-conn-pill"') !== -1);
+  ok('newproject: fallback is a disclosure after the primary action', iFallback !== -1 && iFallback > iPrimary);
+  ok('newproject: fallback is closed by default', !/<details id="plan-fallback"[^>]*\sopen[\s>]/.test(np));
+  const fbTag = np.slice(iFallback, np.indexOf('</summary>', iFallback));
+  ok('newproject: fallback labelled for when Claude is not connected', /not connected/i.test(fbTag) && /fallback/i.test(fbTag));
+  const fb = np.slice(iFallback, np.indexOf('</details>', iFallback));
+  ok('newproject: copy-prompt path still inside the fallback', fb.indexOf('id="copy-instructions-btn"') !== -1 && fb.indexOf('id="plan-instructions-text"') !== -1);
+  ok('newproject: scan path still inside the fallback', fb.indexOf('onclick="{{ scanForPlan }}"') !== -1 && fb.indexOf('Scan for plan') !== -1 && fb.indexOf('studio-s-plan.json') !== -1);
+  ok('newproject: scan still invokes scan_plan_folder', np.indexOf("invoke('scan_plan_folder'") !== -1);
+
+  const home = fs.readFileSync(path.join(__dirname, '..', 'src', 'home.html'), 'utf8');
+  ok('home: shotless project points at the Claude path', home.indexOf('!stats.total') !== -1 && home.indexOf('Break this script down into my Studio S project') !== -1);
+  ok('home: "Open Claude" launches the app through the helper', home.indexOf('data-home="claude"') !== -1 && home.indexOf('Store.openClaudeApp()') !== -1);
+}
+
 // ── P. Connector bridge: a never-bridged store must not be replaced ──
 // Regression: the first build with the bridge, launched over real projects
 // (no _rev) while the connector file still held a debug build's test project
@@ -806,6 +871,7 @@ ok('scene name: no em-dash means no desc', ns[2].name === 'Just a plain name' &&
   const test = { version: 3, settings: {}, projects: [{ id: 'prj_test', name: 'Debug test project', concepts: [] }], clients: [], deliverables: [], assets: [], versions: [], people: [], ui: {}, _rev: 22 };
   const stale = JSON.stringify({ rev: 22, writer: 'connector', at: 1, doc: test });
   (async () => {
+    await claudePathChecks();
     let r = await run(stale, real);
     ok('bridge: unbridged store keeps its real projects', r.localDoc.projects[0].id === 'prj_real');
     ok('bridge: unbridged store does not reload', !r.calls.some((c) => c[0] === 'reload'));

@@ -13,6 +13,9 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Host Grotesk', system-ui, sans-serif; background: #F7F5EF; overflow: hidden; }
   input:focus, textarea:focus { outline: 3px solid rgba(2,23,211,0.25); outline-offset: 1px; border-color: #0217D3 !important; }
+  summary { list-style: none; }
+  summary::-webkit-details-marker { display: none; }
+  details[open] .fb-chevron { transform: rotate(90deg); }
   ::-webkit-scrollbar { width: 4px; }
   ::-webkit-scrollbar-thumb { background: rgba(16,16,32,.12); border-radius: 2px; }
 </style>
@@ -33,13 +36,13 @@
   <!-- Content -->
   <div style="flex:1; overflow-y:auto; padding:40px 48px;">
     <div style="max-width:680px; margin:0 auto;">
-      <h2 style="font-size:22px; font-weight:500; color:#16161D; margin-bottom:6px; letter-spacing:-0.01em;">Point Claude at your assets</h2>
-      <p style="font-size:14px; color:#5A5A6B; margin-bottom:24px; line-height:1.6;">Claude reads your brief, references, and any existing materials — then writes a production plan. The studio scaffolds your concepts and shots from it automatically.</p>
+      <h2 style="font-size:22px; font-weight:500; color:#16161D; margin-bottom:6px; letter-spacing:-0.01em;">Plan this project with Claude</h2>
+      <p style="font-size:14px; color:#5A5A6B; margin-bottom:24px; line-height:1.6;">Name it, hand Claude the script or brief, and Claude builds the concepts and shots straight into this project through the Studio S connector. Nothing to paste back.</p>
 
       <!-- Project name -->
       <div style="background:#fff; border:1px solid rgba(16,16,32,0.10); border-radius:12px; padding:20px; margin-bottom:16px;">
         <p style="font-size:12px; font-weight:500; color:#16161D; margin-bottom:10px;">Project name</p>
-        <input id="np-name" type="text" placeholder="e.g. US Bank — Rotation 4" style="width:100%; height:36px; background:#F7F5EF; border:1px solid rgba(16,16,32,0.08); border-radius:10px; padding:0 12px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:13px; color:#16161D; outline:none;" />
+        <input id="np-name" type="text" oninput="{{ nameChanged }}" placeholder="e.g. US Bank — Rotation 4" style="width:100%; height:36px; background:#F7F5EF; border:1px solid rgba(16,16,32,0.08); border-radius:10px; padding:0 12px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:13px; color:#16161D; outline:none;" />
         <p style="font-size:12px; color:#9A9AA8; margin-top:10px; line-height:1.5;">Give this project a name. If you leave it blank we'll name it after the folder.</p>
       </div>
 
@@ -53,13 +56,47 @@
           </div>
           <button onclick="{{ pickFolder }}" style="height:36px; padding:0 16px; background:#fff; border:1px solid rgba(16,16,32,0.12); border-radius:8px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:13px; font-weight:500; color:#16161D; cursor:pointer; white-space:nowrap; flex-shrink:0;" onmouseover="this.style.background='#F0F1F4'" onmouseout="this.style.background='#fff'">Choose folder</button>
         </div>
-        <p style="font-size:12px; color:#9A9AA8; margin-top:10px; line-height:1.5;">Drop your brief, storyboard, references, and scripts in one folder. Claude reads everything in it.</p>
+        <p style="font-size:12px; color:#9A9AA8; margin-top:10px; line-height:1.5;">Optional. Drop your brief, storyboard, references, and scripts in one folder so you can point Claude at it. The copy-and-paste fallback below needs it.</p>
       </div>
 
-      <!-- 2: Copy build instructions -->
+      <!-- 2: Open in Claude (primary path: the connector) -->
+      <div id="claude-panel" style="background:#EEF0FF; border:1px solid rgba(2,23,211,0.15); border-radius:12px; padding:20px; margin-bottom:16px;">
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:4px;">
+          <p style="font-size:12px; font-weight:500; color:#0217D3;"><span style="display:inline-flex; width:18px; height:18px; background:#0217D3; border-radius:50%; align-items:center; justify-content:center; margin-right:6px; font-size:10px; color:#fff; font-weight:500; vertical-align:middle;">2</span>Open in Claude</p>
+          <span id="claude-conn-pill" style="display:none; align-items:center; gap:6px; font-size:11px; font-weight:500; border-radius:999px; padding:3px 10px;"></span>
+        </div>
+        <p style="font-size:12px; color:#5A5A6B; margin-bottom:14px; line-height:1.5;">Claude Desktop opens with this project waiting in Studio S. Say the line below, attach or paste the script if it isn't in the folder, and the concepts and shots land here on their own.</p>
+        <div style="position:relative; background:#fff; border:1px solid rgba(2,23,211,0.15); border-radius:8px; padding:12px 92px 12px 14px; margin-bottom:14px;">
+          <p style="font-size:11px; color:#9A9AA8; margin-bottom:4px;">Tell Claude</p>
+          <p id="claude-say" style="font-size:13px; color:#16161D; line-height:1.5;"></p>
+          <p id="claude-say-hint" style="font-size:11px; color:#9A9AA8; margin-top:6px; line-height:1.5;"></p>
+          <button onclick="{{ copySay }}" id="copy-say-btn" style="position:absolute; top:10px; right:10px; height:28px; padding:0 12px; background:#fff; border:1px solid rgba(2,23,211,0.25); border-radius:6px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:11px; font-weight:500; color:#0217D3; cursor:pointer; display:flex; align-items:center; gap:5px;" onmouseover="this.style.background='#F0F1F4'" onmouseout="this.style.background='#fff'">
+            <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="6" height="6" rx="1"/><path d="M1.5 7.5V2a1 1 0 0 1 1-1h5.5"/></svg>
+            Copy
+          </button>
+        </div>
+        <div style="display:flex; gap:12px; align-items:center;">
+          <button onclick="{{ openInClaude }}" id="open-claude-btn" style="height:36px; padding:0 20px; background:#0217D3; border:none; border-radius:8px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:13px; font-weight:500; color:#fff; cursor:pointer; display:flex; align-items:center; gap:7px; flex-shrink:0;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
+            <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2h4v4"/><path d="M12 2L6.5 7.5"/><path d="M10 8.5V11a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h2.5"/></svg>
+            Open in Claude
+          </button>
+          <span id="claude-status" style="font-size:12px; color:#9A9AA8; line-height:1.5;"></span>
+        </div>
+      </div>
+
+      <!-- Fallback: the pre-connector path (copy instructions → Claude writes studio-s-plan.json → scan). Demoted behind a disclosure. -->
+      <details id="plan-fallback" style="margin-bottom:16px;">
+        <summary style="display:flex; align-items:center; gap:8px; padding:6px 4px; font-size:12px; color:#5A5A6B; cursor:pointer;" onmouseover="this.style.color='#16161D'" onmouseout="this.style.color='#5A5A6B'">
+          <svg class="fb-chevron" width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0; transition:transform .12s;"><path d="M3.5 2l3 3-3 3"/></svg>
+          <span>Claude not connected? Use the fallback — copy the instructions, then scan the folder for the plan.</span>
+        </summary>
+        <div style="margin-top:12px;">
+          <p id="fallback-needs-folder" style="font-size:12px; color:#9A5B00; background:#FFF7E6; border:1px solid rgba(154,91,0,0.18); border-radius:8px; padding:10px 12px; margin-bottom:16px; line-height:1.5;">Choose an assets folder above first — this path has Claude write <strong>studio-s-plan.json</strong> into it.</p>
+
+      <!-- Fallback A: Copy build instructions -->
       <div id="plan-instructions-panel" style="display:none; background:#EEF0FF; border:1px solid rgba(2,23,211,0.15); border-radius:12px; padding:20px; margin-bottom:16px;">
-        <p style="font-size:12px; font-weight:500; color:#0217D3; margin-bottom:4px;"><span style="display:inline-flex; width:18px; height:18px; background:#0217D3; border-radius:50%; align-items:center; justify-content:center; margin-right:6px; font-size:10px; color:#fff; font-weight:500; vertical-align:middle;">2</span>Send to Claude</p>
-        <p style="font-size:12px; color:#5A5A6B; margin-bottom:14px; line-height:1.5;">Copy these instructions and paste them into Claude.ai or Claude Code. Claude will read your folder and write the production plan.</p>
+        <p style="font-size:12px; font-weight:500; color:#0217D3; margin-bottom:4px;">Copy the instructions</p>
+        <p style="font-size:12px; color:#5A5A6B; margin-bottom:14px; line-height:1.5;">Paste these into Claude.ai or Claude Code. Claude reads your folder and writes <strong>studio-s-plan.json</strong> into it.</p>
         <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:14px;">
           <label style="font-size:11px; color:#5A5A6B;">Script
             <select id="setup-script" onchange="{{ setupChanged }}" style="width:100%; height:32px; margin-top:4px; background:#fff; border:1px solid rgba(2,23,211,0.15); border-radius:6px; padding:0 8px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:11.5px; color:#16161D; outline:none;">
@@ -114,15 +151,17 @@
         </div>
       </div>
 
-      <!-- 3: Scan for plan -->
+      <!-- Fallback B: Scan for plan -->
       <div id="plan-scan-panel" style="display:none; background:#fff; border:1px solid rgba(16,16,32,0.10); border-radius:12px; padding:20px; margin-bottom:16px;">
-        <p style="font-size:12px; font-weight:500; color:#16161D; margin-bottom:4px;"><span style="display:inline-flex; width:18px; height:18px; background:#0217D3; border-radius:50%; align-items:center; justify-content:center; margin-right:6px; font-size:10px; color:#fff; font-weight:500; vertical-align:middle;">3</span>Import the plan</p>
+        <p style="font-size:12px; font-weight:500; color:#16161D; margin-bottom:4px;">Import the plan</p>
         <p style="font-size:12px; color:#9A9AA8; margin-bottom:14px; line-height:1.5;">Once Claude has written <strong>studio-s-plan.json</strong> to your folder, click Scan to pull it in.</p>
         <div style="display:flex; gap:10px; align-items:center;">
           <button onclick="{{ scanForPlan }}" style="height:36px; padding:0 20px; background:#0217D3; border:none; border-radius:8px; font-family:'Host Grotesk',system-ui,sans-serif; font-size:13px; font-weight:500; color:#fff; cursor:pointer;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">Scan for plan</button>
           <span id="plan-scan-status" style="font-size:12px; color:#9A9AA8;"></span>
         </div>
       </div>
+        </div>
+      </details>
 
       <!-- Footer actions -->
       <div style="display:flex; align-items:center; justify-content:space-between; padding:8px 0 40px;">
@@ -139,6 +178,8 @@ class Component extends DCLogic {
   componentDidMount() {
     this._assetsFolder = '';
     this._createdProjectId = null;
+    this.refreshSay();
+    this.checkConnection();
   }
 
   async pickDir() {
@@ -155,6 +196,70 @@ class Component extends DCLogic {
   projectName() {
     const typed = ((document.getElementById('np-name') || {}).value || '').trim();
     return typed || (this._assetsFolder || '').split('/').filter(Boolean).pop() || 'Untitled project';
+  }
+
+  // ── Connector path ──
+  // The one line to say in Claude Desktop. Claude finds the project by name
+  // through the connector (list_projects → push_plan into it) and reads the
+  // folder when there is one; otherwise the script travels in the message.
+  sayLine() {
+    const name = '\u2018' + this.projectName() + '\u2019';
+    return this._assetsFolder
+      ? 'Break the script in ' + this._assetsFolder + ' down into my Studio S project ' + name + '.'
+      : 'Break this script down into my Studio S project ' + name + '.';
+  }
+  refreshSay() {
+    const say = document.getElementById('claude-say');
+    const hint = document.getElementById('claude-say-hint');
+    if (say) say.textContent = '\u201C' + this.sayLine() + '\u201D';
+    if (hint) hint.textContent = this._assetsFolder
+      ? 'Claude reads the brief, script and references in that folder.'
+      : 'Attach or paste the script (or brief) in the same message.';
+  }
+  // Connection pill on the panel, from the same helper the sidebar indicator
+  // uses. Outside Tauri the status is null and the panel stays as authored.
+  // No mirror file means Claude can't reach this project, so the fallback
+  // disclosure opens on its own.
+  checkConnection() {
+    if (!(window.Store && Store.connectorStatus)) return;
+    Store.connectorStatus().then((st) => {
+      if (st === null) return;
+      const pill = document.getElementById('claude-conn-pill');
+      if (pill) {
+        pill.style.display = 'inline-flex';
+        if (st.connected) {
+          const age = Store.connectorAgeLabel(st.ageMs);
+          pill.style.color = '#1D9E75'; pill.style.background = '#E8F7F1';
+          pill.innerHTML = '<span style="width:6px;height:6px;border-radius:50%;background:#1D9E75;"></span>Connected' + (age ? ' \u00B7 synced ' + age : '');
+        } else {
+          pill.style.color = '#9A9AA8'; pill.style.background = '#F0F1F4';
+          pill.innerHTML = '<span style="width:6px;height:6px;border-radius:50%;background:#9A9AA8;"></span>Not connected';
+        }
+      }
+      const fb = document.getElementById('plan-fallback');
+      if (!st.connected && fb) fb.open = true;
+    }).catch(() => {});
+  }
+  // The project Claude will fill in: name + folder live here from the start.
+  // Reused when one already exists for this folder (or this name), so a second
+  // click — or a later fallback Scan — never spawns duplicates.
+  ensureProject() {
+    const name = this.projectName();
+    const dir = this._assetsFolder || '';
+    const all = Store.listProjects() || [];
+    let p = (dir && all.filter((x) => x.assetsFolder === dir)[0])
+      || all.filter((x) => (x.name || '').trim().toLowerCase() === name.trim().toLowerCase())[0];
+    if (!p) {
+      const settings = Store.getSettings ? Store.getSettings() : {};
+      p = Store.createProject({ name, assetsFolder: dir, outputFolder: settings.defaultOutputFolder || '' });
+    } else if (dir && !p.assetsFolder) {
+      p = Store.updateProject(p.id, { assetsFolder: dir }) || p;
+    }
+    Store.setActive({ projectId: p.id });
+    this._createdProjectId = p.id;
+    const open = document.getElementById('np-open');
+    if (open) open.style.display = 'block';
+    return p;
   }
 
 
@@ -492,6 +597,48 @@ ${refTemplates}`;
   renderVals() {
     return {
       cancel: () => { window.location.href = (window.Store && Store.listProjects().length) ? 'projects.html' : 'home.html'; },
+      nameChanged: () => { this.refreshSay(); },
+      copySay: () => {
+        const btn = document.getElementById('copy-say-btn');
+        const done = () => {
+          if (!btn) return;
+          const prev = btn.innerHTML;
+          btn.innerHTML = '<svg width="11" height="11" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg> Copied!';
+          setTimeout(() => { btn.innerHTML = prev; }, 2000);
+        };
+        const text = this.sayLine();
+        const legacy = () => {
+          const ta = document.createElement('textarea');
+          ta.value = text; document.body.appendChild(ta); ta.select();
+          try { document.execCommand('copy'); } catch (e) {}
+          document.body.removeChild(ta);
+        };
+        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done).catch(() => { legacy(); done(); });
+        else { legacy(); done(); }
+      },
+      openInClaude: async () => {
+        const status = document.getElementById('claude-status');
+        const say = (msg, color) => { if (status) { status.textContent = msg; status.style.color = color || '#9A9AA8'; } };
+        const typed = ((document.getElementById('np-name') || {}).value || '').trim();
+        if (!typed && !this._assetsFolder) {
+          say('Name the project first so Claude knows where to put the plan.', '#9A5B00');
+          const input = document.getElementById('np-name');
+          if (input) input.focus();
+          return;
+        }
+        if (!window.Store) return;
+        this.ensureProject();
+        say('Opening Claude\u2026');
+        try {
+          const ok = await Store.openClaudeApp();
+          if (ok) say('Claude is open \u2014 say the line above. The concepts and shots land here when Claude is done.', '#0217D3');
+          else say('Launching Claude works in the Studio S desktop app only.');
+        } catch (e) {
+          say('Couldn\u2019t open Claude Desktop \u2014 is it installed? The fallback below works without it.', '#FF002E');
+          const fb = document.getElementById('plan-fallback');
+          if (fb) fb.open = true;
+        }
+      },
       setupChanged: () => {
         const textarea = document.getElementById('plan-instructions-text');
         if (textarea) textarea.value = this.buildClaudeInstructions(this._assetsFolder);
@@ -507,13 +654,20 @@ ${refTemplates}`;
         if (!dir) return;
         this._assetsFolder = dir;
         if (display) { display.textContent = dir; display.style.color = '#16161D'; }
+        if (this._createdProjectId && window.Store) {
+          const created = Store.getProject(this._createdProjectId);
+          if (created && !created.assetsFolder) Store.updateProject(created.id, { assetsFolder: dir });
+        }
         const instrPanel = document.getElementById('plan-instructions-panel');
         const scanPanel = document.getElementById('plan-scan-panel');
         if (instrPanel) instrPanel.style.display = 'block';
         if (scanPanel) scanPanel.style.display = 'block';
+        const needs = document.getElementById('fallback-needs-folder');
+        if (needs) needs.style.display = 'none';
         const textarea = document.getElementById('plan-instructions-text');
         if (textarea) textarea.value = this.buildClaudeInstructions(dir);
         this.renderModelAdvice();
+        this.refreshSay();
       },
       copyInstructions: () => {
         const textarea = document.getElementById('plan-instructions-text');

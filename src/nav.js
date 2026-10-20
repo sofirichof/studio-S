@@ -195,7 +195,58 @@
     scroll.insertBefore(row, anchor);
   }
 
-  function init() { markCursors(); decorateProjectName(); initProjectSelect(); initHomeRow(); initTheme(); }
+  // ── Claude connector indicator ──
+  // Sidebar footer on every page: is the connector mirror live, and when did it
+  // last sync. Store.connectorStatus() resolves null outside Tauri, in which
+  // case nothing is rendered at all. The box is created once per page; the
+  // text refreshes on load, on window focus (when the store also re-syncs) and
+  // once a minute so "X min ago" stays honest. It reads the mirror file, so it
+  // is deliberately NOT re-run on every DOM mutation the observer below sees.
+  function claudeStatusHtml(st) {
+    if (st && st.connected) {
+      var age = Store.connectorAgeLabel(st.ageMs);
+      return '<span style="display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:500;color:#1D9E75;background:#E8F7F1;border-radius:999px;padding:3px 10px;">' +
+          '<span style="width:6px;height:6px;border-radius:50%;background:#1D9E75;flex-shrink:0;"></span>Connected to Claude</span>' +
+        '<p style="font-size:11px;color:#9A9AA8;margin-top:6px;padding-left:2px;">' + (age ? 'Last sync ' + age : 'Synced') + '</p>';
+    }
+    return '<span style="display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:500;color:#9A9AA8;background:#F0F1F4;border-radius:999px;padding:3px 10px;">' +
+        '<span style="width:6px;height:6px;border-radius:50%;background:#9A9AA8;flex-shrink:0;"></span>Not connected</span>' +
+      '<p style="font-size:11px;color:#9A9AA8;margin-top:6px;padding-left:2px;line-height:1.5;">Claude can\'t see your projects yet. ' +
+        '<a href="#" data-sg-connector-guide style="color:#0217D3;font-weight:500;text-decoration:none;">Set up the connector →</a></p>';
+  }
+  function refreshClaudeStatus() {
+    var box = document.getElementById('sg-claude-status');
+    if (!box || !window.Store || !Store.connectorStatus) return;
+    Store.connectorStatus().then(function (st) {
+      if (st === null) { box.style.display = 'none'; return; }   // outside Tauri: no-op
+      box.innerHTML = claudeStatusHtml(st);
+      box.style.display = 'block';
+      box.setAttribute('data-sg-connected', st.connected ? '1' : '0');
+    }).catch(function () {});
+  }
+  function initClaudeStatus() {
+    if (!window.Store || !Store.connectorStatus) return;
+    var sidebar = document.querySelector('div[style*="border-right"]');
+    if (!sidebar || sidebar.querySelector('#sg-claude-status')) return;
+    var box = document.createElement('div');
+    box.id = 'sg-claude-status';
+    box.style.cssText = 'display:none;padding:12px 16px 14px;border-top:1px solid rgba(16,16,32,.06);flex-shrink:0;';
+    sidebar.appendChild(box);
+    refreshClaudeStatus();
+    if (!initClaudeStatus.wired) {
+      initClaudeStatus.wired = true;
+      window.addEventListener('focus', refreshClaudeStatus);
+      setInterval(refreshClaudeStatus, 60000);
+      document.addEventListener('click', function (e) {
+        var a = e.target && e.target.closest ? e.target.closest('[data-sg-connector-guide]') : null;
+        if (!a) return;
+        e.preventDefault();
+        Store.openConnectorGuide();
+      }, true);
+    }
+  }
+
+  function init() { markCursors(); decorateProjectName(); initProjectSelect(); initHomeRow(); initTheme(); initClaudeStatus(); }
   if (document.readyState !== 'loading') init();
   else document.addEventListener('DOMContentLoaded', init);
   // Re-run cosmetics after the DC runtime re-renders (navigation itself is delegated).

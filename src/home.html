@@ -177,7 +177,13 @@ class Component extends DCLogic {
         '<div style="height:5px;background:#ECEDF0;border-radius:999px;overflow:hidden;margin-top:16px;">' +
           '<div style="height:100%;width:' + pct + '%;background:#0217D3;border-radius:999px;"></div>' +
         '</div>' +
-        (nextTodo ? '<p style="font-size:12px;color:#9A9AA8;margin-top:10px;">Next up: <span style="color:#5A5A6B;">' + this.esc(nextTodo.label) + '</span></p>' : '') +
+        // No shots yet → the next step is the Claude path (connector), not a todo.
+        (!stats.total
+          ? '<p style="font-size:12px;color:#9A9AA8;margin-top:10px;line-height:1.6;">Next up: <span style="color:#5A5A6B;">no shots yet. ' +
+              '<a href="#" data-home="claude" style="color:#0217D3;font-weight:500;text-decoration:none;">Open Claude</a> and say ' +
+              '<span style="color:#16161D;">\u201CBreak this script down into my Studio S project \u2018' + this.esc(p.name) + '\u2019.\u201D</span> ' +
+              'The concepts and shots land here through the connector.</span></p>'
+          : (nextTodo ? '<p style="font-size:12px;color:#9A9AA8;margin-top:10px;">Next up: <span style="color:#5A5A6B;">' + this.esc(nextTodo.label) + '</span></p>' : '')) +
       '</div>' +
 
       // Project grid
@@ -212,10 +218,12 @@ class Component extends DCLogic {
 
   bind(mount) {
     mount.querySelectorAll('[data-home]').forEach((el) => {
-      el.onclick = () => {
+      el.onclick = (ev) => {
+        if (ev && ev.preventDefault) ev.preventDefault();
         const act = el.getAttribute('data-home');
         if (act === 'new') window.location.href = 'newproject.html';
         else if (act === 'go') window.location.href = el.getAttribute('data-dest');
+        else if (act === 'claude') { if (Store.openClaudeApp) Store.openClaudeApp().catch(() => {}); }
         else if (act === 'switch') {
           Store.setActive({ projectId: el.getAttribute('data-pid') });
           this.renderHome();

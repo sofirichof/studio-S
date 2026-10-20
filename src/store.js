@@ -1489,6 +1489,56 @@
       }
     }).catch(function () {});
   }
+  // ── connector status (for the UI) ──
+  // What the sidebar indicator and the New-project page show. Reads only the
+  // envelope header of the mirror file; never adopts or publishes anything —
+  // syncFromConnector owns the merge rule. Resolves to:
+  //   null                       outside Tauri (tests, plain browser) → render nothing
+  //   { connected: false }       in the app, but no mirror file yet (or unreadable)
+  //   { connected: true, rev, writer, at, ageMs }   mirror present; `at` is the
+  //                              last write by either side (app save or Claude edit)
+  function connectorStatus() {
+    var invoke = tauriInvoke();
+    if (!invoke) return Promise.resolve(null);
+    return invoke('read_connector_store').then(function (raw) {
+      var env = null;
+      try { env = raw ? JSON.parse(raw) : null; } catch (e) {}
+      if (!env || typeof env !== 'object') return { connected: false };
+      var at = Number(env.at) || 0;
+      return { connected: true, rev: env.rev || 0, writer: env.writer || '', at: at, ageMs: at ? Math.max(0, now() - at) : null };
+    }).catch(function () { return { connected: false }; });
+  }
+  // "just now" / "3 min ago" / "2 h ago" / "4 d ago" for the indicator's last-sync line.
+  function connectorAgeLabel(ageMs) {
+    if (ageMs == null || !(ageMs >= 0)) return '';
+    var m = Math.floor(ageMs / 60000);
+    if (m < 1) return 'just now';
+    if (m < 60) return m + ' min ago';
+    var h = Math.floor(m / 60);
+    if (h < 24) return h + ' h ago';
+    return Math.floor(h / 24) + ' d ago';
+  }
+  // Launch Claude Desktop (open_claude_app in src-tauri/src/lib.rs). Resolves
+  // true when launched, false outside Tauri; rejects when `open -a Claude` fails
+  // (not installed) so the page can fall back to the copy-and-paste path.
+  function openClaudeApp() {
+    var invoke = tauriInvoke();
+    if (!invoke) return Promise.resolve(false);
+    return invoke('open_claude_app').then(function () { return true; });
+  }
+  // The connector setup guide (connector/README.md on the public repo). Opened
+  // with the opener plugin in the app; a plain browser gets window.open.
+  var CONNECTOR_GUIDE_URL = 'https://github.com/sofirichof/studio-S/blob/main/connector/README.md';
+  function openConnectorGuide() {
+    var t = window.__TAURI__;
+    try {
+      if (t && t.opener && t.opener.openUrl) return t.opener.openUrl(CONNECTOR_GUIDE_URL).then(function () { return true; });
+      var invoke = tauriInvoke();
+      if (invoke) return invoke('plugin:opener|open_url', { url: CONNECTOR_GUIDE_URL }).then(function () { return true; });
+    } catch (e) {}
+    try { if (window.open) window.open(CONNECTOR_GUIDE_URL, '_blank'); } catch (e) {}
+    return Promise.resolve(false);
+  }
   // window.__TAURI__ may not be injected yet while this script evaluates, so the
   // first sync waits for the page load; syncFromConnector no-ops outside Tauri.
   if (window.addEventListener) {
@@ -1631,6 +1681,9 @@
     lockShotPrompt: lockShotPrompt, unlockShotPrompt: unlockShotPrompt,
     attachShotOutput: attachShotOutput, setOutputVerdict: setOutputVerdict,
     syncFromConnector: syncFromConnector,
+    connectorStatus: connectorStatus, connectorAgeLabel: connectorAgeLabel,
+    openClaudeApp: openClaudeApp, openConnectorGuide: openConnectorGuide,
+    connectorGuideUrl: function () { return CONNECTOR_GUIDE_URL; },
     projectCost: projectCost, latestOutput: latestOutput,
     outputVerdicts: function () { return OUTPUT_VERDICTS.slice(); },
     // deliverables
