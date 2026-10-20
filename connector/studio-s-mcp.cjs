@@ -21,10 +21,30 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 
-const SRC = path.join(__dirname, '..', 'src');
+// Where the app's own store.js / promptcompile.js live. In the repo this file
+// is connector/studio-s-mcp.cjs with them in ../src; inside the packaged
+// Claude Desktop extension (see connector/build-mcpb.sh) it is server/index.js
+// with them in ./src.
+const SRC = [path.join(__dirname, '..', 'src'), path.join(__dirname, 'src')]
+  .find((d) => fs.existsSync(path.join(d, 'store.js')));
+if (!SRC) { process.stderr.write('studio-s connector: store.js not found next to ' + __dirname + '\n'); process.exit(1); }
 const STORE_FILE = process.env.STUDIO_S_STORE ||
   path.join(os.homedir(), 'Library', 'Application Support', 'com.supergood.studios', 'connector', 'store.json');
+const CONNECTOR_DIR = path.dirname(STORE_FILE);
 const KEY = 'aifs.v1';
+const VERSION = require('../package.json').version;
+
+// The app can't see Claude Desktop's config, so the server leaves a note when
+// Claude launches it: that is what "Connected to Claude" in the app means.
+function heartbeat() {
+  try {
+    fs.mkdirSync(CONNECTOR_DIR, { recursive: true });
+    fs.writeFileSync(path.join(CONNECTOR_DIR, 'heartbeat.json'), JSON.stringify({
+      at: Date.now(), version: VERSION, pid: process.pid,
+      from: path.basename(__dirname) === 'server' ? 'mcpb' : 'repo'
+    }));
+  } catch (e) { /* best effort */ }
+}
 
 // ── app code in a sandbox ──────────────────────────────────────────────────────
 // A fresh context per call so every call sees the file as it is right now.
@@ -231,10 +251,11 @@ const send = (m) => process.stdout.write(JSON.stringify(m) + '\n');
 function handle(msg) {
   const { id, method, params } = msg;
   if (method === 'initialize') {
+    heartbeat();
     return send({ jsonrpc: '2.0', id, result: {
       protocolVersion: (params && params.protocolVersion) || '2025-06-18',
       capabilities: { tools: {} },
-      serverInfo: { name: 'studio-s', version: require('../package.json').version },
+      serverInfo: { name: 'studio-s', version: VERSION },
       instructions: 'Studio S holds the shot list. Flow per shot: compile_prompts → generate with Higgsfield using that prompt verbatim (only with the user\'s go — it spends credits) → attach_output → import into Premiere/After Effects via the Higgsfield bridge (name the project/bin first and wait for a go).'
     } });
   }

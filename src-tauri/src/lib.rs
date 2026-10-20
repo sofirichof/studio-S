@@ -134,6 +134,42 @@ fn read_connector_store(app: tauri::AppHandle) -> Result<Option<String>, String>
     }
 }
 
+// The connector packaged as a Claude Desktop extension (.mcpb), built by
+// connector/build-mcpb.sh and bundled as a resource. Claude Desktop owns the
+// file type, so `open` on it shows its install dialog — that is the whole
+// "Set up the connector" flow, no manual JSON.
+fn connector_installer_path(app: &tauri::AppHandle) -> Result<std::path::PathBuf, String> {
+    use tauri::Manager;
+    app.path()
+        .resolve("resources/studio-s.mcpb", tauri::path::BaseDirectory::Resource)
+        .map_err(|e| format!("No bundled connector package: {e}"))
+}
+
+#[tauri::command]
+fn open_connector_installer(app: tauri::AppHandle) -> Result<String, String> {
+    let p = connector_installer_path(&app)?;
+    if !p.exists() {
+        return Err(format!("Connector package missing at {}", p.display()));
+    }
+    std::process::Command::new("open")
+        .arg(&p)
+        .status()
+        .map_err(|e| format!("Couldn't open the connector package: {e}"))?;
+    Ok(p.display().to_string())
+}
+
+// The connector writes heartbeat.json next to the mirror file each time Claude
+// launches it. Its presence is what the app calls "Connected to Claude".
+#[tauri::command]
+fn read_connector_heartbeat(app: tauri::AppHandle) -> Result<Option<String>, String> {
+    let path = connector_file(&app)?.with_file_name("heartbeat.json");
+    match std::fs::read_to_string(&path) {
+        Ok(s) => Ok(Some(s)),
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(None),
+        Err(e) => Err(format!("Can't read heartbeat: {e}")),
+    }
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     #[allow(unused_mut)]
@@ -149,7 +185,7 @@ pub fn run() {
     }
 
     builder
-        .invoke_handler(tauri::generate_handler![anthropic_messages, scan_plan_folder, open_claude_app, mirror_store, read_connector_store])
+        .invoke_handler(tauri::generate_handler![anthropic_messages, scan_plan_folder, open_claude_app, mirror_store, read_connector_store, open_connector_installer, read_connector_heartbeat])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

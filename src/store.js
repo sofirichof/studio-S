@@ -1481,6 +1481,10 @@
       if (env && env.writer === 'connector' && env.doc && env.rev > localRev) {
         // Claude changed something while this copy was older: adopt it and redraw.
         env.doc._rev = env.rev;
+        // Remembered here because the app overwrites the mirror on its next save,
+        // so the envelope alone can't say when Claude last touched the project.
+        env.doc.ui = env.doc.ui || {};
+        env.doc.ui.connectorLastSeenAt = Number(env.at) || now();
         window.localStorage.setItem(KEY, JSON.stringify(env.doc));
         window.location.reload();
       } else if (!env || (env.rev || 0) < localRev) {
@@ -1490,23 +1494,43 @@
     }).catch(function () {});
   }
   // ── connector status (for the UI) ──
-  // What the sidebar indicator and the New-project page show. Reads only the
+  // What the sidebar indicator and the New-project page show. Reads the
+  // heartbeat the connector writes when Claude Desktop launches it, plus the
   // envelope header of the mirror file; never adopts or publishes anything —
   // syncFromConnector owns the merge rule. Resolves to:
-  //   null                       outside Tauri (tests, plain browser) → render nothing
-  //   { connected: false }       in the app, but no mirror file yet (or unreadable)
-  //   { connected: true, rev, writer, at, ageMs }   mirror present; `at` is the
-  //                              last write by either side (app save or Claude edit)
+  //   null   outside Tauri (tests, plain browser) → render nothing
+  //   { connected: false, bridge }   Claude has never launched the connector
+  //                                  (bridge: whether the mirror file exists)
+  //   { connected: true, bridge, heartbeatAt, connectorVersion, lastClaudeAt,
+  //     rev, writer, at, ageMs }     ageMs = since Claude last wrote through the
+  //                                  bridge, else since it last launched the server
   function connectorStatus() {
     var invoke = tauriInvoke();
     if (!invoke) return Promise.resolve(null);
-    return invoke('read_connector_store').then(function (raw) {
-      var env = null;
-      try { env = raw ? JSON.parse(raw) : null; } catch (e) {}
-      if (!env || typeof env !== 'object') return { connected: false };
-      var at = Number(env.at) || 0;
-      return { connected: true, rev: env.rev || 0, writer: env.writer || '', at: at, ageMs: at ? Math.max(0, now() - at) : null };
-    }).catch(function () { return { connected: false }; });
+    var parse = function (raw) { try { return raw ? JSON.parse(raw) : null; } catch (e) { return null; } };
+    return Promise.all([
+      invoke('read_connector_heartbeat').catch(function () { return null; }),
+      invoke('read_connector_store').catch(function () { return null; })
+    ]).then(function (res) {
+      var hb = parse(res[0]), env = parse(res[1]);
+      var bridge = !!(env && typeof env === 'object');
+      if (!hb || typeof hb !== 'object' || !hb.at) return { connected: false, bridge: bridge };
+      var lastClaudeAt = 0;
+      try { lastClaudeAt = Number((JSON.parse(window.localStorage.getItem(KEY) || '{}').ui || {}).connectorLastSeenAt) || 0; } catch (e) {}
+      var at = bridge ? (Number(env.at) || 0) : 0;
+      var ref = lastClaudeAt || Number(hb.at) || 0;
+      return { connected: true, bridge: bridge, heartbeatAt: Number(hb.at) || 0, connectorVersion: hb.version || '',
+        lastClaudeAt: lastClaudeAt, rev: bridge ? (env.rev || 0) : 0, writer: bridge ? (env.writer || '') : '',
+        at: at, ageMs: ref ? Math.max(0, now() - ref) : null };
+    }).catch(function () { return { connected: false, bridge: false }; });
+  }
+  // Open the bundled connector package (.mcpb); Claude Desktop shows its install
+  // dialog. Resolves true when opened, false outside Tauri; rejects when the
+  // package is missing or `open` fails so the page can offer the guide instead.
+  function openConnectorInstaller() {
+    var invoke = tauriInvoke();
+    if (!invoke) return Promise.resolve(false);
+    return invoke('open_connector_installer').then(function () { return true; });
   }
   // "just now" / "3 min ago" / "2 h ago" / "4 d ago" for the indicator's last-sync line.
   function connectorAgeLabel(ageMs) {
@@ -1683,6 +1707,7 @@
     syncFromConnector: syncFromConnector,
     connectorStatus: connectorStatus, connectorAgeLabel: connectorAgeLabel,
     openClaudeApp: openClaudeApp, openConnectorGuide: openConnectorGuide,
+    openConnectorInstaller: openConnectorInstaller,
     connectorGuideUrl: function () { return CONNECTOR_GUIDE_URL; },
     projectCost: projectCost, latestOutput: latestOutput,
     outputVerdicts: function () { return OUTPUT_VERDICTS.slice(); },

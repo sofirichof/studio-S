@@ -1,0 +1,72 @@
+{
+  "manifest_version": "0.3",
+  "name": "studio-s",
+  "display_name": "Studio S",
+  "version": "0.0.0",
+  "description": "Read and edit Studio S projects, push a plan in, compile shot prompts, log generated takes.",
+  "long_description": "Connects Claude to the Studio S app on this Mac. Claude can list projects, push a plan straight into a project, edit shots, return the compiled still and video prompts, and log what was generated for each shot (model, cost, verdict). Studio S itself never generates anything.",
+  "author": {
+    "name": "Sofia González Irigoyen",
+    "url": "https://github.com/sofirichof/studio-S"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sofirichof/studio-S.git"
+  },
+  "icon": "icon.png",
+  "server": {
+    "type": "node",
+    "entry_point": "server/index.js",
+    "mcp_config": {
+      "command": "node",
+      "args": [
+        "${__dirname}/server/index.js"
+      ]
+    }
+  },
+  "tools": [
+    {
+      "name": "list_projects",
+      "description": "List Studio S projects"
+    },
+    {
+      "name": "get_project",
+      "description": "A project's concepts, scenes and shots with ids"
+    },
+    {
+      "name": "push_plan",
+      "description": "Create or fill a project from a plan"
+    },
+    {
+      "name": "update_shot",
+      "description": "Edit one shot's fields, purpose or duration"
+    },
+    {
+      "name": "compile_prompts",
+      "description": "Still + video prompts from the app's own compiler"
+    },
+    {
+      "name": "attach_output",
+      "description": "Log a generated still or clip on its shot"
+    },
+    {
+      "name": "set_output_verdict",
+      "description": "Mark a logged generation keep / mix / discard"
+    }
+  ],
+  "keywords": [
+    "studio-s",
+    "supergood",
+    "shot list",
+    "prompts",
+    "film"
+  ],
+  "compatibility": {
+    "platforms": [
+      "darwin"
+    ],
+    "runtimes": {
+      "node": ">=18.0.0"
+    }
+  }
+}

@@ -38,6 +38,9 @@ ASSET=$(basename "$TARGZ" | sed 's/ /./g')
 OUT="release-v$VERSION"
 rm -rf "$OUT"; mkdir -p "$OUT"
 cp "$TARGZ" "$OUT/"; cp "$SIG" "$OUT/"
+# The Claude connector as a Claude Desktop extension — also inside the app, but
+# published alongside so it can be installed without the app too.
+cp src-tauri/resources/studio-s.mcpb "$OUT/"
 
 # Build the DMG with hdiutil instead of Tauri's bundle_dmg.sh. That script uses
 # AppleScript to style the installer window and DIES in a headless/automation
