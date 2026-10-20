@@ -438,18 +438,7 @@ class Component extends DCLogic {
   }
 
   dpTraits() {
-    return [
-      { id:'deakins', label:'Naturalistic classic', note:'motivated naturalistic light, single soft key, deep restrained shadows, muted earthy palette, classical balanced composition.' },
-      { id:'lubezki', label:'Available-light immersive', note:'natural and available light only, wide lenses, roaming long takes, magic-hour glow, immersive close framing.' },
-      { id:'hoytema', label:'Large-format cool', note:'large-format clarity, cool blue-grey palette, hard practical sources, atmospheric haze, IMAX-scale negative space.' },
-      { id:'fraser', label:'Soft epic', note:'soft directional key, desaturated warmth, gentle halation, in-camera realism, intimate yet epic framing.' },
-      { id:'young', label:'Low-key painterly', note:'low-key underexposed shadows, rich skin tones on darker complexions, amber practicals, painterly negative fill.' },
-      { id:'khondji', label:'Noir chiaroscuro', note:'high-contrast chiaroscuro, sodium-vapour ambers and sickly greens, deep blacks, textured grain, noir framing.' },
-      { id:'morrison', label:'Warm documentary', note:'warm naturalism, honest soft daylight, lived-in colour, handheld intimacy, documentary-true skin tones.' },
-      { id:'pfister', label:'Crisp anamorphic', note:'crisp anamorphic contrast, cool steel highlights, hard key light, clean architectural symmetry.' },
-      { id:'anderson', label:'Storybook symmetry', note:'flat frontal symmetry, centred subjects, pastel storybook palette, even soft light, planimetric staging.' },
-      { id:'villeneuve', label:'Monolithic minimal', note:'monolithic scale, monochrome tonal fields, fog and silhouette, minimal palette, brutalist symmetry.' },
-    ];
+    return PromptCompile.DP_TRAITS;
   }
 
   builderKeys() {
@@ -537,119 +526,10 @@ class Component extends DCLogic {
   // Single source of truth for the compiled prompt, built from real builder state.
   // Used by the sidebar rail, the Review card, and Generate — so all three agree.
   compilePrompt() {
-    const s = this.state;
-    const has = (v) => !!(v && String(v).trim());
-    let stills = '', video = '';
-    if (has(s.subject) || has(s.environment)) {
-      const PC = window.PromptCompile;
-      const chips = s.chips || {};
-      const parts = [];
-      // "A aerial shot" / "A extreme close-up" were shipping as broken English —
-      // the article was hardcoded. Vowel-initial sizes take "An".
-      const sizeLabel = this.shotLabelShort(s.shot);
-      parts.push((/^[aeiou]/i.test(sizeLabel) ? 'An ' : 'A ') + sizeLabel);
-      if (has(s.subject)) parts.push('of ' + s.subject.trim().replace(/\.$/, '').replace(/^(A|An|The)\s+/, (m) => m.toLowerCase()));
-      // Action — the "what happens" beat, frozen as the still's captured moment.
-      const act = PC && PC.stillAction ? PC.stillAction(s.action) : '';
-      if (act) parts.push(', ' + act);
-      if (has(s.environment)) parts.push('— ' + s.environment.trim().replace(/\.$/, ''));
-      // Time of day (Environment step) now reaches the prompt.
-      const tod = PC ? PC.chipClause('tod', chips.tod) : '';
-      if (tod) parts.push(', ' + tod);
-      // Look: DP note (by-look), or the plain-language feel clause (by-feel).
-      if (s.lookMode === 'dp' && has(s.dp)) { const t = this.dpTraits().find((x) => x.id === s.dp); if (t) parts.push(', ' + t.note.replace(/\.$/, '')); }
-      else if (s.lookMode === 'feel' && PC) { const feel = PC.chipClause('feel', chips.feel); if (feel) parts.push(', ' + feel); }
-      // Lighting (multi) and colour grade now reach the prompt.
-      if (PC) PC.chipClauses('light', chips.light).forEach((c) => parts.push(', ' + c));
-      const grade = PC ? PC.chipClause('grade', chips.grade) : '';
-      if (grade) parts.push(', ' + grade);
-      if (has(s.lens)) parts.push(', ' + s.lens + 'mm');
-      // Dictionary-driven film language: every camera/composition control emits
-      // its verified phrase, so angle, depth, placement and framing actually
-      // reach the prompt instead of only redrawing the preview.
-      const T = (c, v) => (PC && PC.term) ? PC.term(c, v, s.stillModel) : '';
-      // Aerial already fixes the camera height, so an angle clause on top of it
-      // contradicts the size. `angle` defaults to 'eye', so before this every
-      // aerial shot compiled as "An aerial shot … shot at eye level" by default,
-      // not as a rare mis-selection.
-      const angleTxt = s.shot === 'aerial' ? '' : T('angle', s.angle);
-      const film = [angleTxt, T('comp', s.comp), T('depth', s.depth)]
-        .concat((s.framing || []).map((f) => T('framing', f)))
-        .concat([(s.density === 'single' || s.density === 'crowd' || s.density === 'none') ? T('density', s.density) : ''])
-        .filter(Boolean);
-      film.forEach((c) => parts.push(', ' + c));
-      // Realism extras (multi) — texture/physics cues, appended last.
-      if (PC) PC.chipClauses('realism', chips.realism).forEach((c) => parts.push(', ' + c));
-      // Cinema-camera / film-look craft — brand-free (see promptcompile.cameraCraft).
-      if (PC && PC.cameraCraft) PC.cameraCraft().forEach((c) => parts.push(', ' + c));
-      // Always-on photographic-realism baseline — the "make it a real photo, not
-      // AI" craft the older app appended to every still and the current app had
-      // lost. Brand/name-free (see promptcompile.realismBaseline); the single
-      // biggest reason the old prompts read real.
-      // realismBaseline has always accepted { people: false }; nothing ever set
-      // it, so an empty establishing shot still demanded 'a lone figure',
-      // visible skin pores and realistic eye reflections. Density 'none' is
-      // the input that was missing.
-      if (PC && PC.realismBaseline) PC.realismBaseline({ people: s.density !== 'none' }).forEach((c) => parts.push(', ' + c));
-      stills = parts.join(' ').replace(/ ,/g, ',') + '.';
-      // Video reuses the CLEAN scene (before any per-model stills wrapping), so the
-      // image-to-video prompt carries subject/look/lens without the stills lead/flags.
-      // Resolved here rather than after the compile: the Seedance adapter composes
-      // references INTO its slots, so it needs them as input, not as a prose weave
-      // applied to a finished string.
-      video = (PC && PC.compileVideo) ? PC.compileVideo(s, { scene: stills, model: s.videoModel, refs: this.attachedRefs(s) })
-        : 'Animate the still: natural ambient motion, hold the framing.';
-      // Project style prefix leads every shot unless this shot overrides it.
-      let pre = '';
-      if (!s.prefixOverride && window.Store && this._ids && this._ids.projectId && Store.getStylePrefix) {
-        const sp = Store.getStylePrefix(this._ids.projectId);
-        if (sp && sp.trim()) pre = sp.trim().replace(/\.$/, '') + '. ';
-      }
-      // Per-model stills lead — model choice now changes the compiled text.
-      const ar = (PC && PC.chipClause('ar', chips.ar)) || '16:9';
-      const lead = PC && PC.stillLead ? PC.stillLead(s.stillModel, { ar }) : { pre: '', post: '' };
-      stills = pre + 'Cinematic film still. ' + (lead.pre || '') + stills + (lead.post || '');
-    }
-    let compiled = { stills: stills, video: video };
-    // Weave attached references (characters, props/products, location, style look).
-    const seedance = s.videoModel === 'higgsfield';
-    if (window.PromptCompile && window.Store) {
-      const refs = this.attachedRefs(s);
-      const woven = PromptCompile.weaveReferences(compiled, refs, { atTags: this.usesAtTags(), videoRefMode: PromptCompile.videoRefMode(s.videoModel) });
-      // Seedance already carries every reference in Characters: and Scene:, with its
-      // own @handles. Weaving them again as prose would state each one twice — so
-      // the video half keeps the adapter's output and the stills half is untouched.
-      compiled = seedance ? { stills: woven.stills, video: compiled.video } : woven;
-    }
-    // The attachment-order line rides alongside the prompt, never inside it: the
-    // Review copy button reads compiled.video only, so this cannot be pasted by
-    // accident into a generator that would read it as an instruction.
-    if (seedance && window.PromptCompile && PromptCompile.videoNote) {
-      compiled.videoNote = PromptCompile.videoNote(s, { model: s.videoModel, refs: this.attachedRefs(s) });
-    }
-    // Continuity tail (Phase 2). Appended like `negative` — never woven into the
-    // scene clause-join above, which stays exactly as it compiled before. Order
-    // follows the brief's layering: scene, references, off-camera continuity,
-    // prop state, then negative constraints. Both stages get it: prop state
-    // during a move matters as much as at the frozen instant.
-    const tail = (label, v) => {
-      if (!has(v)) return;
-      const clause = ' ' + label + ': ' + String(v).trim().replace(/\.$/, '') + '.';
-      if (has(compiled.stills)) compiled.stills += clause;
-      // offCamera lands in Scene: and propState splits across Scene:/CUT 1 for
-      // Seedance, so appending them here too would restate both.
-      if (!seedance && has(compiled.video)) compiled.video += clause;
-    };
-    tail('Off camera', s.offCamera);
-    tail('Continuity', s.propState);
-    // The negative field promises "applies to both stages" — honor it as a
-    // prose tail (no model exposes a negative_prompt param; see RESEARCH-LOG).
-    if (has(s.negative)) {
-      const avoid = ' Avoid: ' + s.negative.trim().replace(/\.$/, '') + '.';
-      if (has(compiled.stills)) compiled.stills += avoid;
-      if (has(compiled.video)) compiled.video += avoid;
-    }
-    return compiled;
+    // The compiler lives in promptcompile.js (compileShot) so the connector shares it.
+    const sp = (!this.state.prefixOverride && window.Store && this._ids && this._ids.projectId && Store.getStylePrefix)
+      ? Store.getStylePrefix(this._ids.projectId) : '';
+    return PromptCompile.compileShot(this.state, { refs: this.attachedRefs(this.state), stylePrefix: sp });
   }
 
   renderRail() {

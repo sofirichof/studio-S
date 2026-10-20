@@ -96,6 +96,44 @@ fn open_claude_app() -> Result<(), String> {
     Ok(())
 }
 
+// ── Studio S connector bridge ────────────────────────────────────────────────
+// The app's data lives in the webview's localStorage, which nothing outside the
+// window can read. So the store mirrors itself to one JSON file on every save,
+// and the connector (connector/studio-s-mcp.cjs — an MCP server Claude runs)
+// reads and writes that same file. Envelope: { rev, writer, at, doc }.
+// The frontend owns the merge rule (store.js syncFromConnector); this side only
+// moves bytes.
+fn connector_file(app: &tauri::AppHandle) -> Result<std::path::PathBuf, String> {
+    use tauri::Manager;
+    let dir = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| format!("No app data folder: {e}"))?
+        .join("connector");
+    std::fs::create_dir_all(&dir).map_err(|e| format!("Can't create {}: {e}", dir.display()))?;
+    Ok(dir.join("store.json"))
+}
+
+#[tauri::command]
+fn mirror_store(app: tauri::AppHandle, envelope: String) -> Result<(), String> {
+    let path = connector_file(&app)?;
+    // Write-then-rename so the connector never reads a half-written file.
+    let tmp = path.with_extension("json.tmp");
+    std::fs::write(&tmp, envelope).map_err(|e| format!("Can't write mirror: {e}"))?;
+    std::fs::rename(&tmp, &path).map_err(|e| format!("Can't replace mirror: {e}"))?;
+    Ok(())
+}
+
+#[tauri::command]
+fn read_connector_store(app: tauri::AppHandle) -> Result<Option<String>, String> {
+    let path = connector_file(&app)?;
+    match std::fs::read_to_string(&path) {
+        Ok(s) => Ok(Some(s)),
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(None),
+        Err(e) => Err(format!("Can't read mirror: {e}")),
+    }
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     #[allow(unused_mut)]
@@ -111,7 +149,7 @@ pub fn run() {
     }
 
     builder
-        .invoke_handler(tauri::generate_handler![anthropic_messages, scan_plan_folder, open_claude_app])
+        .invoke_handler(tauri::generate_handler![anthropic_messages, scan_plan_folder, open_claude_app, mirror_store, read_connector_store])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

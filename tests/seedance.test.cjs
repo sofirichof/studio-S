@@ -13,7 +13,8 @@ const PC = global.window.PromptCompile;
 let pass = 0, fail = 0;
 function ok(name, cond) { if (cond) { pass++; } else { fail++; console.log('  ✗ ' + name); } }
 
-const PB = src('promptbuilder.html');
+// The shot compiler (and DP_TRAITS) moved into promptcompile.js; source checks read both.
+const PB = src('promptbuilder.html') + '\n' + src('promptcompile.js');
 const STORE = src('store.js');
 
 // A People shot with everything set, so no slot is skipped by a `has()` guard.

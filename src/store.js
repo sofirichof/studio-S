@@ -236,8 +236,11 @@
   var lastSaveOk = true;
   function save(doc) {
     try {
+      // _rev counts saves so the connector bridge can tell which copy is newer.
+      doc._rev = (doc._rev || 0) + 1;
       window.localStorage.setItem(KEY, JSON.stringify(doc));
       lastSaveOk = true;
+      mirrorToConnector(doc);
     } catch (e) {
       // Don't fail silently — a full/unavailable store means the change is NOT
       // persisted and will vanish on reload. Surface it so callers can react.
@@ -1437,6 +1440,70 @@
     return p;
   }
 
+  // ── connector bridge ─────────────────────────────────────────────────────────
+  // Claude (via connector/studio-s-mcp.cjs) can't read localStorage, so every save
+  // is mirrored to a file through the Tauri shell, and edits the connector made
+  // to that file are adopted here when the app opens or regains focus. Newest
+  // _rev wins. Outside Tauri (tests, plain browser) all of this is a no-op.
+  function tauriInvoke() {
+    var t = window.__TAURI__;
+    return (t && t.core && t.core.invoke) ? t.core.invoke : null;
+  }
+  function mirrorToConnector(doc) {
+    var invoke = tauriInvoke();
+    if (!invoke) return;
+    var env = JSON.stringify({ rev: doc._rev || 0, writer: 'app', at: now(), doc: doc });
+    try { invoke('mirror_store', { envelope: env }).catch(function () {}); } catch (e) {}
+  }
+  function syncFromConnector() {
+    var invoke = tauriInvoke();
+    if (!invoke) return;
+    invoke('read_connector_store').then(function (raw) {
+      var local = null;
+      try { local = JSON.parse(window.localStorage.getItem(KEY) || 'null'); } catch (e) {}
+      var localRev = (local && local._rev) || 0;
+      var env = null;
+      try { env = raw ? JSON.parse(raw) : null; } catch (e) {}
+      if (env && env.writer === 'connector' && env.doc && env.rev > localRev) {
+        // Claude changed something while this copy was older: adopt it and redraw.
+        env.doc._rev = env.rev;
+        window.localStorage.setItem(KEY, JSON.stringify(env.doc));
+        window.location.reload();
+      } else if (local && (!env || (env.rev || 0) < localRev)) {
+        // First run with the bridge, or the file fell behind: publish ours.
+        mirrorToConnector(local);
+      }
+    }).catch(function () {});
+  }
+  if (tauriInvoke()) {
+    syncFromConnector();
+    window.addEventListener('focus', syncFromConnector);
+  }
+
+  // ── generated outputs ────────────────────────────────────────────────────────
+  // Studio S never generates. When a still or clip is generated elsewhere
+  // (Higgsfield, by hand) its record is attached to the shot it came from, so the
+  // project knows which takes exist and where they live.
+  function attachShotOutput(ids, out) {
+    ids = ids || {}; out = out || {};
+    if (!out.url && !out.path) return null;
+    var doc = load();
+    var f = locate(doc, ids.projectId, ids.conceptId, ids.sceneId, ids.shotId);
+    if (!f || !f.sh) return null;
+    if (!Array.isArray(f.sh.outputs)) f.sh.outputs = [];
+    var rec = {
+      id: newId('out'),
+      kind: out.kind === 'video' ? 'video' : 'still',
+      url: String(out.url || ''), path: String(out.path || ''),
+      source: String(out.source || ''), generationId: String(out.generationId || ''),
+      model: String(out.model || ''), prompt: String(out.prompt || ''),
+      at: now()
+    };
+    f.sh.outputs.push(rec);
+    f.p.updatedAt = now(); save(doc);
+    return rec;
+  }
+
   window.Store = {
     load: load, save: save, saveOk: function () { return lastSaveOk; },
     getSettings: getSettings, setSettings: setSettings,
@@ -1464,6 +1531,7 @@
     lookLabels: function () { return Object.keys(LOOK_LABELS).slice(); },
     resolveLook: resolveLook,
     lockShotPrompt: lockShotPrompt, unlockShotPrompt: unlockShotPrompt,
+    attachShotOutput: attachShotOutput,
     // deliverables
     listDeliverables: listDeliverables, getDeliverable: getDeliverable,
     createDeliverable: createDeliverable, updateDeliverable: updateDeliverable, deleteDeliverable: deleteDeliverable,

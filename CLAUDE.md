@@ -31,7 +31,8 @@ whole file for a change that touches one function or one block of markup.
 
 `src-tauri/` is a genuinely thin shell: `src/lib.rs` is ~110 lines with three `#[tauri::command]`
 functions (an Anthropic API proxy that keeps the key server-side, a plan-file scanner, and a
-"launch Claude desktop app" helper). `src/main.rs` just calls into it. Almost all app logic
+"launch Claude desktop app" helper), plus `mirror_store` / `read_connector_store` for the
+connector bridge (`connector/README.md`). `src/main.rs` just calls into it. Almost all app logic
 lives in `src/`, not here — don't reach for Rust changes unless the task is actually about one
 of these three commands or Tauri config.
 
