@@ -1571,6 +1571,18 @@
     window.addEventListener('focus', syncFromConnector);
   }
 
+  // ── intake (folder → project → breakdown job) ─────────────────────────────
+  // The one piece of cross-page state the app needs: which folder is being
+  // broken down right now, so Home can show it and any page can resume it.
+  function getIntake() { var ui = load().ui || {}; return ui.intake ? Object.assign({}, ui.intake) : null; }
+  function setIntake(patch) {
+    var doc = load();
+    doc.ui = doc.ui || {};
+    doc.ui.intake = patch === null ? null : Object.assign({}, doc.ui.intake || {}, patch || {});
+    save(doc);
+    return doc.ui.intake ? Object.assign({}, doc.ui.intake) : null;
+  }
+
   // ── generated outputs ────────────────────────────────────────────────────────
   // Studio S never generates. When a still or clip is generated elsewhere
   // (Higgsfield, by hand) its record is attached to the shot it came from, so the
@@ -1708,6 +1720,7 @@
     connectorStatus: connectorStatus, connectorAgeLabel: connectorAgeLabel,
     openClaudeApp: openClaudeApp, openConnectorGuide: openConnectorGuide,
     openConnectorInstaller: openConnectorInstaller,
+    getIntake: getIntake, setIntake: setIntake,
     connectorGuideUrl: function () { return CONNECTOR_GUIDE_URL; },
     projectCost: projectCost, latestOutput: latestOutput,
     outputVerdicts: function () { return OUTPUT_VERDICTS.slice(); },

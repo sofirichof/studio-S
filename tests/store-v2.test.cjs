@@ -394,7 +394,7 @@ ok('scene name: no em-dash means no desc', ns[2].name === 'Just a plain name' &&
 // The template in newproject.html lists the allowed values inline. If either side
 // gains a value the other doesn't know, plans compile to an empty camera clause.
 {
-  const tpl = fs.readFileSync(path.join(__dirname, '..', 'src', 'newproject.html'), 'utf8');
+  const tpl = (fs.readFileSync(path.join(__dirname, '..', 'src', 'newproject.html'), 'utf8') + '\n' + fs.readFileSync(path.join(__dirname, '..', 'src', 'planinstructions.js'), 'utf8'));
   const src = fs.readFileSync(path.join(__dirname, '..', 'src', 'store.js'), 'utf8');
   const block = (src.split('var SHOT_CONTROLS')[1] || '').split('};')[0];
   // comp / density / framing compile too, and the handoff now asks for them —
@@ -488,7 +488,7 @@ ok('scene name: no em-dash means no desc', ns[2].name === 'Just a plain name' &&
   ok('compile: tail comes after the scene assembly', iOff > iScene);
   ok('compile: off camera before prop state before negative', iOff < iProp && iProp < iNeg);
   // The plan template must emit every field the store now imports.
-  const tpl = fs.readFileSync(path.join(__dirname, '..', 'src', 'newproject.html'), 'utf8');
+  const tpl = (fs.readFileSync(path.join(__dirname, '..', 'src', 'newproject.html'), 'utf8') + '\n' + fs.readFileSync(path.join(__dirname, '..', 'src', 'planinstructions.js'), 'utf8'));
   ['offCamera', 'propState'].forEach((k) =>
     ok('plan template emits ' + k, tpl.indexOf('"' + k + '":') !== -1));
   // Every SHOT_FIELDS entry is editable in the project view, or a plan-imported
@@ -562,7 +562,7 @@ ok('scene name: no em-dash means no desc', ns[2].name === 'Just a plain name' &&
     fs.readFileSync(path.join(__dirname, '..', 'src', 'store.js'), 'utf8')
       .indexOf("source: 'plan'") !== -1);
 
-  const tpl = fs.readFileSync(path.join(__dirname, '..', 'src', 'newproject.html'), 'utf8');
+  const tpl = (fs.readFileSync(path.join(__dirname, '..', 'src', 'newproject.html'), 'utf8') + '\n' + fs.readFileSync(path.join(__dirname, '..', 'src', 'planinstructions.js'), 'utf8'));
   ok('plan template emits "purpose"', tpl.indexOf('"purpose":') !== -1);
 
   const pv = fs.readFileSync(path.join(__dirname, '..', 'src', 'projects.html'), 'utf8');
@@ -846,7 +846,7 @@ async function claudePathChecks() {
   ok('nav: not-connected state links to the connector guide', nav.indexOf('Not connected') !== -1 && nav.indexOf('Set up the connector') !== -1 && nav.indexOf('Store.openConnectorGuide()') !== -1);
   ok('nav: no-op outside Tauri (null status renders nothing)', nav.indexOf("if (st === null) { box.style.display = 'none'; return; }") !== -1);
 
-  const np = fs.readFileSync(path.join(__dirname, '..', 'src', 'newproject.html'), 'utf8');
+  const np = (fs.readFileSync(path.join(__dirname, '..', 'src', 'newproject.html'), 'utf8') + '\n' + fs.readFileSync(path.join(__dirname, '..', 'src', 'planinstructions.js'), 'utf8'));
   const iPrimary = np.indexOf('id="open-claude-btn"');
   const iFallback = np.indexOf('<details id="plan-fallback"');
   ok('newproject: "Open in Claude" is the primary action', iPrimary !== -1 && np.indexOf('onclick="{{ openInClaude }}"') !== -1 && np.indexOf('Store.openClaudeApp()') !== -1);
