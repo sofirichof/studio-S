@@ -786,5 +786,39 @@ ok('scene name: no em-dash means no desc', ns[2].name === 'Just a plain name' &&
   ok('projects header reads projectCost', pj.indexOf('Store.projectCost(') !== -1 && pj.indexOf('this.costLine(id, esc)') !== -1);
 }
 
-console.log('\n' + pass + ' passed, ' + fail + ' failed');
-process.exit(fail ? 1 : 0);
+// ── P. Connector bridge: a never-bridged store must not be replaced ──
+// Regression: the first build with the bridge, launched over real projects
+// (no _rev) while the connector file still held a debug build's test project
+// at rev 22, would have adopted the test project and dropped the real ones.
+{
+  const run = (file, localDoc) => new Promise((resolve) => {
+    const calls = [];
+    const win = {
+      localStorage: { getItem: (k) => (k === 'aifs.v1' && localDoc ? JSON.stringify(localDoc) : null), setItem: (k, v) => { calls.push(['set', JSON.parse(v)]); localDoc = JSON.parse(v); }, removeItem() {} },
+      addEventListener() {}, location: { reload() { calls.push(['reload']); } },
+      __TAURI__: { core: { invoke: async (cmd, a) => { if (cmd === 'mirror_store') { calls.push(['mirror', JSON.parse(a.envelope)]); return; } if (cmd === 'read_connector_store') return file; } } }
+    };
+    const S = (new Function('window', fs.readFileSync(path.join(__dirname, '..', 'src', 'store.js'), 'utf8') + '\nreturn window.Store;'))(win);
+    S.syncFromConnector();
+    setTimeout(() => resolve({ calls, localDoc }), 10);
+  });
+  const real = { version: 3, settings: { configured: true }, projects: [{ id: 'prj_real', name: 'Real client job', concepts: [] }], clients: [], deliverables: [], assets: [], versions: [], people: [], ui: {} };
+  const test = { version: 3, settings: {}, projects: [{ id: 'prj_test', name: 'Debug test project', concepts: [] }], clients: [], deliverables: [], assets: [], versions: [], people: [], ui: {}, _rev: 22 };
+  const stale = JSON.stringify({ rev: 22, writer: 'connector', at: 1, doc: test });
+  (async () => {
+    let r = await run(stale, real);
+    ok('bridge: unbridged store keeps its real projects', r.localDoc.projects[0].id === 'prj_real');
+    ok('bridge: unbridged store does not reload', !r.calls.some((c) => c[0] === 'reload'));
+    ok('bridge: unbridged store stamps _rev 1 and publishes itself', r.localDoc._rev === 1 && r.calls.some((c) => c[0] === 'mirror' && c[1].rev === 1 && c[1].doc.projects[0].id === 'prj_real'));
+    r = await run(stale, Object.assign({}, real, { _rev: 5 }));
+    ok('bridge: bridged store adopts a newer connector write', r.localDoc.projects[0].id === 'prj_test' && r.localDoc._rev === 22 && r.calls.some((c) => c[0] === 'reload'));
+    r = await run(JSON.stringify({ rev: 3, writer: 'connector', at: 1, doc: test }), Object.assign({}, real, { _rev: 5 }));
+    ok('bridge: bridged store ignores an older connector write and republishes', r.localDoc.projects[0].id === 'prj_real' && r.calls.some((c) => c[0] === 'mirror'));
+    r = await run(null, Object.assign({}, real, { _rev: 5 }));
+    ok('bridge: missing file → publish', r.calls.some((c) => c[0] === 'mirror'));
+    r = await run(stale, null);
+    ok('bridge: empty store adopts nothing and publishes nothing', r.calls.length === 0);
+    console.log('\n' + pass + ' passed, ' + fail + ' failed');
+    process.exit(fail ? 1 : 0);
+  })();
+}

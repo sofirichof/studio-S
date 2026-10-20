@@ -1465,13 +1465,26 @@
       var localRev = (local && local._rev) || 0;
       var env = null;
       try { env = raw ? JSON.parse(raw) : null; } catch (e) {}
+      if (!localRev) {
+        // A store that has never been bridged — data from a build before the
+        // connector, or a fresh install. It publishes itself and NEVER adopts:
+        // whatever is in the file came from some other copy (a debug build's
+        // test project, say) and must not replace real projects. Stamping
+        // _rev makes this copy the bridge's baseline from here on.
+        if (local) {
+          local._rev = 1;
+          window.localStorage.setItem(KEY, JSON.stringify(local));
+          mirrorToConnector(local);
+        }
+        return;
+      }
       if (env && env.writer === 'connector' && env.doc && env.rev > localRev) {
         // Claude changed something while this copy was older: adopt it and redraw.
         env.doc._rev = env.rev;
         window.localStorage.setItem(KEY, JSON.stringify(env.doc));
         window.location.reload();
-      } else if (local && (!env || (env.rev || 0) < localRev)) {
-        // First run with the bridge, or the file fell behind: publish ours.
+      } else if (!env || (env.rev || 0) < localRev) {
+        // The file fell behind (or vanished): publish ours.
         mirrorToConnector(local);
       }
     }).catch(function () {});
@@ -1617,6 +1630,7 @@
     resolveLook: resolveLook,
     lockShotPrompt: lockShotPrompt, unlockShotPrompt: unlockShotPrompt,
     attachShotOutput: attachShotOutput, setOutputVerdict: setOutputVerdict,
+    syncFromConnector: syncFromConnector,
     projectCost: projectCost, latestOutput: latestOutput,
     outputVerdicts: function () { return OUTPUT_VERDICTS.slice(); },
     // deliverables
