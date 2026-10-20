@@ -149,8 +149,14 @@ ok('all() concatenates every template', RT.all().length > (RT.character.length +
 // reftemplates.js is a copy of docs/research/copy-paste-templates.md. Two
 // copies drift. This catches the realistic case: the research doc gets revised
 // and the shipped copy doesn't (or vice versa).
-{
-  const doc = fs.readFileSync(path.join(__dirname, '..', 'docs', 'research', 'copy-paste-templates.md'), 'utf8');
+// docs/research/ is gitignored on purpose (internal, public repo), so the doc
+// only exists in a working copy that has it. Without it this block is skipped
+// rather than crashing the whole suite on CI and in fresh checkouts.
+const RESEARCH_DOC = path.join(__dirname, '..', 'docs', 'research', 'copy-paste-templates.md');
+if (!fs.existsSync(RESEARCH_DOC)) {
+  console.log('  (skipped: docs/research/copy-paste-templates.md not in this checkout — drift check needs the private research doc)');
+} else {
+  const doc = fs.readFileSync(RESEARCH_DOC, 'utf8');
   const ANCHORS = [
     'Cinematic character reference sheet, split-frame layout, photorealistic',
     'plain solid grey background (#8a8a8a), seamless',
